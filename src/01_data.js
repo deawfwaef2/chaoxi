@@ -1,6 +1,6 @@
 'use strict';
 /* ===================== 常量与数据表（v0.5：光不可再生 + 魂晶资源 + 迷雾遗迹） ===================== */
-const VERSION = '0.7.0';
+const VERSION = '0.8.0';
 const CELL = 24, GN = 400, HALF = GN * CELL / 2;      // 墙体网格：400x400 格，每格 24px，世界 ±4800
 const SC = 48, SN = 200, SNC = SN * SN;               // 空间网格
 const MAXP = 240000, MAXC = 24000;

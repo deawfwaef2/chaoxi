@@ -192,7 +192,7 @@ function updateDock() {
 function setDock() { UI.dockSig = ''; updateDock(); }
 function doSummon(i, el) {
   const s = SPECIES[i], o = G.orb, r = summon(i, isWall(o.x, o.y) ? null : { x: o.x, y: o.y });
-  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('光') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
+  if (r) { AU.play('error'); toast('⚠ ' + r + ''); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
   else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#ffe3a0' }); }
   updateDock();
 }
