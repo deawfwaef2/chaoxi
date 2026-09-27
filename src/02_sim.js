@@ -1,4 +1,4 @@
-/* ===================== 模拟核心 v0.4（不依赖 DOM，可在 node 中测试） ===================== */
+/* ===================== 模拟核心 v0.5（不依赖 DOM，可在 node 中测试） ===================== */
 const rnd = Math.random;
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -17,30 +17,43 @@ const cthink = new Float32Array(MAXC), cst = new Uint8Array(MAXC), ctx_ = new Fl
 const ctg = new Int32Array(MAXC), ctgId = new Uint32Array(MAXC), cid = new Uint32Array(MAXC), crep = new Float32Array(MAXC);
 const cph = new Float32Array(MAXC), ctim = new Float32Array(MAXC), cwire = new Float32Array(MAXC), cstas = new Float32Array(MAXC);
 const chop = new Float32Array(MAXC), cdead = new Uint8Array(MAXC), cgen = new Uint16Array(MAXC), cmood = new Float32Array(MAXC);
-const cg = new Float32Array(MAXC), ckin = new Uint8Array(MAXC), cfc = new Float32Array(MAXC), cang = new Float32Array(MAXC);
+const cg = new Float32Array(MAXC), ckin = new Uint8Array(MAXC), cfc = new Float32Array(MAXC), cang = new Float32Array(MAXC), cmt = new Float32Array(MAXC);
+/* ---------- 物质结晶 SoA ---------- */
+const mx = new Float32Array(MAXM), my = new Float32Array(MAXM), mvx = new Float32Array(MAXM), mvy = new Float32Array(MAXM), mval = new Uint16Array(MAXM), mage = new Float32Array(MAXM);
+let mN = 0;
 let cN = 0;
 const cStart = new Int32Array(SNC + 1), cItems = new Int32Array(MAXC), cCur = new Int32Array(SNC), cKey = new Int32Array(MAXC);
 const ST_WANDER = 0, ST_FOOD = 1, ST_HUNT = 2, ST_FLEE = 3, ST_REST = 4, ST_MATE = 5, ST_FIGHT = 6;
 const ST_NAME = ['闲逛', '觅食', '追猎', '逃跑', '休息', '求偶', '驱赶'];
 
 /* ---------- 墙体 ---------- */
-const whp = new Float32Array(GN * GN), wE = new Uint8Array(GN * GN), wMax = new Float32Array(GN * GN);
+const whp = new Float32Array(GN * GN), wE = new Uint8Array(GN * GN), wMax = new Float32Array(GN * GN), seen = new Uint8Array(GN * GN);
 const WALL_DIRTY = [];
 
 /* ---------- 全局状态 ---------- */
 const G = {
   t: 0, lv: 0, maxLv: 0, wt: 0, towerAcc: 0, devAcc: 0, lastScore: 0, lastRaw: 0, lastHarm: 1, lastBreak: null,
   hist: [], popHist: [], total0: 0, wallSealed: 0, nextId: 1, devs: [], devId: 1,
-  orb: { x: 0, y: 60, vx: 0, vy: 0, hp: 100, dead: 0, attract: false, drill: 0, ix: 0, iy: 0 },
+  orb: { x: 0, y: 60, vx: 0, vy: 0, hp: 100, dead: 0, attract: false, spray: false, drill: 0, ix: 0, iy: 0, tank: 80, sprAcc: 0 },
+  matter: 0, pois: [], flow: { spray: 0, gen: 0, burn: 0, mat: 0 }, flowWin: { inE: 0, burn: 0, mat: 0 }, lastFlow: { inE: 0, burn: 0, mat: 0 },
   spCount: new Int32Array(NS), spAlive: 0, births: 0, deaths: 0, starve: 0, oldDeaths: 0, eaten: 0, fights: 0,
   unlocked: [], won: false, frame: 0, events: [], seed: 1, sancts: [], arenas: [], lures: [], open: 1, open0: 0, kMul: 1,
 };
-function emit(type, a, b, c) { if (G.events.length < 500) G.events.push({ type, a, b, c }); }
+function emit(type, a, b, c, d) { if (G.events.length < 500) G.events.push({ type, a, b, c, d }); }
 
 /* ===================== 工具 ===================== */
 function gIdx(x, y) { const gx = ((x + HALF) / CELL) | 0, gy = ((y + HALF) / CELL) | 0; if (gx < 0 || gy < 0 || gx >= GN || gy >= GN) return -1; return gy * GN + gx; }
 function isWall(x, y) { const i = gIdx(x, y); return i < 0 || whp[i] > 0; }
 function sCell(x, y) { let gx = ((x + HALF) / SC) | 0, gy = ((y + HALF) / SC) | 0; if (gx < 0) gx = 0; else if (gx >= SN) gx = SN - 1; if (gy < 0) gy = 0; else if (gy >= SN) gy = SN - 1; return gy * SN + gx; }
+// 卡进墙里时：移到最近的开阔格（不会“穿墙”跑到别处）
+function unstick(x, y) {
+  const gx = ((x + HALF) / CELL) | 0, gy = ((y + HALF) / CELL) | 0; let best = null, bd = 1e18;
+  for (let r = 1; r <= 3 && !best; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    const nx = gx + dx, ny = gy + dy; if (nx < 0 || ny < 0 || nx >= GN || ny >= GN || whp[ny * GN + nx] > 0) continue;
+    const wx = (nx + 0.5) * CELL - HALF, wy = (ny + 0.5) * CELL - HALF, d = dist2(x, y, wx, wy); if (d < bd) { bd = d; best = [wx, wy]; }
+  }
+  return best;
+}
 function dist2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
 
 /* ===================== 世界生成 ===================== */
@@ -53,20 +66,49 @@ function genWorld(seed) {
     else if (d < START_R + wob) { whp[i] = 0; wMax[i] = 0; wE[i] = 0; }
     else { const h = wallHP(d) * (0.85 + R() * 0.3); whp[i] = h; wMax[i] = h; wE[i] = wallE(d); }
   }
-  for (let k = 0; k < 70; k++) { // 能量矿脉
-    const a = R() * Math.PI * 2, d = 650 + R() * 3600, x = Math.cos(a) * d, y = Math.sin(a) * d, rr = 30 + R() * 70;
-    forCells(x, y, rr, i => { if (whp[i] > 0 && whp[i] < Infinity) wE[i] = Math.min(250, wE[i] * 4); });
+  for (let i = 0; i < GN * GN; i++) wE[i] = 0; // v0.5：墙里没有能量（能量不可再生）
+  // 特殊地点：藏在黑墙里的遗迹 / 能量洞（彼此保持距离）
+  const pois = [], plan = [['cave', 11, 800, 3800], ['crystal', 6, 700, 2400], ['pod', 5, 800, 2600], ['reactor', 4, 1000, 3200], ['relay', 4, 900, 3000], ['obelisk', 3, 1500, 3700]];
+  for (const [key, n, d0, d1] of plan) for (let k = 0; k < n; k++) {
+    for (let tries = 0; tries < 40; tries++) {
+      const a = R() * Math.PI * 2, d = d0 + R() * (d1 - d0), x = Math.cos(a) * d, y = Math.sin(a) * d;
+      if (pois.some(q => dist2(q.x, q.y, x, y) < 380 * 380)) continue;
+      const rr = key === 'cave' ? 70 + R() * 80 : key === 'reactor' || key === 'obelisk' ? 80 : 62;
+      pois.push({ type: POI_IDX[key], x, y, r: rr, found: false, used: false, on: false, acc: 0, amt: 0, sp: -1 }); break;
+    }
   }
-  const caves = [];
-  for (let k = 0; k < 26; k++) { // 隐藏洞穴
-    const a = R() * Math.PI * 2, d = 900 + R() * 3300, x = Math.cos(a) * d, y = Math.sin(a) * d, rr = 60 + R() * 100;
-    caves.push({ x, y, r: rr }); forCells(x, y, rr, i => { if (whp[i] < Infinity) { whp[i] = 0; wMax[i] = 0; wE[i] = 0; } });
+  for (const q of pois) forCells(q.x, q.y, q.r, i => { if (whp[i] < Infinity) { whp[i] = 0; wMax[i] = 0; } });
+  G.wallSealed = 0; pN = 0; cN = 0; mN = 0;
+  for (let k = 0; k < 500; k++) { const a = R() * 6.2832, r = Math.sqrt(-2 * Math.log(R() + 1e-9)) * 90; addP(Math.cos(a) * r, Math.sin(a) * r, 1, 0, 0, 255); }
+  for (const q of pois) {
+    const key = POI[q.type].key, dd = Math.hypot(q.x, q.y);
+    if (key === 'cave') { const tot = Math.round(300 + dd * 0.35 + R() * 400); q.amt = tot; let rem = tot; while (rem > 0) { const v = Math.min(rem, 1 + (R() * 4 | 0)); rem -= v; const a = R() * 6.2832, r = Math.sqrt(R()) * q.r * 0.7; addP(q.x + Math.cos(a) * r, q.y + Math.sin(a) * r, v, 0, 0, 255); } }
+    else if (key === 'crystal') q.amt = Math.round(60 + dd / 18);
+    else if (key === 'pod') q.sp = -1; // 唤醒时决定物种
   }
-  let sealed = 0; for (let i = 0; i < GN * GN; i++) if (whp[i] > 0 && whp[i] < Infinity) sealed += wE[i];
-  G.wallSealed = sealed; pN = 0; cN = 0;
-  for (let k = 0; k < 2400; k++) { const a = R() * 6.2832, r = Math.sqrt(-2 * Math.log(R() + 1e-9)) * 110; addP(Math.cos(a) * r, Math.sin(a) * r, 1, 0, 0, 255); }
-  for (const c of caves) { const n = Math.floor(20 + Math.hypot(c.x, c.y) / 40); for (let k = 0; k < n; k++) { const a = R() * 6.2832, r = R() * c.r * 0.6; addP(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r, 1 + (R() * 3 | 0), 0, 0, 255); } }
-  G.caves = caves; G.total0 = ledger().total; computeOpen();
+  G.pois = pois; G.caves = pois.filter(q => POI[q.type].key === 'cave');
+  seen.fill(0); revealFlood(gIdx(0, 0));
+  G.total0 = ledger().total; computeOpen();
+}
+/* ---------- 迷雾：只看得见与中心连通的区域 + 白球附近 ---------- */
+function markSeen(i) { if (!seen[i]) { seen[i] = 1; SEEN_DIRTY.push(i); } }
+const SEEN_DIRTY = [];
+function revealFlood(i0) {
+  if (i0 < 0) return; const st = [i0]; const vis = new Set([i0]);
+  while (st.length) {
+    const i = st.pop(); markSeen(i); const gx = i % GN, gy = (i / GN) | 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const nx = gx + dx, ny = gy + dy; if (nx < 0 || ny < 0 || nx >= GN || ny >= GN) continue; const j = ny * GN + nx;
+      if (whp[j] > 0) { markSeen(j); continue; }
+      if (!vis.has(j) && !seen[j]) { vis.add(j); st.push(j); }
+    }
+  }
+}
+function revealAround(x, y, R) {
+  forCells(x, y, R, i => { if (seen[i]) return; if (whp[i] <= 0) revealFlood(i); else markSeen(i); });
+}
+function checkPOIs() {
+  for (const q of G.pois) if (!q.found) { const i = gIdx(q.x, q.y); if (i >= 0 && seen[i]) { q.found = true; emit('found', q.x, q.y, q.type); } }
 }
 function computeOpen() { // 可达开阔面积（从中心洪泛）
   const seen = new Uint8Array(GN * GN), st = [gIdx(0, 0)]; seen[st[0]] = 1; let n = 0;
@@ -168,7 +210,7 @@ function newC(s, x, y, e, gen, g) {
   cx[i] = x; cy[i] = y; cvx[i] = 0; cvy[i] = 0; cpx[i] = x; cpy[i] = y; ce[i] = e; csp[i] = s; cage[i] = 0; cmeta[i] = rnd();
   cthink[i] = rnd() * 0.5; cst[i] = ST_WANDER; ctx_[i] = x; cty[i] = y; ctg[i] = -1; ctgId[i] = 0; cid[i] = G.nextId++;
   crep[i] = SPECIES[s].mature * 0.3; cph[i] = rnd() * 6.28; ctim[i] = 0; cwire[i] = -99; cstas[i] = 0; chop[i] = rnd() * 0.5; cdead[i] = 0; cgen[i] = gen || 0; cmood[i] = 1.2;
-  cg[i] = g || (0.95 + rnd() * 0.1); ckin[i] = 0; cfc[i] = 0; cang[i] = 0;
+  cg[i] = g || (0.95 + rnd() * 0.1); ckin[i] = 0; cfc[i] = 0; cang[i] = 0; cmt[i] = SPECIES[s].matT * (0.3 + rnd() * 0.7);
   return i;
 }
 function killC(i, burstIt) {
@@ -176,7 +218,7 @@ function killC(i, burstIt) {
   if (ce[i] > 0) burst(cx[i], cy[i], ce[i], burstIt ? 55 : 25);
   ce[i] = 0; G.deaths++;
 }
-const C_ARRS = () => [cx, cy, cvx, cvy, cpx, cpy, ce, csp, cage, cmeta, cthink, cst, ctx_, cty, ctg, ctgId, cid, crep, cph, ctim, cwire, cstas, chop, cgen, cmood, cg, ckin, cfc, cang];
+const C_ARRS = () => [cx, cy, cvx, cvy, cpx, cpy, ce, csp, cage, cmeta, cthink, cst, ctx_, cty, ctg, ctgId, cid, crep, cph, ctim, cwire, cstas, chop, cgen, cmood, cg, ckin, cfc, cang, cmt];
 let _carrs = null;
 function compactC() { // 交换删除（顺序无关；目标引用用 cid 校验）
   const A = _carrs || (_carrs = C_ARRS()), L = A.length;
@@ -225,7 +267,7 @@ const hunted = new Uint32Array(MAXC), huntedBy = new Int32Array(MAXC);
 function pickPrey(i) {
   const s = csp[i], x = cx[i], y = cy[i], R = SPECIES[s].sense || 220, mask = S_preyMask[s];
   const myP = power(i, false); const gx0 = ((x + HALF) / SC) | 0, gy0 = ((y + HALF) / SC) | 0, rings = Math.min(6, Math.ceil(R / SC));
-  let best = -1, bs = 1e9, checks = 0;
+  let best = -1, bs = 1e9, checks = 0; const starving = ce[i] < capE(i) * 0.2;
   for (let r = 0; r <= rings && checks < 50; r++) {
     for (let dy = -r; dy <= r; dy++) {
       const gy = gy0 + dy; if (gy < 0 || gy >= SN) continue; const edge = (dy === -r || dy === r);
@@ -235,6 +277,7 @@ function pickPrey(i) {
         for (let q = st; q < e; q++) {
           const j = cItems[q]; if (j >= cN || cdead[j] || !(mask & (1 << csp[j]))) continue; checks++;
           const d = Math.sqrt(dist2(x, y, cx[j], cy[j])); if (d > R) continue;
+          const nj = G.spCount[csp[j]]; if (!starving && nj < 12 && rnd() > nj * nj / (nj * nj + 25)) continue; // 猎物稀少时很难找到（III 型功能反应）
           const pp = power(j, true); if (pp > myP * 1.6) continue;
           if (hunted[j] === G.frame && huntedBy[j] !== i) continue;
           if (G.sancts.length && inSanct(cx[j], cy[j])) continue;
@@ -263,7 +306,7 @@ function think(i) {
   }
   if (cst[i] === ST_REST && ctim[i] > 0) return;
   // 2. 繁殖
-  if (readyToBreed(i) && !crowdedHunt(i)) {
+  if (readyToBreed(i) && !crowdedHunt(i) && breedRoom(s)) {
     if (!sp.pair) { reproduce(i, -1); return; }
     const j = findC(x, y, 600, 1 << s, i, partnerOK);
     if (j >= 0) { cst[i] = ST_MATE; ctg[i] = j; ctgId[i] = cid[j]; ctim[i] = 6; if (cst[j] !== ST_MATE) { cst[j] = ST_MATE; ctg[j] = i; ctgId[j] = cid[i]; ctim[j] = 6; cthink[j] = 3; } return; }
@@ -354,8 +397,15 @@ function fight(a, d, lethal) {
 
 // 生态位饱和：某物种总数超过其容量 K 后代谢升高（K 与体型成反比，随开拓面积增长）
 const S_crowd = new Float32Array(NS).fill(1);
-function nicheK(s) { return Math.max(20, (G.total0 - G.wallSealed) * 0.3) / S_maxE[s]; }
-function updateCrowd() { for (let s = 0; s < NS; s++) S_crowd[s] = 1 + G.spCount[s] / nicheK(s); }
+// 种内竞争（同种之间争夺空间/配偶，比种间竞争更强 → 多物种共存）。容量随开拓面积增长 → 探索黑墙有意义
+function inRate() { return Math.max(tankRegen(G.lv), G.inRate || 0); }
+// 能量金字塔：捕食者只能拿到下一级能量的一小部分 → 容量约为食能者的 30%
+function nicheK(s) { return Math.max(3, (S_diet[s] === D_E ? 0.35 : 0.11) * inRate() / (S_meta[s] * META_MUL)) * Math.sqrt(G.kMul || 1); }
+const META_MUL = 0.7;
+const S_K = new Float32Array(NS);
+function updateCrowd() { for (let s = 0; s < NS; s++) { const K = S_K[s] = nicheK(s); S_crowd[s] = 1 + 0.5 * G.spCount[s] / K; } }
+// 密度依赖的繁殖：接近容量时繁殖意愿下降，超过就不繁殖（给其他物种留能量）
+function breedRoom(s) { const q = G.spCount[s] / S_K[s]; return q < 0.6 || rnd() < (1 - q) / 0.4; }
 function stepC(dt) {
   updateCrowd();
   const t = G.t, orb = G.orb, big = dt > 0.2;
@@ -369,11 +419,14 @@ function stepC(dt) {
     const life = S_life[s];
     if (cage[i] > life) { killC(i, true); G.oldDeaths++; emit('death', cx[i], cy[i], s); continue; }
     // 代谢：能量以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
-    cmeta[i] += S_meta[s] * g * Math.sqrt(g) * dt * metaMul * (1 + 0.1 * ckin[i]) * S_crowd[s]; // 同类拥挤 + 生态位饱和 → 代谢升高
+    cmeta[i] += S_meta[s] * META_MUL * g * Math.sqrt(g) * dt * metaMul * (1 + 0.1 * ckin[i]) * S_crowd[s]; // 同类拥挤 + 生态位饱和 → 代谢升高
     if (cmeta[i] >= 1) {
       let k = Math.floor(cmeta[i]); if (k > ce[i]) k = ce[i]; cmeta[i] -= Math.floor(cmeta[i]);
-      if (k > 0) { ce[i] -= k; const a = rnd() * 6.2832; addP(cx[i] + Math.cos(a) * r * 0.6, cy[i] + Math.sin(a) * r * 0.6, k, Math.cos(a) * 14, Math.sin(a) * 14, 0); }
+      if (k > 0) { ce[i] -= k; G.flow.burn += k; G.flowWin.burn += k; } // v0.5：代谢让能量消失（不可再生）
     }
+    // 代谢物 → 物质结晶（吃饱的成年个体才会产出；高级生物产量高得多）
+    cmt[i] -= dt;
+    if (cmt[i] <= 0) { cmt[i] = sp.matT * (0.8 + rnd() * 0.4); if (cage[i] >= sp.mature && ce[i] > capE(i) * 0.4) dropMatter(cx[i], cy[i] + r * 0.5, sp.mat); }
     if (ce[i] <= 0) { killC(i, false); G.starve++; emit('death', cx[i], cy[i], s); continue; }
     if (crep[i] > 0) crep[i] -= dt; if (cmood[i] > 0) cmood[i] -= dt; if (cfc[i] > 0) cfc[i] -= dt; if (cang[i] > 0) cang[i] -= dt;
     cthink[i] -= dt;
@@ -450,7 +503,7 @@ function stepC(dt) {
     else if (!isWall(nx + Math.sign(mx) * rq, cy[i])) { cx[i] = nx; cvy[i] *= -0.5; }
     else if (!isWall(cx[i], ny + Math.sign(my) * rq)) { cy[i] = ny; cvx[i] *= -0.5; }
     else { cvx[i] *= -0.5; cvy[i] *= -0.5; if (cst[i] === ST_WANDER || cst[i] === ST_FOOD) { ctx_[i] = cx[i] * 0.7; cty[i] = cy[i] * 0.7; cst[i] = ST_WANDER; } }
-    if (isWall(cx[i], cy[i])) { const d0 = Math.hypot(cx[i], cy[i]) + 1e-3; cx[i] -= cx[i] / d0 * 6; cy[i] -= cy[i] / d0 * 6; }
+    if (isWall(cx[i], cy[i])) { const u = unstick(cx[i], cy[i]); if (u) { cx[i] = u[0]; cy[i] = u[1]; } }
     cph[i] += dt * (3 + Math.hypot(cvx[i], cvy[i]) * 0.05);
   }
 }
@@ -475,8 +528,9 @@ function stepP(dt) {
     if (big) { const sp = Math.hypot(vx, vy); if (sp > 40) { vx *= 40 / sp; vy *= 40 / sp; } }
     if (vx !== 0 || vy !== 0) {
       const nx = x + vx * dt, ny = y + vy * dt;
-      if (!isWall(nx, ny)) { px[i] = nx; py[i] = ny; }
-      else { vx = -vx * 0.4; vy = -vy * 0.4; if (isWall(x, y)) { const d = Math.hypot(x, y) + 1e-3; px[i] = x - x / d * 4; py[i] = y - y / d * 4; } }
+      const fx = Math.fround(nx), fy = Math.fround(ny); // Float32 存储后再判断，避免舍入落进墙格
+      if (!isWall(fx, fy)) { px[i] = fx; py[i] = fy; }
+      else { vx = -vx * 0.4; vy = -vy * 0.4; if (isWall(x, y)) { const u = unstick(x, y); if (u) { px[i] = u[0]; py[i] = u[1]; } } }
     }
     pvx[i] = vx; pvy[i] = vy;
   }
@@ -486,9 +540,9 @@ function stepP(dt) {
 function breakCell(i) {
   if (whp[i] <= 0 || whp[i] === Infinity) return;
   whp[i] = 0; const gx = i % GN, gy = (i / GN) | 0, x = (gx + 0.5) * CELL - HALF, y = (gy + 0.5) * CELL - HALF;
-  const e = wE[i]; wE[i] = 0; G.wallSealed -= e;
-  if (e > 0) { const n = Math.min(4, e); let rem = e; for (let k = 0; k < n; k++) { const v = k === n - 1 ? rem : Math.floor(e / n); rem -= v; const a = rnd() * 6.28; addP(x, y, v, Math.cos(a) * 25, Math.sin(a) * 25, 255); } }
-  G.open++; G.kMul = Math.max(1, G.open / G.open0);
+  const e = 0; wE[i] = 0;
+  G.open++; G.kMul = Math.max(1, G.open / G.open0); G.wallBroken = (G.wallBroken || 0) + 1;
+  revealFlood(i);
   WALL_DIRTY.push(i); emit('wallbreak', x, y, e);
 }
 function orbDPS() { return 10 * (1 + 0.4 * G.lv) + 3 * G.maxLv; }
@@ -511,6 +565,15 @@ function stepOrb(dt) {
     if (d2 < (R + 4) * (R + 4) && whp[i] !== Infinity && (o.ix || o.iy)) { whp[i] -= dps * dt; touching++; if (whp[i] <= 0) breakCell(i); else if ((G.frame & 3) === 0) WALL_DIRTY.push(i); }
     if (whp[i] > 0 && d2 < R * R) { const d = Math.sqrt(d2) || 0.01; const push = R - d; if (d2 > 1e-6) { nx += dx / d * push; ny += dy / d * push; } else { nx -= o.vx * dt; ny -= o.vy * dt; } }
   }
+  // 能量槽：按住喷洒 / 松开回充
+  const TM = tankMax(G.lv);
+  if (o.spray && o.tank >= 1) {
+    o.sprAcc += SPRAY_RATE * dt; let n = Math.min(Math.floor(o.sprAcc), Math.floor(o.tank)); o.sprAcc -= Math.floor(o.sprAcc);
+    while (n > 0) { const v = Math.min(n, 2); n -= v; o.tank -= v; G.flow.spray += v; G.flowWin.inE += v; const a = rnd() * 6.2832, sp = 40 + rnd() * 70; addP(o.x + Math.cos(a) * 8, o.y + Math.sin(a) * 8, v, Math.cos(a) * sp + o.vx * 0.3, Math.sin(a) * sp + o.vy * 0.3, 170); }
+  } else o.tank = Math.min(TM, o.tank + tankRegen(G.lv) * dt);
+  if (o.tank > TM) o.tank = TM;
+  if ((G.frame & 7) === 0) { revealAround(o.x, o.y, 170); checkPOIs(); }
+  for (const q of G.pois) if (!q.used && q.found && dist2(q.x, q.y, o.x, o.y) < 55 * 55) touchPOI(q);
   if (touching) { const d = Math.hypot(nx, ny); o.hp -= (1.5 + d / 500) * dt; o.drill = 1; if (o.hp <= 0) { o.hp = 0; o.dead = 2.5; emit('orbdie', o.x, o.y); return; } }
   else o.hp = Math.min(100, o.hp + 7 * dt);
   if (isWall(nx, ny)) { nx = o.x; ny = o.y; o.vx *= 0.3; o.vy *= 0.3; }
@@ -526,24 +589,80 @@ function teleportOrb(tx, ty) {
   o.x = lx; o.y = ly; o.vx = dx / d * 60; o.vy = dy / d * 60; emit('tp', x, y); return true;
 }
 
+/* ===================== 遗迹 ===================== */
+function touchPOI(q) {
+  const key = POI[q.type].key;
+  if (key === 'crystal') { q.used = true; G.matter += q.amt; G.flow.mat += q.amt; emit('poi', q.x, q.y, q.type, q.amt); }
+  else if (key === 'pod') {
+    q.used = true; const pool = SPECIES.filter(s => s.unlock <= Math.min(MAXLV, G.maxLv + 2) && s.unlock >= 1); const sp = pool.length ? pool[(rnd() * pool.length) | 0] : SPECIES[0];
+    q.sp = sp.id; if (!G.unlocked.includes(sp.key)) { G.unlocked.push(sp.key); emit('unlock', 's', sp.id); }
+    const n = sp.pair ? 4 : 5; for (let k = 0; k < n; k++) { const a = k / n * 6.2832, j = newC(sp.id, q.x + Math.cos(a) * 25, q.y + Math.sin(a) * 25, Math.round(sp.maxE * 0.8), 0); if (j >= 0) { cage[j] = sp.mature; crep[j] = 5; } }
+    emit('poi', q.x, q.y, q.type, sp.id);
+  }
+}
+function stepPOIs(dt) {
+  for (const q of G.pois) {
+    const key = POI[q.type].key;
+    if (key === 'reactor' || key === 'obelisk' || key === 'relay') {
+      q.on = q.found && G.lv >= 1 && (key === 'relay' ? !!q.conn : inField(q.x, q.y, q));
+      if (!q.on) continue;
+      if (key === 'reactor') { q.acc += 4 * dt; while (q.acc >= 1) { q.acc -= 1; const a = rnd() * 6.2832, r = 20 + rnd() * 40; addP(q.x + Math.cos(a) * r, q.y + Math.sin(a) * r, 1, Math.cos(a) * 20, Math.sin(a) * 20, 255); G.flow.gen++; G.flowWin.inE++; } }
+      else if (key === 'obelisk') { const v = 0.4 * dt; G.devAcc += v; q.acc += v; }
+    }
+  }
+}
+function poiBonusCap() { let n = 0; for (const q of G.pois) if (q.on && POI[q.type].key === 'obelisk') n += 2; return n; }
+/* ===================== 物质结晶 ===================== */
+function dropMatter(x, y, v) {
+  if (v <= 0) return;
+  if (mN >= MAXM) { const j = (rnd() * mN) | 0; mval[j] = Math.min(60000, mval[j] + v); return; }
+  const a = rnd() * 6.2832; mx[mN] = x; my[mN] = y; mvx[mN] = Math.cos(a) * 25; mvy[mN] = Math.sin(a) * 25 - 20; mval[mN] = v; mage[mN] = 0; mN++;
+  emit('mat', x, y, v);
+}
+function collectM(j) { const v = mval[j]; G.matter += v; G.flow.mat += v; G.flowWin.mat += v; mval[j] = 0; return v; }
+function stepM(dt) {
+  const o = G.orb, cols = G.cols || [];
+  let got = 0;
+  for (let j = 0; j < mN; j++) {
+    if (!mval[j]) continue;
+    mage[j] += dt; if (mage[j] > MAT_LIFE) { mval[j] = 0; continue; }
+    let vx = mvx[j], vy = mvy[j];
+    // 白球吸取
+    if (!o.dead) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
+    for (const c of cols) { const dx = c.x - mx[j], dy = c.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 18 * 18) { collectM(j); c.n = (c.n || 0) + 1; break; } if (d2 < 210 * 210) { const d = Math.sqrt(d2); vx += dx / d * 260 * dt; vy += dy / d * 260 * dt; } }
+    if (!mval[j]) continue;
+    const f = Math.exp(-3 * dt); vx *= f; vy *= f;
+    const nx = mx[j] + vx * dt, ny = my[j] + vy * dt; if (!isWall(nx, ny)) { mx[j] = nx; my[j] = ny; } else { vx = -vx * 0.3; vy = -vy * 0.3; }
+    mvx[j] = vx; mvy[j] = vy;
+  }
+  if (got) emit('matget', o.x, o.y, got);
+  let k = 0; for (let j = 0; j < mN; j++) if (mval[j]) { if (j !== k) { mx[k] = mx[j]; my[k] = my[j]; mvx[k] = mvx[j]; mvy[k] = mvy[j]; mval[k] = mval[j]; mage[k] = mage[j]; } k++; } mN = k;
+}
+
 /* ===================== 观测者装置 ===================== */
 function devActive(d) { return d.bt <= 0 && d.powered && G.lv >= 1; }
 function recomputePower() {
   const pylons = G.devs.filter(d => d.type === D_PYLON);
   for (const p of pylons) p.conn = false;
   const q = [];
-  for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD) { p.conn = true; q.push(p); }
-  while (q.length) { const a = q.pop(); for (const p of pylons) if (!p.conn && p.bt <= 0 && dist2(a.x, a.y, p.x, p.y) <= PYLON_FIELD * PYLON_FIELD) { p.conn = true; q.push(p); } }
+  // 远古中继塔：找到后也算一个导能节点（能量场半径 320）
+  for (const r of G.pois) if (POI[r.type].key === 'relay') { r.conn = false; r.bt = r.found ? 0 : 1; r.fr = 320; if (r.found) pylons.push(r); }
+  const fr = p => p.fr || PYLON_FIELD;
+  for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD + (p.fr ? p.fr : 0)) { p.conn = true; q.push(p); }
+  while (q.length) { const a = q.pop(); for (const p of pylons) { const R = Math.max(fr(a), fr(p)); if (!p.conn && p.bt <= 0 && dist2(a.x, a.y, p.x, p.y) <= R * R) { p.conn = true; q.push(p); } } }
+  G.relays = pylons.filter(p => p.fr && p.conn);
   for (const d of G.devs) d.powered = inField(d.x, d.y, d);
   const lenses = G.devs.filter(d => d.type === DV_IDX.lens && d.bt <= 0);
   for (const d of G.devs) { d.mult = 1; for (const l of lenses) if (l !== d && dist2(l.x, l.y, d.x, d.y) < 260 * 260) d.mult *= 1.3; }
   G.lures = G.devs.filter(d => d.type === DV_IDX.lure && devActive(d));
   G.sancts = G.devs.filter(d => d.type === DV_IDX.sanct && devActive(d));
   G.arenas = G.devs.filter(d => d.type === DV_IDX.arena && devActive(d));
+  G.cols = G.devs.filter(d => d.type === DV_IDX.collector && d.bt <= 0 && d.powered);
 }
 function inField(x, y, except) {
   if (x * x + y * y <= TOWER_FIELD * TOWER_FIELD) return true;
   for (const p of G.devs) if (p.type === D_PYLON && p !== except && p.conn && p.bt <= 0 && dist2(x, y, p.x, p.y) <= PYLON_FIELD * PYLON_FIELD) return true;
+  if (G.relays) for (const r of G.relays) if (r !== except && dist2(x, y, r.x, r.y) <= 320 * 320) return true;
   return false;
 }
 function capUsed() { let s = 0; for (const d of G.devs) s += DEVICES[d.type].cost; return s; }
@@ -551,20 +670,23 @@ function devUnlocked(type) { return DEVICES[type].unlock <= G.lv || G.unlocked.i
 function canPlace(type, x, y) {
   const def = DEVICES[type];
   if (!devUnlocked(type)) return '需要潮汐 Lv.' + def.unlock;
-  if (capUsed() + def.cost > buildCap(G.lv)) return '建造额度不足（提升潮汐等级可增加）';
+  if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升潮汐等级可增加）';
+  if (G.matter < def.mc) return '物质不足（需要 ' + def.mc + '）';
   if (x * x + y * y < 80 * 80) return '离方塔太近';
+  for (const q of G.pois) if (dist2(q.x, q.y, x, y) < 50 * 50) return '离遗迹太近';
   if (!inField(x, y, null)) return '必须建在能量场内（先铺设导能塔）';
   if (isWall(x, y)) return '这里被黑墙挡住了';
   for (let a = 0; a < 6.28; a += 1.05) if (isWall(x + Math.cos(a) * 14, y + Math.sin(a) * 14)) return '这里被黑墙挡住了';
   for (const d of G.devs) if (dist2(d.x, d.y, x, y) < 40 * 40) return '离其他装置太近';
   return '';
 }
+function totalCap() { return buildCap(G.lv) + poiBonusCap(); }
 function placeDev(type, x, y, ang) {
-  const def = DEVICES[type];
+  const def = DEVICES[type]; G.matter = Math.max(0, G.matter - (def.mc || 0));
   const d = { id: G.devId++, type, x, y, ang: ang || 0, bt: def.time, bt0: def.time, powered: true, acc: 0, lastAcc: 0, tt: rnd(), conn: false, mult: 1, n: 0 };
   G.devs.push(d); recomputePower(); emit('place', x, y, type); return d;
 }
-function removeDev(d) { const k = G.devs.indexOf(d); if (k >= 0) G.devs.splice(k, 1); recomputePower(); }
+function removeDev(d) { const k = G.devs.indexOf(d); if (k >= 0) { G.devs.splice(k, 1); G.matter += Math.floor((DEVICES[d.type].mc || 0) * (d.bt > 0 ? 1 : 0.5)); } recomputePower(); }
 function onBirth(x, y, s) {
   emit('birth', x, y, s);
   if (G.lv < 1) return;
@@ -616,6 +738,9 @@ function stepDevs(dt) {
     } else if (key === 'well') {
       const R = def.r;
       for (let b = 0; b < 2; b++) forPInR(d.x, d.y, R, b, j => { const dx = d.x - px[j], dy = d.y - py[j], d2 = dx * dx + dy * dy; if (d2 < 50 * 50) return; const dd = Math.sqrt(d2); pvx[j] += dx / dd * 14 * dt; pvy[j] += dy / dd * 14 * dt; });
+    } else if (key === 'gen' || key === 'sun') {
+      d.acc2 = (d.acc2 || 0) + def.out * dt;
+      while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 18 + rnd() * 30; addP(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 1, Math.cos(a) * 30, Math.sin(a) * 30, 255); G.flow.gen++; G.flowWin.inE++; }
     } else if (key === 'stasis') {
       if (d.tt >= 0.5) { d.tt -= 0.5; let n = 0; countInR(d.x, d.y, def.r, j => { cstas[j] = 0.7; n++; }); d.n = n; }
     }
@@ -650,6 +775,7 @@ function settle() {
   G.lastScore = score; G.lastRaw = raw; G.lastHarm = harm;
   G.hist.push({ t: G.t, s: score, lv: G.lv, pop: N }); if (G.hist.length > 120) G.hist.shift();
   G.towerAcc = 0; G.devAcc = 0;
+  G.lastFlow = G.flowWin; G.inRate = (G.inRate || 0) * 0.75 + 0.25 * G.flowWin.inE / WINDOW; G.flowWin = { inE: 0, burn: 0, mat: 0 };
   if (G.lv > G.maxLv) G.maxLv = G.lv;
   if (G.lv !== prevLv) { recomputePower(); emit('lv', G.lv, prevLv); }
   unlockUpTo(G.lv);
@@ -669,16 +795,23 @@ function gatherLight(x, y, R, need, dry) {
   let rem = need; for (const j of list) { const take = Math.min(pv[j], rem); pv[j] -= take; rem -= take; if (rem <= 0) break; }
   return need;
 }
-function summon(s, at) {
-  const sp = SPECIES[s]; const x0 = at ? at.x : 0, y0 = at ? at.y : 0, R = at ? 160 : TOWER_PULL;
+function summonErr(s) {
+  const sp = SPECIES[s];
   if (!G.unlocked.includes(sp.key)) return '尚未解锁';
   if (cN >= MAXC) return '生物数量已达上限';
-  buildPGrid();
-  if (gatherLight(x0, y0, R, sp.cost, false) < sp.cost) return (at ? '孵化巢' : '方塔') + '附近能量不足（需要 ' + sp.cost + '）';
+  if (G.orb.tank < sp.cost) return '白球能量不足（需要 ' + sp.cost + '）';
+  if (G.matter < sp.mcost) return '物质不足（需要 ' + sp.mcost + '）';
+  return '';
+}
+// 召唤：白球能量槽里的能量凝聚成生物（+ 高级生物需要物质）
+function summon(s, at) {
+  const sp = SPECIES[s], err = summonErr(s); if (err) return err;
+  const x0 = at ? at.x : 0, y0 = at ? at.y : 0;
+  G.orb.tank -= sp.cost; G.matter -= sp.mcost;
   const a = rnd() * 6.2832, rr = at ? 30 : TOWER_R + 30;
   let x = x0 + Math.cos(a) * rr, y = y0 + Math.sin(a) * rr; if (isWall(x, y)) { x = x0; y = y0; }
   const i = newC(s, x, y, sp.cost, 0); cage[i] = sp.mature * 0.6; cvx[i] = Math.cos(a) * 80; cvy[i] = Math.sin(a) * 80; crep[i] = sp.mature * 0.3;
-  compactP(); G.summons = (G.summons || 0) + 1; emit('summon', x, y, s);
+  G.summons = (G.summons || 0) + 1; emit('summon', x, y, s);
   return '';
 }
 
@@ -694,7 +827,7 @@ function ledger() {
 function simStep(dt) {
   G.frame++;
   buildPGrid(); buildCGrid();
-  stepDevs(dt); stepC(dt); stepP(dt); stepOrb(dt);
+  stepDevs(dt); stepPOIs(dt); stepC(dt); stepP(dt); stepOrb(dt); stepM(dt);
   compactP(); compactC();
   G.spCount.fill(0); for (let i = 0; i < cN; i++) G.spCount[csp[i]]++;
   let alive = 0; for (let s = 0; s < NS; s++) if (G.spCount[s] > 0) alive++;
@@ -706,8 +839,8 @@ function simStep(dt) {
   if (G.wt >= WINDOW) { G.wt -= WINDOW; settle(); }
 }
 function newGame(seed) {
-  Object.assign(G, { t: 0, lv: 0, wt: 0, towerAcc: 0, devAcc: 0, lastScore: 0, hist: [], popHist: [], devs: [], devId: 1, nextId: 1, births: 0, deaths: 0, starve: 0, oldDeaths: 0, eaten: 0, fights: 0, won: false, summons: 0, lastBreak: null, wallBroken: 0, _lastCount: null });
-  G.orb.x = 0; G.orb.y = 70; G.orb.vx = G.orb.vy = 0; G.orb.hp = 100; G.orb.dead = 0;
+  Object.assign(G, { t: 0, lv: 0, wt: 0, towerAcc: 0, devAcc: 0, lastScore: 0, hist: [], popHist: [], devs: [], devId: 1, nextId: 1, births: 0, deaths: 0, starve: 0, oldDeaths: 0, eaten: 0, fights: 0, won: false, summons: 0, lastBreak: null, wallBroken: 0, _lastCount: null, matter: 20, flow: { spray: 0, gen: 0, burn: 0, mat: 0 }, flowWin: { inE: 0, burn: 0, mat: 0 }, lastFlow: { inE: 0, burn: 0, mat: 0 } });
+  G.orb.x = 0; G.orb.y = 70; G.orb.vx = G.orb.vy = 0; G.orb.hp = 100; G.orb.dead = 0; G.orb.tank = tankMax(0); G.orb.sprAcc = 0;
   G.open0 = 0; genWorld(seed || ((Math.random() * 1e9) | 0));
   unlockUpTo(0); recomputePower();
 }

@@ -1,86 +1,93 @@
-/* ===================== 主程序：UI / 输入 / 存档 / 离线推演 ===================== */
+/* ===================== 主程序 v0.5：UI / 输入 / 存档 / 离线推演 ===================== */
 const $ = id => document.getElementById(id);
-const UI = { state: 'title', build: -1, ghost: null, ang: 0, sel: -1, selId: 0, selDev: null, panel: null, tab: 0, boostT: 0, keys: {}, joy: { x: 0, y: 0, id: null }, touch: false, hidden: 0, lastSave: 0, tut: 0 };
-const META_KEY = 'chaoxi3_meta', SAVE_KEY = 'chaoxi3_save';
-let META = { unlocked: [], bestLv: 0, tut: 0, sound: true, music: true, wins: 0 };
-function loadMeta() { try { let m = JSON.parse(localStorage.getItem(META_KEY) || 'null'); if (!m) { m = JSON.parse(localStorage.getItem('chaoxi2_meta') || 'null'); if (m) m.tut = 0; } if (m) META = Object.assign(META, m); META.unlocked = (META.unlocked || []).filter(k => SP_IDX[k] !== undefined || DV_IDX[k.slice(1)] !== undefined); } catch (e) { } }
+const UI = { state: 'title', build: -1, ghost: null, ang: 0, sel: -1, selId: 0, selDev: null, selPOI: null, selSp: -1, panel: null, tab: 0, boostT: 0, keys: {}, joy: { x: 0, y: 0, id: null }, touch: false, hidden: 0, lastSave: 0, dock: 0, sprayTouch: false, dockSig: '' };
+const META_KEY = 'chaoxi5_meta', SAVE_KEY = 'chaoxi5_save';
+let META = { unlocked: [], bestLv: 0, tut: 0, sound: true, music: true, wins: 0, seenCards: [] };
+function loadMeta() { try { const m = JSON.parse(localStorage.getItem(META_KEY) || 'null'); if (m) META = Object.assign(META, m); META.unlocked = (META.unlocked || []).filter(k => SP_IDX[k] !== undefined || DV_IDX[k.slice(1)] !== undefined); } catch (e) { } }
 function saveMeta() { META.unlocked = G.unlocked.slice(); META.bestLv = Math.max(META.bestLv, G.maxLv); try { localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) { } }
+const fmtN = n => { n = Math.floor(n); return n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'k' : String(n); };
 
-/* ---------- 存档（二进制打包 + base64） ---------- */
+/* ---------- 存档 v4（二进制打包 + base64） ---------- */
 function b64enc(u8) { let s = ''; for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); return btoa(s); }
 function b64dec(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
-function mergeParticlesForSave() { // 粒子太多时按格子合并（守恒）
-  const map = new Map(); for (let i = 0; i < pN; i++) { const k = (pr[i] === 255 ? SNC : 0) + sCell(px[i], py[i]); const m = map.get(k); if (m !== undefined && pv[m] + pv[i] < 60000) { pv[m] += pv[i]; pv[i] = 0; } else map.set(k, i); } compactP();
-}
+function mergeParticlesForSave() { const map = new Map(); for (let i = 0; i < pN; i++) { const k = (pr[i] === 255 ? SNC : 0) + sCell(px[i], py[i]); const m = map.get(k); if (m !== undefined && pv[m] + pv[i] < 60000) { pv[m] += pv[i]; pv[i] = 0; } else map.set(k, i); } compactP(); }
+function packBits(a) { const u = new Uint8Array((a.length + 7) >> 3); for (let i = 0; i < a.length; i++) if (a[i]) u[i >> 3] |= 1 << (i & 7); return u; }
+function unpackBits(u, a) { for (let i = 0; i < a.length; i++) a[i] = (u[i >> 3] >> (i & 7)) & 1; }
 function serialize() {
   const P = new DataView(new ArrayBuffer(pN * 8));
   for (let i = 0; i < pN; i++) { const o = i * 8; P.setInt16(o, Math.round(px[i]), true); P.setInt16(o + 2, Math.round(py[i]), true); P.setUint16(o + 4, pv[i], true); P.setUint8(o + 6, pr[i]); }
-  const CB = 36, C = new DataView(new ArrayBuffer(cN * CB));
-  for (let i = 0; i < cN; i++) { const o = i * CB; C.setFloat32(o, cx[i], true); C.setFloat32(o + 4, cy[i], true); C.setInt32(o + 8, ce[i], true); C.setUint8(o + 12, csp[i]); C.setUint16(o + 13, cgen[i], true); C.setFloat32(o + 16, cage[i], true); C.setFloat32(o + 20, crep[i], true); C.setUint32(o + 24, cid[i], true); C.setFloat32(o + 28, cmeta[i], true); C.setFloat32(o + 32, cg[i], true); }
+  const CB = 40, C = new DataView(new ArrayBuffer(cN * CB));
+  for (let i = 0; i < cN; i++) { const o = i * CB; C.setFloat32(o, cx[i], true); C.setFloat32(o + 4, cy[i], true); C.setInt32(o + 8, ce[i], true); C.setUint8(o + 12, csp[i]); C.setUint16(o + 13, cgen[i], true); C.setFloat32(o + 16, cage[i], true); C.setFloat32(o + 20, crep[i], true); C.setUint32(o + 24, cid[i], true); C.setFloat32(o + 28, cmeta[i], true); C.setFloat32(o + 32, cg[i], true); C.setFloat32(o + 36, cmt[i], true); }
+  const M = new DataView(new ArrayBuffer(mN * 8));
+  for (let j = 0; j < mN; j++) { const o = j * 8; M.setInt16(o, Math.round(mx[j]), true); M.setInt16(o + 2, Math.round(my[j]), true); M.setUint16(o + 4, mval[j], true); M.setUint16(o + 6, Math.round(mage[j]), true); }
   const diffs = []; for (let i = 0; i < GN * GN; i++) if (whp[i] !== wMax[i]) diffs.push(i);
   const Wb = new DataView(new ArrayBuffer(diffs.length * 8)); diffs.forEach((i, k) => { Wb.setUint32(k * 8, i, true); Wb.setFloat32(k * 8 + 4, whp[i], true); });
   const o = G.orb;
   return JSON.stringify({
-    v: 3, ver: VERSION, savedAt: Date.now(), seed: G.seed, t: G.t, lv: G.lv, maxLv: G.maxLv, wt: G.wt, towerAcc: G.towerAcc, devAcc: G.devAcc, lastScore: G.lastScore, lastBreak: G.lastBreak,
-    hist: G.hist, popHist: G.popHist, total0: G.total0, nextId: G.nextId, devId: G.devId, won: G.won,
+    v: 4, ver: VERSION, savedAt: Date.now(), seed: G.seed, t: G.t, lv: G.lv, maxLv: G.maxLv, wt: G.wt, towerAcc: G.towerAcc, devAcc: G.devAcc, lastScore: G.lastScore, lastBreak: G.lastBreak,
+    hist: G.hist, popHist: G.popHist, nextId: G.nextId, devId: G.devId, won: G.won, wallBroken: G.wallBroken || 0,
     stats: [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons || 0, G.fights || 0],
-    orb: { x: o.x, y: o.y, hp: o.hp }, cam: CAM.tz,
-    devs: G.devs.map(d => ({ id: d.id, type: d.type, x: d.x, y: d.y, ang: d.ang, bt: d.bt, bt0: d.bt0 })),
-    P: b64enc(new Uint8Array(P.buffer)), C: b64enc(new Uint8Array(C.buffer)), W: b64enc(new Uint8Array(Wb.buffer)),
+    matter: G.matter, flow: G.flow, flowWin: G.flowWin, lastFlow: G.lastFlow, inRate: G.inRate || 0,
+    orb: { x: o.x, y: o.y, hp: o.hp, tank: o.tank }, cam: CAM.tz,
+    pois: G.pois.map(q => [q.found ? 1 : 0, q.used ? 1 : 0, q.amt, q.sp, +(q.acc || 0).toFixed(2)]),
+    devs: G.devs.map(d => ({ id: d.id, type: d.type, x: d.x, y: d.y, ang: d.ang, bt: d.bt, bt0: d.bt0, n: d.n || 0 })),
+    P: b64enc(new Uint8Array(P.buffer)), C: b64enc(new Uint8Array(C.buffer)), W: b64enc(new Uint8Array(Wb.buffer)), M: b64enc(new Uint8Array(M.buffer)), S: b64enc(packBits(seen)),
   });
 }
 function saveGame(silent) {
   if (UI.state !== 'play') return;
-  let tries = 0;
-  while (tries < 4) {
+  for (let tries = 0; tries < 4; tries++) {
     try { localStorage.setItem(SAVE_KEY, serialize()); saveMeta(); UI.lastSave = performance.now(); if (!silent) toast('💾 已保存'); return true; }
-    catch (e) { tries++; mergeParticlesForSave(); }
+    catch (e) { mergeParticlesForSave(); }
   }
   if (!silent) toast('⚠ 存档失败（浏览器存储空间不足）'); return false;
 }
 function loadGame() {
   let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { return null; }
-  if (!s || s.v !== 3) return null;
+  if (!s || s.v !== 4) return null;
   genWorld(s.seed);
-  // 墙体差异
   const W = new DataView(b64dec(s.W).buffer); for (let k = 0; k < W.byteLength / 8; k++) { const i = W.getUint32(k * 8, true), h = W.getFloat32(k * 8 + 4, true); whp[i] = h; if (h <= 0) wE[i] = 0; }
-  let sealed = 0; for (let i = 0; i < GN * GN; i++) if (whp[i] > 0 && whp[i] < Infinity) sealed += wE[i]; G.wallSealed = sealed;
+  G.wallSealed = 0;
+  unpackBits(b64dec(s.S), seen);
   const P = new DataView(b64dec(s.P).buffer); pN = 0; for (let k = 0; k < P.byteLength / 8; k++) { const o = k * 8; px[pN] = P.getInt16(o, true); py[pN] = P.getInt16(o + 2, true); pv[pN] = P.getUint16(o + 4, true); pr[pN] = P.getUint8(o + 6); pvx[pN] = pvy[pN] = 0; if (pv[pN] > 0) pN++; }
-  const C = new DataView(b64dec(s.C).buffer); cN = 0; const CB = 36;
-  for (let k = 0; k < C.byteLength / CB; k++) { const o = k * CB; const i = newC(C.getUint8(o + 12), C.getFloat32(o, true), C.getFloat32(o + 4, true), C.getInt32(o + 8, true), C.getUint16(o + 13, true)); if (i < 0) break; cage[i] = C.getFloat32(o + 16, true); crep[i] = C.getFloat32(o + 20, true); cid[i] = C.getUint32(o + 24, true); cmeta[i] = C.getFloat32(o + 28, true); cg[i] = C.getFloat32(o + 32, true) || 1; }
-  Object.assign(G, { t: s.t, lv: s.lv, maxLv: s.maxLv, wt: s.wt, towerAcc: s.towerAcc, devAcc: s.devAcc, lastScore: s.lastScore, lastBreak: s.lastBreak, hist: s.hist || [], popHist: s.popHist || [], total0: s.total0, nextId: s.nextId, devId: s.devId, won: s.won });
+  const C = new DataView(b64dec(s.C).buffer); cN = 0; const CB = 40;
+  for (let k = 0; k < C.byteLength / CB; k++) { const o = k * CB; const i = newC(C.getUint8(o + 12), C.getFloat32(o, true), C.getFloat32(o + 4, true), C.getInt32(o + 8, true), C.getUint16(o + 13, true)); if (i < 0) break; cage[i] = C.getFloat32(o + 16, true); crep[i] = C.getFloat32(o + 20, true); cid[i] = C.getUint32(o + 24, true); cmeta[i] = C.getFloat32(o + 28, true); cg[i] = C.getFloat32(o + 32, true) || 1; cmt[i] = C.getFloat32(o + 36, true); }
+  const M = new DataView(b64dec(s.M).buffer); mN = 0; for (let k = 0; k < M.byteLength / 8 && mN < MAXM; k++) { const o = k * 8; mx[mN] = M.getInt16(o, true); my[mN] = M.getInt16(o + 2, true); mval[mN] = M.getUint16(o + 4, true); mage[mN] = M.getUint16(o + 6, true); mvx[mN] = mvy[mN] = 0; if (mval[mN]) mN++; }
+  (s.pois || []).forEach((a, k) => { const q = G.pois[k]; if (!q) return; q.found = !!a[0]; q.used = !!a[1]; q.amt = a[2]; q.sp = a[3]; q.acc = a[4] || 0; });
+  Object.assign(G, { t: s.t, lv: s.lv, maxLv: s.maxLv, wt: s.wt, towerAcc: s.towerAcc, devAcc: s.devAcc, lastScore: s.lastScore, lastBreak: s.lastBreak, hist: s.hist || [], popHist: s.popHist || [], nextId: s.nextId, devId: s.devId, won: s.won, wallBroken: s.wallBroken || 0, matter: s.matter || 0, inRate: s.inRate || 0 });
+  if (s.flow) G.flow = s.flow; if (s.flowWin) G.flowWin = s.flowWin; if (s.lastFlow) G.lastFlow = s.lastFlow;
   [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons, G.fights] = s.stats; G.fights = G.fights || 0; computeOpen();
-  G.orb.x = s.orb.x; G.orb.y = s.orb.y; G.orb.hp = s.orb.hp; G.orb.dead = 0; G.orb.vx = G.orb.vy = 0;
+  const o = G.orb; o.x = s.orb.x; o.y = s.orb.y; o.hp = s.orb.hp; o.tank = s.orb.tank != null ? s.orb.tank : tankMax(G.lv); o.dead = 0; o.vx = o.vy = 0;
   G.devs = s.devs.map(d => Object.assign({ powered: true, acc: 0, lastAcc: 0, tt: Math.random(), conn: false, mult: 1, n: 0 }, d));
   recomputePower(); CAM.tz = CAM.z = s.cam || 1;
-  // 存档里的能量总量若和当前账本不符（例如旧版本），以当前为准
-  const L = ledger(); if (L.total !== G.total0) { console.warn('ledger adjust', G.total0, L.total); G.total0 = L.total; }
   return s;
 }
 
 /* ---------- 离线推演 ---------- */
 let offCancel = false;
+function worldE() { const L = ledger(); return L.map + L.bio; }
+// 玩家能“看见”的能量：已探索区域的地面能量 + 生物体内（不含迷雾中封存的能量洞）
+function visibleE() { let e = 0; for (let i = 0; i < pN; i++) { const g = gIdx(px[i], py[i]); if (g >= 0 && seen[g]) e += pv[i]; } for (let i = 0; i < cN; i++) if (!cdead[i]) e += ce[i]; return e; }
 function runOffline(sec, title, done) {
   sec = Math.min(sec, 12 * 3600);
-  const before = { lv: G.lv, pop: cN, sp: Array.from(G.spCount), births: G.births, deaths: G.deaths, t: G.t, L: ledger() };
-  const ext = new Set(), newSp = new Set(); let maxLvSeen = G.lv, minLvSeen = G.lv;
+  const before = { lv: G.lv, pop: cN, sp: Array.from(G.spCount), births: G.births, deaths: G.deaths, t: G.t, E: visibleE(), mat: G.matter };
+  const ext = new Set(); let maxLvSeen = G.lv, minLvSeen = G.lv;
   $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态圈仍在运转'; offCancel = false;
   const tStart = performance.now(); let simmed = 0, dt = 0.25; const budget = 9000;
-  // 先测速
   const t0 = performance.now(); for (let k = 0; k < 8 && simmed < sec; k++) { simStep(dt); simmed += dt; G.events.length = 0; }
   const ms = Math.max(0.3, (performance.now() - t0) / 8); const steps = budget / ms; dt = Math.max(0.25, Math.min(4, (sec - simmed) / steps));
   function chunk() {
     const c0 = performance.now();
     while (simmed < sec && performance.now() - c0 < 50) {
       const d = Math.min(dt, sec - simmed); simStep(d); simmed += d;
-      for (const e of G.events) { if (e.type === 'extinct') ext.add(e.a); if (e.type === 'lv') { maxLvSeen = Math.max(maxLvSeen, e.a); minLvSeen = Math.min(minLvSeen, e.a); } if (e.type === 'unlock') newSp.add(e.a + ':' + e.b); if (e.type === 'win') G._winPending = true; }
+      for (const e of G.events) { if (e.type === 'extinct') ext.add(e.a); if (e.type === 'lv') { maxLvSeen = Math.max(maxLvSeen, e.a); minLvSeen = Math.min(minLvSeen, e.a); } if (e.type === 'win') G._winPending = true; }
       G.events.length = 0;
     }
     $('offBar').firstChild.style.width = (simmed / sec * 100).toFixed(1) + '%';
     if (simmed < sec && !offCancel && performance.now() - tStart < budget * 1.6) setTimeout(chunk, 0);
     else {
-      $('offline').classList.remove('show');
-      const rep = { sec: simmed, want: sec, before, after: { lv: G.lv, pop: cN, sp: Array.from(G.spCount) }, births: G.births - before.births, deaths: G.deaths - before.deaths, ext: [...ext], maxLv: maxLvSeen, minLv: minLvSeen };
+      $('offline').classList.remove('show'); UI.dockSig = '';
+      const rep = { sec: simmed, want: sec, before, after: { lv: G.lv, pop: cN, sp: Array.from(G.spCount), E: visibleE(), mat: G.matter }, births: G.births - before.births, deaths: G.deaths - before.deaths, ext: [...ext], maxLv: maxLvSeen, minLv: minLvSeen };
       showReport(rep); saveGame(true); if (done) done(rep);
     }
   }
@@ -88,205 +95,319 @@ function runOffline(sec, title, done) {
 }
 function fmtTime(s) { s = Math.round(s); if (s < 60) return s + ' 秒'; if (s < 3600) return Math.floor(s / 60) + ' 分 ' + (s % 60) + ' 秒'; return Math.floor(s / 3600) + ' 小时 ' + Math.floor(s % 3600 / 60) + ' 分'; }
 function showReport(r) {
-  const spLines = SPECIES.map((s, i) => (r.before.sp[i] || r.after.sp[i]) ? `<tr><td><img src="${speciesIcon(i, 28)}" style="width:22px;vertical-align:middle"> ${s.name}</td><td>${r.before.sp[i]}</td><td>→</td><td style="color:${r.after.sp[i] > r.before.sp[i] ? '#8f8' : r.after.sp[i] < r.before.sp[i] ? '#f99' : '#ccc'}">${r.after.sp[i]}${r.after.sp[i] === 0 ? ' 💀' : ''}</td></tr>` : '').join('');
-  const collapsed = r.after.pop === 0 && r.before.pop > 0;
-  $('repBox').innerHTML = `<div style="font-size:19px;font-weight:700">${collapsed ? '💀 生态圈崩溃了…' : r.after.lv > r.before.lv ? '🌊 潮汐上涨！' : r.after.lv < r.before.lv ? '🌘 潮汐退去了…' : '🎁 开盲盒时间'}</div>
-  <div style="opacity:.8">推演了 ${fmtTime(r.sec)}${r.sec < r.want - 1 ? `（离开 ${fmtTime(r.want)}，超出部分已省略）` : ''}</div>
-  <div>潮汐：Lv.${r.before.lv} → <b style="color:${LV_COLORS[r.after.lv]}">Lv.${r.after.lv} ${LV_NAMES[r.after.lv]}</b>（期间最高 Lv.${r.maxLv}）</div>
-  <div>生物：${r.before.pop} → <b>${r.after.pop}</b>　出生 ${r.births} · 死亡 ${r.deaths}</div>
-  ${r.ext.length ? `<div style="color:#f99">灭绝：${r.ext.map(s => SPECIES[s].name).join('、')}</div>` : ''}
+  const spLines = SPECIES.map((s, i) => (r.before.sp[i] || r.after.sp[i]) ? `<tr><td><img src="${speciesIcon(i, 40)}" style="width:28px;vertical-align:middle"> ${s.name}</td><td>${r.before.sp[i]}</td><td>→</td><td style="color:${r.after.sp[i] > r.before.sp[i] ? '#8f8' : r.after.sp[i] < r.before.sp[i] ? '#f99' : '#ccc'}">${r.after.sp[i]}${r.after.sp[i] === 0 ? ' 💀' : ''}</td></tr>` : '').join('');
+  const collapsed = r.after.pop === 0 && r.before.pop > 0, dE = r.after.E - r.before.E, dM = r.after.mat - r.before.mat;
+  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:800">${collapsed ? '💀 生态圈崩溃了…' : r.after.lv > r.before.lv ? '🌊 潮汐上涨！' : r.after.lv < r.before.lv ? '🌘 潮汐退去了…' : '🎁 开盲盒时间'}</div>
+  <div style="opacity:.75">⏱ ${fmtTime(r.sec)}${r.sec < r.want - 1 ? `（离开 ${fmtTime(r.want)}，超出部分已省略）` : ''}</div>
+  <div class="kv" style="margin:8px 0">
+    <div class="i">🌊</div><div>潮汐</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
+    <div class="i">🐾</div><div>生物</div><b>${r.before.pop} → ${r.after.pop}</b>
+    <div class="i" style="color:#9ff4ff">✦</div><div>世界能量</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
+    <div class="i">🔷</div><div>物质</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
+  </div>
+  ${r.ext.length ? `<div style="color:#f99">💀 灭绝：${r.ext.map(s => SPECIES[s].name).join('、')}</div>` : ''}
   <table class="tb" style="margin-top:6px">${spLines}</table>
-  ${collapsed ? '<div style="margin-top:6px;opacity:.8">能量都还在地图上（守恒）。解锁的物种不会丢失——去方塔重新召唤吧。</div>' : ''}
-  <div style="text-align:center;margin-top:12px"><button class="btn" id="repOk">继续</button></div>`;
+  ${collapsed ? '<div class="note warn">能量耗尽，生物全部饿死了。播撒能量、开拓能量洞、建造发生器，然后重新召唤吧——解锁的物种不会丢失。</div>' : dE < 0 && r.after.pop > 0 ? '<div class="note">能量在减少：食肉动物能控制食草动物的数量，让能量用得更久。</div>' : ''}
+  <div style="text-align:center;margin-top:14px"><button class="btn pri" id="repOk">继续</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => { $('report').classList.remove('show'); AU.play('click'); if (G._winPending) { G._winPending = false; showWin(); } };
 }
 
 /* ---------- 提示 / Toast ---------- */
-function toast(msg, col) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg; if (col) d.style.borderColor = col; $('toasts').appendChild(d); while ($('toasts').children.length > 6) $('toasts').firstChild.remove(); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 4200); }
+function toast(msg, col) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg; if (col) d.style.borderColor = col; $('toasts').appendChild(d); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 3600); }
 const TUT = [
-  { txt: '👆 点击中央的【方塔】（或按 B）召唤生物吧！先召唤几只 啵啵史莱姆 和 团子兔。', done: () => (G.summons || 0) >= 3 },
-  { txt: '✨ 能量刚释放时是暗淡的，约 4 秒后凝结成明亮的星点才能被吃。生物死亡、受伤、代谢都会把能量洒回地图（总量守恒）。', done: () => G.t > 50 || G.lv >= 1 },
-  { txt: '⚔️ 每只生物都有【战力】= 物种基础 × 体型² × 体力 × 年龄 × 同伴加成。打架时战力高的胜率大。点一只生物看看它的战力和基因。', done: () => G.t > 110 || G.lv >= 2 },
-  { txt: '🌊 每 10 秒结算一次【观测潮汐】。物种越多越均衡、食物链层级越完整（食能→捕食→顶级），潮汐越高。Lv.1 起可以建造观测装置。', done: () => G.lv >= 1 && G.devs.length > 0 },
-  { txt: '⚡ 装置只能建在能量场里：先铺【导能塔】连成网络，再建其它装置。安宁结界能保护猎物，角斗台靠战斗产出潮汐——怎么取舍由你决定。', done: () => G.devs.some(d => d.type !== D_PYLON) },
-  { txt: '🧱 撞向黑墙可以消融它（会掉血），释放封存的能量，也让每个物种的生态位容量变大。按住空格/吸引按钮可以把能量带回来。', done: () => G.wallBroken > 5 },
+  { i: '✦', txt: () => UI.touch ? '按住右下角【播撒】，把白球里的能量喷到地上' : '按住【空格】播撒能量——生物靠地上的能量生存', done: () => G.flow.spray >= 30 },
+  { i: '🐾', txt: () => '点底部的生物卡片，用白球的能量召唤生物', done: () => (G.summons || 0) >= 3 },
+  { i: '🔷', txt: () => '生物会掉落金色【物质】结晶，靠近就能收集', done: () => G.flow.mat >= 10 },
+  { i: '🔥', txt: () => '能量会被生物代谢掉、不会再生。食物链越完整，能量用得越久', done: () => G.lv >= 1 || G.t > 150 },
+  { i: '🏗️', txt: () => '潮汐 Lv1 解锁建筑：先建【导能塔】扩大能量场，再建【物质收集器】', done: () => G.devs.length > 0 },
+  { i: '❓', txt: () => '撞开黑墙探索迷雾——闪烁的 ? 信号下藏着远古遗迹和能量洞', done: () => G.pois.some(q => q.found) },
 ];
 function updateHint() {
-  if (META.tut >= TUT.length) { $('hint').style.display = 'none'; return; }
-  const s = TUT[META.tut]; if (s.done()) { META.tut++; saveMeta(); return updateHint(); }
-  $('hint').style.display = 'block'; $('hint').textContent = s.txt;
+  const h = $('hint');
+  if (META.tut >= TUT.length || UI.state !== 'play') { h.style.display = 'none'; return; }
+  const s = TUT[META.tut]; if (s.done()) { META.tut++; saveMeta(); AU.play('gain'); return updateHint(); }
+  h.style.display = 'flex'; $('hintI').textContent = s.i; $('hintT').textContent = s.txt();
+}
+
+/* ---------- 装置图标（复用渲染器绘制） ---------- */
+const _devIcon = {};
+function devIcon(t) {
+  if (_devIcon[t]) return _devIcon[t];
+  const c = mkC(96), g = c.getContext('2d'), sv = ctx, lv = G.lv, z = CAM.z;
+  ctx = g; G.lv = Math.max(1, G.lv); CAM.z = 0.2; g.translate(48, 66); g.scale(1.3, 1.3);
+  const d = { id: 1, type: t, x: 0, y: 0, ang: 0, bt: 0, powered: true, conn: true, flash: 0, tt: 0, mult: 1, acc: 0, n: 0 };
+  try { if (DEVICES[t].len) { g.save(); g.scale(0.3, 0.3); drawDevice(d, false); g.restore(); } else drawDevice(d, false); drawDevice(d, true); } catch (e) { }
+  ctx = sv; G.lv = lv; CAM.z = z; return _devIcon[t] = c.toDataURL();
+}
+
+/* ---------- 底部坞站 ---------- */
+function spUnlocked(i) { return G.unlocked.includes(SPECIES[i].key); }
+function buildDock() {
+  const L = $('dList'); let h = '';
+  if (UI.dock === 0) {
+    SPECIES.forEach((s, i) => {
+      const un = spUnlocked(i), nw = un && !META.seenCards.includes(s.key);
+      h += `<div class="dc ${un ? '' : 'lock'} ${nw ? 'new' : ''}" data-s="${i}"><img src="${speciesIcon(i, 64)}"><div class="nm">${s.name}</div><div class="cs"><span class="ce">⚡${s.cost}</span>${s.mcost ? `<span class="cm">◆${s.mcost}</span>` : ''}</div>${un ? `<div class="bd">${G.spCount[i]}</div><div class="inf" data-info="${i}">i</div>` : `<div class="lk">🔒<b>Lv${s.unlock}</b></div>`}</div>`;
+    });
+  } else {
+    DEVICES.forEach((d, i) => {
+      const un = devUnlocked(i);
+      h += `<div class="dc ${un ? '' : 'lock'}" data-d="${i}"><img src="${devIcon(i)}"><div class="nm" style="color:${un ? DEV_COL[i] : ''}">${d.name}</div><div class="cs"><span class="cm">◆${d.mc}</span><span class="cc">▣${d.cost}</span></div>${un ? `<div class="inf" data-dinfo="${i}">i</div>` : `<div class="lk">🔒<b>Lv${d.unlock}</b></div>`}</div>`;
+    });
+  }
+  L.innerHTML = h; updateDock();
+}
+function updateDock() {
+  const sig = UI.dock + '|' + G.unlocked.length + '|' + G.lv;
+  if (sig !== UI.dockSig) { UI.dockSig = sig; buildDock(); return; }
+  const L = $('dList');
+  if (UI.dock === 0) {
+    for (const el of L.children) { const i = +el.dataset.s, s = SPECIES[i]; if (!spUnlocked(i)) continue; const okE = G.orb.tank >= s.cost, okM = G.matter >= s.mcost; el.classList.toggle('poor', !(okE && okM)); const cs = el.querySelector('.cs'); cs.children[0].classList.toggle('no', !okE); if (cs.children[1]) cs.children[1].classList.toggle('no', !okM); const bd = el.querySelector('.bd'); if (bd) bd.textContent = G.spCount[i]; }
+    $('dCap').textContent = '';
+  } else {
+    const used = capUsed(), cap = totalCap();
+    for (const el of L.children) { const i = +el.dataset.d, d = DEVICES[i]; if (!devUnlocked(i)) continue; const okM = G.matter >= d.mc, okC = used + d.cost <= cap; el.classList.toggle('poor', !(okM && okC)); const cs = el.querySelector('.cs'); cs.children[0].classList.toggle('no', !okM); cs.children[1].classList.toggle('no', !okC); }
+    $('dCap').innerHTML = ''; const bt = document.querySelector('.dt[data-t="1"] span'); bt.innerHTML = `建筑 <small>▣${used}/${cap}</small>`;
+  }
+}
+function setDock(t) { UI.dock = t; document.querySelectorAll('.dt').forEach(b => b.classList.toggle('on', +b.dataset.t === t)); UI.dockSig = ''; updateDock(); $('dList').scrollLeft = 0; }
+function onDockClick(e) {
+  const inf = e.target.closest('[data-info]'); if (inf) { e.stopPropagation(); showSpeciesCard(+inf.dataset.info); return; }
+  const dinf = e.target.closest('[data-dinfo]'); if (dinf) { e.stopPropagation(); showDevInfo(+dinf.dataset.dinfo); return; }
+  const el = e.target.closest('.dc'); if (!el) return;
+  if (el.dataset.s !== undefined) {
+    const i = +el.dataset.s, s = SPECIES[i];
+    if (!spUnlocked(i)) { AU.play('error'); toast(`🔒 潮汐 Lv${s.unlock} 解锁（也可能在孵化舱遗迹里找到）`); return; }
+    if (!META.seenCards.includes(s.key)) { META.seenCards.push(s.key); el.classList.remove('new'); saveMeta(); }
+    const o = G.orb, r = summon(i, isWall(o.x, o.y) ? null : { x: o.x, y: o.y });
+    if (r) { AU.play('error'); toast('⚠ ' + r); el.animate([{ transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'none' }], 200); }
+    else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#9ff4ff' }); }
+    updateDock(); return;
+  }
+  if (el.dataset.d !== undefined) {
+    const i = +el.dataset.d, d = DEVICES[i];
+    if (!devUnlocked(i)) { AU.play('error'); toast(`🔒 潮汐 Lv${d.unlock} 解锁`); return; }
+    if (G.matter < d.mc) { AU.play('error'); toast(`⚠ 物质不足：需要 ◆${d.mc}`); return; }
+    if (capUsed() + d.cost > totalCap()) { AU.play('error'); toast('⚠ 建造额度不足——提升潮汐或激活观测古碑'); return; }
+    AU.play('click'); enterBuild(i);
+  }
 }
 
 /* ---------- HUD ---------- */
-let hudT = 0, mmT = 0, ledgerCache = null;
+let hudT = 0, mmT = 0;
 function updateHUD() {
-  const L = ledgerCache = ledger(); const ok = L.total === G.total0;
-  const used = capUsed(), cap = buildCap(G.lv);
-  const mini = innerWidth < 700 && !UI.statsOpen;
-  $('stats').className = 'hud glass' + (mini ? ' mini' : '');
-  $('stats').innerHTML = `<div class="row"><span>🧬 生物 <b>${cN}</b></span><span>物种 <b>${G.spAlive}</b>/${G.unlocked.filter(k => SP_IDX[k] !== undefined).length}</span></div>
-  <div class="row"><span class="lc">✦ 能量 ${L.ripe}</span><span class="ec" title="刚释放、尚未凝结的能量">✧ 凝结中 ${L.raw}</span></div>
-  <div class="more"><div class="row"><span class="bc">♥ 生物体内 ${L.bio}</span><span class="sc">▣ 墙中 ${L.sealed}</span></div>
-  <div class="row"><span>能量总量 ${L.total}</span><span class="${ok ? 'ok' : 'bad'}">${ok ? '✓守恒' : '⚠偏差 ' + (L.total - G.total0)}</span></div>
-  <div class="row"><span>🔧 建造额度 ${used}/${cap}</span><span class="dim">⏱ ${fmtClock(G.t)}</span></div></div>
-  <div class="row"><span>白球 ${G.orb.dead ? '重生中…' : Math.round(G.orb.hp)}</span><span class="dim">消融力 ${orbDPS().toFixed(0)}</span></div><div id="hpbar"><i style="width:${G.orb.hp}%;${G.orb.hp < 40 ? 'background:#f88' : ''}"></i></div>`;
-  // 潮汐
-  const lv = G.lv, nxt = lv < MAXLV ? THRESH[lv + 1] : THRESH[MAXLV], col = LV_COLORS[lv];
-  $('tideLv').innerHTML = `<span style="color:${col}">观测潮汐 Lv.${lv}</span> · ${LV_NAMES[lv]}`;
-  const est = (G.towerAcc + G.devAcc) * G.lastHarm * WINDOW / Math.max(0.5, G.wt);
-  $('tideFill').style.width = Math.min(100, G.lastScore / nxt * 100) + '%'; $('tideFill').style.background = `linear-gradient(90deg,${col},${LV_COLORS[Math.min(MAXLV, lv + 1)]})`;
-  $('tideWin').style.width = (G.wt / WINDOW * 100) + '%';
-  $('tideSub').textContent = `上次结算 ${G.lastScore.toFixed(1)} / 下一级 ${nxt}　·　本轮预估 ${est.toFixed(1)}　·　${Math.ceil(WINDOW - G.wt)}s`;
-  // 加速标签
-  if (UI.boostT > 0) { $('speedTag').style.display = 'block'; $('speedTag').textContent = '⏩ ×4 ' + Math.ceil(UI.boostT) + 's'; } else $('speedTag').style.display = 'none';
-  updateCard(); updateHint();
+  const o = G.orb, TM = tankMax(G.lv), tf = Math.max(0, o.tank / TM);
+  $('tankBar').style.width = (tf * 100) + '%'; $('tankBar').style.background = tf < 0.2 ? 'linear-gradient(90deg,#ff7a6a,#ffb0a0)' : ''; $('tankV').textContent = Math.floor(o.tank);
+  $('sprArc').setAttribute('stroke-dasharray', (tf * 295.3) + ' 400'); $('sprArc').setAttribute('stroke', tf < 0.2 ? '#ff9a8a' : '#7ff4ff');
+  $('matV').textContent = fmtN(G.matter); const mr = (G.lastFlow.mat || 0) * 6; $('matR').textContent = mr ? '+' + fmtN(mr) + '/分' : '';
+  const E = visibleE(), net = ((G.lastFlow.inE || 0) - (G.lastFlow.burn || 0)) * 6;
+  $('ecoV').textContent = fmtN(E); $('ecoR').innerHTML = net >= 0 ? `<span class="up">▲${fmtN(net)}</span>` : `<span class="dn">▼${fmtN(-net)}</span>`;
+  $('popV').textContent = fmtN(cN); $('spV').textContent = G.spAlive + '种';
+  const lv = G.lv, col = LV_COLORS[lv], lo = THRESH[lv], hi = lv < MAXLV ? THRESH[lv + 1] : THRESH[MAXLV];
+  const frac = lv >= MAXLV ? 1 : Math.max(0, Math.min(1, (G.lastScore - lo) / (hi - lo)));
+  $('tLv').textContent = lv; $('tLv').style.color = col; $('tArc').setAttribute('stroke', col); $('tArc').setAttribute('stroke-dasharray', (frac * 138.2) + ' 200');
+  $('tName').textContent = LV_NAMES[lv]; $('tName').style.color = col;
+  $('tNext').textContent = lv >= MAXLV ? '最高等级' : `${G.lastScore.toFixed(1)} / ${hi}`; $('tWin').firstChild.style.width = (G.wt / WINDOW * 100) + '%';
+  if (UI.boostT > 0) { $('speedTag').style.display = 'block'; $('speedTag').textContent = '⏩×4 ' + Math.ceil(UI.boostT) + 's'; } else $('speedTag').style.display = 'none';
+  updateDock(); updateCard(); updateHint();
+  if (UI.build >= 0) updateBuildTip();
 }
-function fmtClock(t) { const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = Math.floor(t % 60); return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'); }
+
+/* ---------- 信息卡 ---------- */
+const MOOD = {}; MOOD[ST_FLEE] = '😱'; MOOD[ST_FIGHT] = '💢'; MOOD[ST_HUNT] = '🎯'; MOOD[ST_MATE] = '💕'; MOOD[ST_REST] = '💤';
+function preyOf(s) { return SPECIES[s].prey ? SPECIES[s].prey.map(k => SP_IDX[k]) : []; }
+function predsOf(s) { const L = []; SPECIES.forEach((x, j) => { if (S_preyMask[j] & (1 << s)) L.push(j); }); return L; }
+function webHTML(s) {
+  const sp = SPECIES[s], eats = preyOf(s), pr = predsOf(s);
+  const ic = j => `<img src="${speciesIcon(j, 40)}" title="${SPECIES[j].name}" style="${spUnlocked(j) ? '' : 'filter:brightness(0) opacity(.5)'}">`;
+  return `<div class="web"><span class="lb">吃</span>${sp.diet !== D_M ? '<span style="font-size:22px;color:#9ff4ff" title="能量">✦</span>' : ''}${eats.map(ic).join('')}</div>
+  <div class="web"><span class="lb">天敌</span>${pr.length ? pr.map(ic).join('') : '<span style="opacity:.6">—</span>'}</div>`;
+}
+function stars(p) { const n = p < 1 ? 1 : p < 2.5 ? 2 : p < 5 ? 3 : p < 9 ? 4 : 5; return '★'.repeat(n) + '<span style="opacity:.25">' + '★'.repeat(5 - n) + '</span>'; }
+function clearSel() { UI.selId = 0; UI.selDev = null; UI.selPOI = null; UI.selSp = -1; $('card').style.display = 'none'; }
+function showSpeciesCard(s) { clearSel(); UI.selSp = s; AU.play('click'); updateCard(); }
+function showDevInfo(t) { clearSel(); UI.selDevInfo = t; UI.selSp = -2; AU.play('click'); updateCard(); }
 function updateCard() {
   const c = $('card');
   if (UI.selId) {
     const i = findById(UI.selId, UI.sel); UI.sel = i;
-    if (i < 0) { c.innerHTML = '<div style="opacity:.8">它已经离开了这个世界…（能量回到了地图上）</div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev) c.style.display = 'none'; }, 2000); return; }
-    const s = csp[i], sp = SPECIES[s], cap = capE(i), ageP = cage[i] / sp.life, eP = ce[i] / cap, pw = power(i, false), g = cg[i];
+    if (i < 0) { c.innerHTML = '<div class="ch"><div class="nm" style="font-size:16px">🌫 它已经回归了能量…</div><button class="x" data-act="x">✕</button></div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev && !UI.selPOI && UI.selSp === -1) c.style.display = 'none'; }, 1800); return; }
+    const s = csp[i], sp = SPECIES[s], cap = capE(i), ageP = cage[i] / sp.life, eP = ce[i] / cap, pw = power(i, false);
     c.style.display = 'block';
-    const mood = cst[i] === ST_FLEE ? '😱' : cst[i] === ST_FIGHT ? '💢' : cst[i] === ST_HUNT ? '🎯' : cst[i] === ST_MATE ? '💕' : cst[i] === ST_REST ? '💤' : '';
-    c.innerHTML = `<div class="t"><img src="${speciesIcon(s, 64)}">${sp.name} <span style="font-size:11px;opacity:.6">#${cid[i]} · 第${cgen[i]}代 · ${mood}${ST_NAME[cst[i]]}</span></div>
-    <div class="pw"><span>⚔ 战力 <b>${pw.toFixed(2)}</b></span><span>🧬 体型基因 <b style="color:${g > 1.05 ? '#ffd07a' : g < 0.95 ? '#9fd8ff' : '#fff'}">×${g.toFixed(2)}</b></span>${ckin[i] ? `<span>👥 同伴 ${Math.min(ckin[i], 8)}</span>` : ''}</div>
-    <div>能量 ${ce[i]}/${cap}　<span style="opacity:.7">繁殖需 ${Math.round(repEi(i))}</span></div><div class="bar"><i style="width:${eP * 100}%;background:linear-gradient(90deg,#6ff,#bff)"></i></div>
-    <div>年龄 ${Math.floor(cage[i])}s / 寿命 ${sp.life}s ${ageP > 0.75 ? '（年迈，战力下降）' : cage[i] < sp.mature ? '（幼年，战力减半）' : ''}</div><div class="bar"><i style="width:${Math.min(100, ageP * 100)}%;background:${ageP > 0.75 ? '#f9a' : '#fd8'}"></i></div>
-    <div style="opacity:.8;margin-top:3px">${dietTags(sp)}</div>`;
+    c.innerHTML = `<div class="ch"><img class="pt" src="${speciesIcon(s, 64)}"><div><div class="nm">${sp.name} ${MOOD[cst[i]] || ''}</div><div class="sub">第 ${cgen[i]} 代 · ${ST_NAME[cst[i]]}</div></div><button class="x" data-act="x">✕</button></div>
+    <div class="pills"><span class="pl" style="color:#ffd07a">⚔ ${stars(pw)}</span><span class="pl">🧬 ×${cg[i].toFixed(2)}</span>${ckin[i] ? `<span class="pl">👥 ${Math.min(ckin[i], 8)}</span>` : ''}<span class="pl cm">◆${sp.mat}/${sp.matT}s</span></div>
+    <div class="br"><span>⚡</span><div class="bb"><i style="width:${eP * 100}%;background:linear-gradient(90deg,#49c8ff,#bff8ff)"></i></div><span style="min-width:54px;text-align:right">${ce[i]}/${cap}</span></div>
+    <div class="br"><span>⏳</span><div class="bb"><i style="width:${Math.min(100, ageP * 100)}%;background:${ageP > 0.75 ? '#ff9ab0' : cage[i] < sp.mature ? '#9fe8ff' : '#ffd88a'}"></i></div><span style="min-width:54px;text-align:right">${cage[i] < sp.mature ? '幼年' : ageP > 0.75 ? '年迈' : '成年'}</span></div>
+    ${webHTML(s)}`;
+  } else if (UI.selSp >= 0) {
+    const s = UI.selSp, sp = SPECIES[s]; c.style.display = 'block';
+    c.innerHTML = `<div class="ch"><img class="pt" src="${speciesIcon(s, 64)}"><div><div class="nm">${sp.name}</div><div class="sub">${DIET_NAME[sp.diet]} · 存活 ${G.spCount[s]}</div></div><button class="x" data-act="x">✕</button></div>
+    <div class="pills"><span class="pl" style="color:#ffd07a">⚔ ${stars(sp.pow)}</span><span class="pl">⏳ ${sp.life}s</span><span class="pl ce">⚡${sp.cost}</span>${sp.mcost ? `<span class="pl cm">◆${sp.mcost}</span>` : ''}<span class="pl cm">产出 ◆${sp.mat}/${sp.matT}s</span></div>
+    <div class="desc">${sp.desc}</div>${webHTML(s)}`;
+  } else if (UI.selSp === -2) {
+    const t = UI.selDevInfo, d = DEVICES[t]; c.style.display = 'block';
+    c.innerHTML = `<div class="ch"><img class="pt" src="${devIcon(t)}"><div><div class="nm" style="color:${DEV_COL[t]}">${d.name}</div><div class="sub">Lv${d.unlock} · 建造 ${d.time}s</div></div><button class="x" data-act="x">✕</button></div>
+    <div class="pills"><span class="pl cm">◆${d.mc}</span><span class="pl cc">▣ 额度 ${d.cost}</span>${d.r ? `<span class="pl">◎ ${d.r}</span>` : ''}</div><div class="desc">${d.desc}</div>`;
   } else if (UI.selDev) {
-    const d = UI.selDev; if (!G.devs.includes(d)) { UI.selDev = null; c.style.display = 'none'; return; }
-    const def = DEVICES[d.type];
-    const st = d.bt > 0 ? `建造中 ${Math.ceil(d.bt)}s` : !d.powered ? '⚠ 不在能量场内' : G.lv < 1 ? '停机（潮汐归零，遗迹状态）' : '运转中';
-    c.style.display = 'block';
-    c.innerHTML = `<div class="t">${def.name} <span style="font-size:11px;opacity:.6">${st}</span></div><div style="opacity:.8">${def.desc}</div>
-    <div>上轮贡献：${(d.lastAcc || 0).toFixed(2)} 潮汐 ${d.mult > 1 ? '（透镜 ×' + d.mult.toFixed(2) + '）' : ''}${d.n ? ' · 计数 ' + d.n : ''}</div>
-    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${d.bt > 0 ? '<button class="btn ad" id="cdAd">📺 看广告立即完成</button>' : ''}${def.key === 'nest' && d.bt <= 0 ? '<button class="btn" id="cdNest">🥚 在这里召唤</button>' : ''}<button class="btn red" id="cdDel">拆除（返还额度）</button><button class="btn" id="cdX">关闭</button></div>`;
-    const ad = $('cdAd'); if (ad) ad.onclick = () => Ads.rewarded(() => { d.bt = 0.01; toast('⚡ 建造完成！'); }, m => toast(m));
-    const nb = $('cdNest'); if (nb) nb.onclick = () => openTower(0, d);
-    $('cdDel').onclick = () => { removeDev(d); UI.selDev = null; c.style.display = 'none'; AU.play('click'); toast('已拆除 ' + def.name); };
-    $('cdX').onclick = () => { UI.selDev = null; c.style.display = 'none'; };
+    const d = UI.selDev; if (!G.devs.includes(d)) { clearSel(); return; }
+    const def = DEVICES[d.type], act = devActive(d);
+    const st = d.bt > 0 ? `<span style="color:#7fb8ff">🔨 建造中 ${Math.ceil(d.bt)}s</span>` : !d.powered ? '<span style="color:#ffb070">⚠ 不在能量场内</span>' : G.lv < 1 ? '<span style="color:#aaa">💤 停机（潮汐 Lv0）</span>' : '<span style="color:#8fffb0">● 运转中</span>';
+    const extra = d.bt <= 0 && act ? (def.key === 'collector' ? `已收集 ${d.n || 0} 颗` : def.out ? `+${(def.out * (1 + 0.1 * G.lv)).toFixed(1)} ⚡/s` : d.lastAcc ? `+${d.lastAcc.toFixed(2)} 潮汐/10s` : '') : '';
+    const key = d.id + '|' + (d.bt > 0) + '|' + act;
+    if (c.dataset.k !== key || c.style.display === 'none') {
+      c.dataset.k = key; c.style.display = 'block';
+      c.innerHTML = `<div class="ch"><img class="pt" src="${devIcon(d.type)}"><div><div class="nm" style="color:${DEV_COL[d.type]}">${def.name}</div><div class="sub" id="cdSt"></div></div><button class="x" data-act="x">✕</button></div>
+      <div class="desc">${def.desc}</div><div class="pills" id="cdEx"></div>
+      <div class="acts">${d.bt > 0 ? '<button class="btn ad" data-act="ad">📺 立即完成</button>' : ''}<button class="btn red" data-act="del">🗑 拆除 <span class="cm">+◆${Math.floor(def.mc * (d.bt > 0 ? 1 : 0.5))}</span></button></div>`;
+    }
+    $('cdSt').innerHTML = st; $('cdEx').innerHTML = extra ? `<span class="pl">${extra}</span>` : '';
+  } else if (UI.selPOI) {
+    const q = UI.selPOI, P = POI[q.type], key = P.key; c.style.display = 'block';
+    const st = key === 'crystal' || key === 'pod' ? (q.used ? '已用尽' : '靠近白球即可触发') : key === 'cave' ? '封存的能量' : q.on ? '<span style="color:#8fffb0">● 运转中</span>' : '<span style="color:#ffb070">⚠ 需要接入能量场（导能塔）且潮汐 ≥ Lv1</span>';
+    c.innerHTML = `<div class="ch"><div style="width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:32px;color:${P.col}">${P.icon}</div><div><div class="nm" style="color:${P.col}">${P.name}</div><div class="sub">${st}</div></div><button class="x" data-act="x">✕</button></div><div class="desc">${P.desc}</div>`;
   } else c.style.display = 'none';
 }
+function onCardClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act; AU.play('click');
+  if (a === 'x') clearSel();
+  else if (a === 'ad' && UI.selDev) { const d = UI.selDev; Ads.rewarded(() => { d.bt = 0.01; toast('⚡ 建造完成！'); }, m => toast(m)); }
+  else if (a === 'del' && UI.selDev) { const def = DEVICES[UI.selDev.type]; removeDev(UI.selDev); clearSel(); toast('🗑 已拆除 ' + def.name); }
+}
+
+/* ---------- 小地图（只显示已探索区域） ---------- */
 function drawMinimap() {
-  const c = $('mmC'), g = c.getContext('2d'); const S = 150;
-  let R = 700; for (let i = 0; i < GN * GN; i += 97) if (whp[i] <= 0) { const gx = i % GN, gy = (i / GN) | 0, d = Math.hypot((gx + 0.5) * CELL - HALF, (gy + 0.5) * CELL - HALF); if (d > R) R = d; }
-  R = Math.min(HALF, Math.max(R * 1.1, Math.hypot(G.orb.x, G.orb.y) * 1.15, 600));
-  g.fillStyle = '#000'; g.fillRect(0, 0, S, S); g.imageSmoothingEnabled = true;
+  const c = $('mmC'), g = c.getContext('2d'), S = 160;
+  let R = 600; for (let i = 0; i < GN * GN; i += 61) if (seen[i] && whp[i] <= 0) { const gx = i % GN, gy = (i / GN) | 0, d = Math.hypot((gx + 0.5) * CELL - HALF, (gy + 0.5) * CELL - HALF); if (d > R) R = d; }
+  R = Math.min(HALF, Math.max(R * 1.25, Math.hypot(G.orb.x, G.orb.y) * 1.2, 700));
+  g.fillStyle = '#02050b'; g.fillRect(0, 0, S, S); g.imageSmoothingEnabled = true;
   const src = R / CELL; g.drawImage(floorC, GN / 2 - src, GN / 2 - src, src * 2, src * 2, 0, 0, S, S);
-  const k = S / (2 * R), o = S / 2;
-  g.fillStyle = 'rgba(160,240,255,0.8)'; for (let i = 0; i < pN; i += Math.max(1, pN / 400 | 0)) if (pr[i] === 255) g.fillRect(o + px[i] * k, o + py[i] * k, 1, 1);
-  for (let i = 0; i < cN; i += Math.max(1, cN / 300 | 0)) { g.fillStyle = SPECIES[csp[i]].col; g.fillRect(o + cx[i] * k - 1, o + cy[i] * k - 1, 2, 2); }
-  for (const d of G.devs) { g.fillStyle = devActive(d) ? DEV_COL[d.type] : '#666'; g.fillRect(o + d.x * k - 1.5, o + d.y * k - 1.5, 3, 3); }
+  const k = S / (2 * R), o = S / 2, t = G.t;
+  g.fillStyle = 'rgba(160,240,255,0.8)'; for (let i = 0; i < pN; i += Math.max(1, pN / 500 | 0)) if (pr[i] === 255) { const gi = gIdx(px[i], py[i]); if (gi >= 0 && seen[gi]) g.fillRect(o + px[i] * k, o + py[i] * k, 1, 1); }
+  for (let i = 0; i < cN; i += Math.max(1, cN / 300 | 0)) { g.fillStyle = SPECIES[csp[i]].col; g.fillRect(o + cx[i] * k - 1, o + cy[i] * k - 1, 2.5, 2.5); }
+  for (const d of G.devs) { g.fillStyle = devActive(d) ? DEV_COL[d.type] : '#666'; g.fillRect(o + d.x * k - 2, o + d.y * k - 2, 4, 4); }
+  for (const q of G.pois) {
+    const X = o + q.x * k, Y = o + q.y * k;
+    if (q.found) { g.fillStyle = POI[q.type].col; g.font = 'bold 12px sans-serif'; g.textAlign = 'center'; g.globalAlpha = (q.used && POI[q.type].key !== 'cave') ? 0.4 : 1; g.fillText(POI[q.type].icon, X, Y + 4); g.globalAlpha = 1; }
+    else if (Math.hypot(q.x - G.orb.x, q.y - G.orb.y) < 1500) { g.strokeStyle = POI[q.type].col; g.globalAlpha = 0.4 + 0.4 * Math.sin(t * 3 + q.x); g.beginPath(); g.arc(X, Y, 3 + 2 * Math.sin(t * 3 + q.x), 0, 7); g.stroke(); g.globalAlpha = 1; }
+  }
   g.fillStyle = LV_COLORS[G.lv]; g.fillRect(o - 3, o - 3, 6, 6);
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(o + G.orb.x * k, o + G.orb.y * k, 3, 0, 7); g.fill();
-  g.strokeStyle = 'rgba(255,255,255,0.4)'; const vw = CAM.W / CAM.z * k, vh = CAM.H / CAM.z * k; g.strokeRect(o + CAM.x * k - vw / 2, o + CAM.y * k - vh / 2, vw, vh);
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(o + G.orb.x * k, o + G.orb.y * k, 3.5, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,0.35)'; const vw = CAM.W / CAM.z * k, vh = CAM.H / CAM.z * k; g.strokeRect(o + CAM.x * k - vw / 2, o + CAM.y * k - vh / 2, vw, vh);
 }
 
 /* ---------- 面板 ---------- */
 function openPanel(title, tabs, renderFn, tab) {
   UI.panel = { title, tabs, renderFn }; UI.tab = tab || 0; $('panel').classList.add('show'); document.body.classList.add('pOpen'); $('pTitle').textContent = title;
+  $('pTabs').style.display = tabs.length > 1 ? '' : 'none';
   $('pTabs').innerHTML = tabs.map((t, k) => `<div class="tab ${k === UI.tab ? 'on' : ''}" data-k="${k}">${t}</div>`).join('');
   $('pTabs').querySelectorAll('.tab').forEach(el => el.onclick = () => { UI.tab = +el.dataset.k; AU.play('click'); openPanel(title, tabs, renderFn, UI.tab); });
   renderFn(UI.tab);
 }
 function closePanel() { $('panel').classList.remove('show'); document.body.classList.remove('pOpen'); UI.panel = null; }
 function refreshPanel() { if (UI.panel) UI.panel.renderFn(UI.tab); }
-const DIET_COL = ['#8ff4ff', '#ff9a8a', '#ffd07a'];
-function foodText(sp) { return sp.diet === D_E ? '<span style="color:#8ff4ff">吃能量</span>' : (sp.diet === D_O ? '<span style="color:#ffd07a">吃能量 + 捕食</span> ' : '<span style="color:#ff9a8a">只吃生物</span>：') + (sp.prey ? sp.prey.map(k => SPECIES[SP_IDX[k]].name).join('、') : ''); }
-function dietTags(sp) { return `<span class="tag" style="color:${DIET_COL[sp.diet]}">${DIET_NAME[sp.diet]}</span><span class="tag" title="${SOC_DESC[sp.soc]}">对同类：${SOC_NAME[sp.soc]}</span><span class="tag" title="${AL_DESC[sp.al]}">对异类：${AL_NAME[sp.al]}</span><span class="tag">基础战力 ${sp.pow}</span>${sp.shell ? `<span class="tag">硬壳 ×${sp.shell}</span>` : ''}`; }
-function predText(i) { const L = []; SPECIES.forEach((s, j) => { if (S_preyMask[j] & (1 << i)) L.push(s.name); }); return L.length ? '天敌：' + L.join('、') : '没有天敌'; }
-function openTower(tab, nest) {
+function openTide() {
   AU.play('click');
-  openPanel(nest ? '🥚 孵化巢' : '🔷 中央方塔', nest ? ['召唤生物'] : ['召唤生物', '建造装置', '潮汐详情'], (k) => {
-    const B = $('pBody');
+  openPanel('🌊 观测潮汐', ['潮汐', '能量账本'], k => {
+    const B = $('pBody'), b = G.lastBreak, lv = G.lv, col = LV_COLORS[lv];
     if (k === 0) {
-      buildPGrid(); const avail = nest ? gatherLight(nest.x, nest.y, 160, 0, true) : gatherLight(0, 0, TOWER_PULL, 0, true);
-      B.innerHTML = `<div style="margin-bottom:8px">${nest ? '孵化巢' : '方塔'}附近可用能量：<b class="lc" style="color:#9ff4ff">${avail}</b>　<span style="opacity:.7">召唤会把这些能量凝聚成生物（守恒）。不够时可以按住空格 / 吸引按钮把能量带过来。</span></div><div class="grid">` +
-        SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" data-s="${i}"><img src="${speciesIcon(i, 64)}"><div class="nm">${s.name}</div><div class="ds">${un ? `消耗 ${s.cost} 能量 · 战力 ${s.pow}<br>${foodText(s)}<br>寿命 ${s.life}s · 存活 ${G.spCount[i]}` : `🔒 潮汐 Lv.${s.unlock} 解锁`}</div></div>`; }).join('') + '</div>';
-      B.querySelectorAll('.cardx').forEach(el => el.onclick = () => { const s = +el.dataset.s; if (!G.unlocked.includes(SPECIES[s].key)) { AU.play('error'); return; } const r = summon(s, nest); if (r) { toast('⚠ ' + r); AU.play('error'); } else { AU.play('summon'); toast('✨ 召唤了 ' + SPECIES[s].name); } refreshPanel(); });
-    } else if (k === 1) {
-      const used = capUsed(), cap = buildCap(G.lv);
-      B.innerHTML = `<div style="margin-bottom:8px">建造额度 <b>${used}/${cap}</b>（潮汐每升一级 +3）。装置必须建在<span style="color:#7fe8ff">能量场</span>内——先铺导能塔。潮汐归零时所有装置停机。</div><div class="grid">` +
-        DEVICES.map((d, i) => { const un = d.unlock <= G.lv || G.unlocked.includes('d' + i); return `<div class="cardx ${un ? '' : 'lock'}" data-d="${i}"><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div class="ds">${un ? `额度 ${d.cost} · 建造 ${d.time}s<br>${d.desc}` : `🔒 潮汐 Lv.${d.unlock} 解锁<br>${d.desc}`}</div></div>`; }).join('') + '</div>';
-      B.querySelectorAll('.cardx').forEach(el => el.onclick = () => { const d = +el.dataset.d; const def = DEVICES[d]; if (!(def.unlock <= G.lv || G.unlocked.includes('d' + d))) { AU.play('error'); return; } if (capUsed() + def.cost > buildCap(G.lv)) { toast('⚠ 建造额度不足'); AU.play('error'); return; } closePanel(); enterBuild(d); });
+      B.innerHTML = `<div class="big2"><div style="width:84px;height:84px;border-radius:50%;border:6px solid ${col};display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:${col}">${lv}</div><div><div style="font-size:22px;font-weight:800;color:${col}">${LV_NAMES[lv]}</div><div style="opacity:.75">最高 Lv${G.maxLv} · 下一级需要 ${lv < MAXLV ? THRESH[lv + 1] : '—'}</div></div></div>
+      ${b ? `<div class="kv"><div class="i">🗼</div><div>方塔观测（物种数 · 生物数）</div><b>${b.tower.toFixed(1)}</b><div class="i">🔧</div><div>建筑与遗迹</div><b>${b.dev.toFixed(1)}</b><div class="i">🌈</div><div>和谐倍率（有效物种 ${b.eff.toFixed(1)} · 营养级 ${b.tr ? b.tr.n : '?'}/3）</div><b>×${b.harm.toFixed(2)}</b><div class="i">🌊</div><div><b>本轮潮汐</b></div><b style="color:${col}">${b.score.toFixed(1)}</b></div>` : '<div style="opacity:.7">还没有结算记录</div>'}
+      <div style="margin:12px 0 4px;opacity:.8">近期潮汐</div><canvas class="spark" id="spark" width="700" height="96"></canvas>
+      <div class="note">潮汐每 10 秒结算一次：<b>物种越多越均衡、食物链越完整，潮汐越高</b>。它决定你能建造哪些建筑、建造多少（▣ 额度）。下降时每次最多降 1 级；归零时建筑停机。</div>`;
+      const cv = $('spark'); if (cv) { const g = cv.getContext('2d'), h = G.hist.slice(-70); const mx = Math.max(10, ...h.map(x => x.s)); g.clearRect(0, 0, 700, 96); for (let q = 1; q <= MAXLV; q++) { const y = 94 - THRESH[q] / mx * 90; if (y < 0) break; g.strokeStyle = LV_COLORS[q] + '55'; g.beginPath(); g.moveTo(0, y); g.lineTo(700, y); g.stroke(); } g.strokeStyle = '#9ff'; g.lineWidth = 2.5; g.beginPath(); h.forEach((x, q) => { const X = q * 10, Y = 94 - x.s / mx * 90; if (q) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke(); }
     } else {
-      const b = G.lastBreak;
-      B.innerHTML = `<div>当前 <b style="color:${LV_COLORS[G.lv]}">Lv.${G.lv} ${LV_NAMES[G.lv]}</b>　最高 Lv.${G.maxLv}</div>
-      ${b ? `<table class="tb"><tr><td>方塔基础（物种×0.1/s + 生物×0.001/s）</td><td>${b.tower.toFixed(2)}</td></tr><tr><td>观测装置</td><td>${b.dev.toFixed(2)}</td></tr><tr><td>和谐倍率（有效物种 ${b.eff.toFixed(2)} · 营养级 ${b.tr ? b.tr.n : '?'}/3 ×${(b.troph || 1).toFixed(2)}）</td><td>×${b.harm.toFixed(2)}</td></tr><tr><td><b>结算潮汐</b></td><td><b>${b.score.toFixed(2)}</b></td></tr></table>` : '<div style="opacity:.7">还没有结算记录</div>'}
-      <div style="margin:8px 0 4px">近期潮汐</div><canvas class="spark" id="spark" width="700" height="90"></canvas>
-      <div style="margin-top:8px">等级阈值：${THRESH.slice(1).map((v, k) => `<span class="tag" style="color:${LV_COLORS[k + 1]}">Lv${k + 1} ${v}</span>`).join('')}</div>
-      <div style="opacity:.75;margin-top:6px">潮汐不是累加资源：每 10 秒只根据这 10 秒的表现结算。上升立即生效，下降每次最多降 1 级。归零时所有装置停机成为遗迹，但已解锁的物种永久保留。</div>`;
-      const cv = $('spark'); if (cv) { const g = cv.getContext('2d'), h = G.hist.slice(-70); const mx = Math.max(10, ...h.map(x => x.s)); g.clearRect(0, 0, 700, 90); for (let k = 1; k <= MAXLV; k++) { const y = 88 - THRESH[k] / mx * 84; if (y < 0) break; g.strokeStyle = LV_COLORS[k] + '44'; g.beginPath(); g.moveTo(0, y); g.lineTo(700, y); g.stroke(); } g.strokeStyle = '#9ff'; g.lineWidth = 2; g.beginPath(); h.forEach((x, k) => { const X = k * 10, Y = 88 - x.s / mx * 84; if (k) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke(); }
+      const L = ledger(), f = G.lastFlow, net = (f.inE || 0) - (f.burn || 0), E = L.map + L.bio;
+      const eta = net < 0 ? visibleE() / (-net / 10) : 0;
+      B.innerHTML = `<div class="kv">
+      <div class="i" style="color:#9ff4ff">✦</div><div>地面能量（已探索）</div><b>${fmtN(visibleE() - L.bio)}</b>
+      <div class="i">🐾</div><div>生物体内</div><b>${fmtN(L.bio)}</b>
+      <div class="i">⚡</div><div>白球能量槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
+      <div class="i">➕</div><div>近 10 秒新增（播撒 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
+      <div class="i">🔥</div><div>近 10 秒代谢消耗</div><b class="dn">-${f.burn || 0}</b>
+      <div class="i">🔷</div><div>近 10 秒物质产出</div><b class="cm">+${f.mat || 0}</b></div>
+      <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `能量正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：播撒能量 · 开拓能量洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '能量收支平衡或增长中。生态圈很健康！'}</div>
+      <div class="note">🔬 生态学：能量沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光能量再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），能量就能细水长流。</div>`;
     }
-  }, tab || 0);
+  });
 }
 function openDex() {
   AU.play('click');
-  openPanel('📖 图鉴', ['生物', '观测装置', '玩法说明'], k => {
+  openPanel('📖 图鉴', ['生物', '建筑', '遗迹', '玩法'], k => {
     const B = $('pBody');
-    if (k === 0) B.innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">' + SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" style="cursor:default"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div class="nm">${un ? s.name : '？？？'}</div><div class="ds">${un ? s.desc + '<br>' : ''}${foodText(s)}<br>${predText(i)}<br>${dietTags(s)}<br><span style="opacity:.7">同类：${SOC_DESC[s.soc]}；异类：${AL_DESC[s.al]}</span><br><span class="tag">寿命 ${s.life}s</span><span class="tag">能量上限 ${s.maxE}</span><span class="tag">繁殖 ${s.repE}→幼崽 ${s.childE}</span><span class="tag">代谢 ${s.meta}/s</span><span class="tag">生态位容量 ${Math.round(nicheK(i))}</span><span class="tag">速度 ${s.speed}</span>${s.pair ? '<span class="tag">需配对繁殖</span>' : '<span class="tag">分裂繁殖</span>'}<span class="tag">Lv.${s.unlock} 解锁</span><br>存活 ${G.spCount[i]}</div></div>`; }).join('') + '</div>';
-    else if (k === 1) B.innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">' + DEVICES.map((d, i) => `<div class="cardx" style="cursor:default"><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div class="ds">${d.desc}<br><span class="tag">额度 ${d.cost}</span><span class="tag">建造 ${d.time}s</span><span class="tag">Lv.${d.unlock} 解锁</span>${d.r ? `<span class="tag">半径 ${d.r}</span>` : ''}</div></div>`).join('') + '</div>';
-    else B.innerHTML = `<p><b>唯一的能量</b>：能量只存在于地图（星点粒子）、生物体内和黑墙里，总量永远不变（左上角账本）。刚释放的能量是暗淡的，约 4 秒后凝结成明亮星点才能被吃。</p>
-    <p><b>食物链</b>：食能生物（史莱姆、团子兔、萤火团…）吃能量，寿命短、繁殖快；食肉动物（圆滚狸、棉花鸟、糖豆龙…）只吃生物，寿命长、繁殖慢；杂食的布丁熊两样都吃。捕食者只吸收猎物 75% 的能量，其余洒回地图。</p>
-    <p><b>战力与战斗</b>：战力 = 物种基础 × 体型基因² × (0.6+0.4×体力) × 年龄系数 × 同伴加成（群居/猎团）× 硬壳（防守时）。胜率 = A²/(A²+D²)。捕猎失败会受伤逃跑；同类之间的领地驱赶不致命，但会打掉能量。</p>
-    <p><b>基因</b>：幼崽继承父母的体型基因并随机突变 ±7%。大个子战力高但吃得多、繁殖贵——自然选择会找到平衡。</p>
-    <p><b>生态位饱和</b>：每个物种都有容量（与体型成反比）。数量超过容量后代谢飙升，给别的物种留出空间。开拓黑墙释放能量后，容量会变大。捕食者附近同类过多（猎场饱和）时不会繁殖。</p>
-    <p><b>观测潮汐</b>：每 10 秒根据这 10 秒的观测数据 × 和谐倍率结算（物种越多越均衡、营养级越完整越高）。Lv.10【永恒之潮】即胜利。</p>
-    <p><b>建造</b>：Lv.1 起可建造装置。装置必须在能量场内：导能塔要接在已有能量场上连成网络。建造需要时间，可以看广告加速。</p>
-    <p><b>离线</b>：关掉游戏后生态圈继续运转（最多推演 12 小时）。回来时像开盲盒。潮汐归零时装置停机成为遗迹，但解锁的物种永久保留。</p>`;
+    if (k === 0) B.innerHTML = '<div class="grid">' + SPECIES.map((s, i) => { const un = spUnlocked(i); return `<div class="cardx ${un ? '' : 'lock'}"><div class="hd"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div><div class="nm">${un ? s.name : '？？？'}</div><div style="font-size:13px;opacity:.7">${DIET_NAME[s.diet]} · Lv${s.unlock}</div></div></div><div><span class="tag" style="color:#ffd07a">⚔ ${stars(s.pow)}</span><span class="tag">⏳${s.life}s</span><span class="tag ce">⚡${s.cost}</span>${s.mcost ? `<span class="tag cm">◆${s.mcost}</span>` : ''}<span class="tag cm">产◆${s.mat}/${s.matT}s</span></div>${un ? `<div class="ds">${s.desc}</div>` : ''}${webHTML(i)}</div>`; }).join('') + '</div>';
+    else if (k === 1) B.innerHTML = '<div class="grid">' + DEVICES.map((d, i) => `<div class="cardx ${devUnlocked(i) ? '' : 'lock'}"><div class="hd"><img src="${devIcon(i)}"><div><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div style="font-size:13px;opacity:.7">Lv${d.unlock} · ${d.time}s</div></div></div><div><span class="tag cm">◆${d.mc}</span><span class="tag cc">▣${d.cost}</span>${d.r ? `<span class="tag">◎${d.r}</span>` : ''}</div><div class="ds">${d.desc}</div></div>`).join('') + '</div>';
+    else if (k === 2) B.innerHTML = '<div class="grid">' + POI.map(p => `<div class="cardx"><div class="hd"><div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:30px;color:${p.col}">${p.icon}</div><div><div class="nm" style="color:${p.col}">${p.name}</div><div style="font-size:13px;opacity:.7">已发现 ${G.pois.filter(q => q.type === POI_IDX[p.key] && q.found).length} / ${G.pois.filter(q => q.type === POI_IDX[p.key]).length}</div></div></div><div class="ds">${p.desc}</div></div>`).join('') + '</div>';
+    else B.innerHTML = `<div class="help">
+      <div class="i" style="color:#9ff4ff">✦</div><div><b>能量是有限的。</b>白球的能量槽会慢慢回充，按住【播撒】把能量喷到地上，生物才有东西吃。生物的代谢会让能量消失。</div>
+      <div class="i">🐾</div><div><b>召唤生物</b>会消耗白球的能量（⚡），高级生物还需要物质（◆）。</div>
+      <div class="i">🔷</div><div><b>物质</b>是生物的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造物质收集器。</div>
+      <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光能量然后集体饿死。加入捕食者，食物链越完整，能量消耗越慢、物质越多、潮汐越高。</div>
+      <div class="i">🌊</div><div><b>观测潮汐</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
+      <div class="i">🏗️</div><div><b>建筑</b>必须建在能量场内：先铺导能塔。高潮汐解锁能量发生器、恒星炉。</div>
+      <div class="i">❓</div><div><b>黑墙外是迷雾。</b>撞墙可以消融它（会掉血）。? 信号下藏着能量洞、物质晶簇、孵化舱、反应堆、中继塔与古碑——用导能塔把遗迹接入能量网络即可激活。</div>
+      <div class="i">🌙</div><div><b>离线</b>时生态圈继续运转（最多 12 小时），回来像开盲盒。</div></div>`;
   });
 }
 function openSpeed() {
   AU.play('click');
   openPanel('⏩ 加速', ['时间'], () => {
     const nb = G.devs.filter(d => d.bt > 0).length;
-    $('pBody').innerHTML = `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
-    <div class="cardx" id="spA"><div class="nm">📺 时间流速 ×4</div><div class="ds">看一个广告，接下来 3 分钟时间流速 ×4。${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
-    <div class="cardx" id="spB"><div class="nm">📺 快进 10 分钟</div><div class="ds">看一个广告，立即推演 10 分钟后的世界。</div></div>
-    <div class="cardx ${nb ? '' : 'lock'}" id="spC"><div class="nm">📺 立即完成建造</div><div class="ds">看一个广告，所有建造中的装置（${nb} 个）立即完成。</div></div></div>`;
-    $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间流速 ×4！'); closePanel(); }, m => toast(m));
+    $('pBody').innerHTML = `<div class="grid">
+    <div class="cardx" id="spA" style="cursor:pointer"><div class="nm">📺 时间 ×4</div><div class="ds">接下来 3 分钟时间流速 ×4${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
+    <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的世界</div></div>
+    <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 立即完成建造</div><div class="ds">建造中的 ${nb} 个建筑立即完成</div></div>
+    <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满能量槽</div><div class="ds">白球能量槽立即充满</div></div></div>`;
+    $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间 ×4！'); closePanel(); }, m => toast(m));
     $('spB').onclick = () => Ads.rewarded(() => { closePanel(); runOffline(600, '⏩ 快进 10 分钟…'); }, m => toast(m));
     $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = 0.01; toast('⚡ 建造全部完成！'); closePanel(); }, m => toast(m)); };
+    $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 能量槽已充满'); closePanel(); }, m => toast(m));
   });
 }
 function openMenu() {
   AU.play('click');
-  openPanel('☰ 菜单', ['设置'], () => {
-    $('pBody').innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;max-width:360px">
+  openPanel('⚙️ 菜单', ['设置'], () => {
+    $('pBody').innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;max-width:380px">
     <button class="btn" id="mSave">💾 立即保存</button>
     <button class="btn" id="mSnd">${AU.on ? '🔊 音效：开' : '🔇 音效：关'}</button>
     <button class="btn" id="mMus">${AU.musOn ? '🎵 音乐：开' : '🎵 音乐：关'}</button>
+    <button class="btn" id="mTut">💡 重新显示新手提示</button>
     <button class="btn" id="mTitle">🏠 回到标题</button>
-    <button class="btn red" id="mNew">🌱 新的世界（解锁的物种会保留）</button>
-    <div style="opacity:.6;font-size:12px">版本 v${VERSION} · 广告平台：${Ads.platform} · 自动保存每 20 秒 · 画质自适应 LOD ${LOD.lodPx.toFixed(1)}</div></div>`;
+    <button class="btn red" id="mNew">🌱 新的世界（保留已解锁物种）</button>
+    <div style="opacity:.55;font-size:13px">v${VERSION} · 广告：${Ads.platform} · 每 20 秒自动保存</div></div>`;
     $('mSave').onclick = () => saveGame(false);
     $('mSnd').onclick = () => { AU.setOn(!AU.on); META.sound = AU.on; saveMeta(); refreshPanel(); };
     $('mMus').onclick = () => { AU.setMus(!AU.musOn); META.music = AU.musOn; saveMeta(); refreshPanel(); };
+    $('mTut').onclick = () => { META.tut = 0; saveMeta(); closePanel(); updateHint(); };
     $('mTitle').onclick = () => { saveGame(true); closePanel(); showTitle(); };
     $('mNew').onclick = () => { if (!confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
   });
 }
 function showWin() {
   Ads.happytime(); AU.play('win');
-  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:700;color:#fff;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:8px 0">观测潮汐达到了最高等级 Lv.10！<br>你的生态圈稳定、和谐而多样。<br>用时 ${fmtClock(G.t)}</div><div style="text-align:center;opacity:.7">可以继续经营这个世界，看看它能维持多久。</div><div style="text-align:center;margin-top:12px"><button class="btn" id="repOk">继续</button></div>`;
+  $('repBox').innerHTML = `<div style="font-size:26px;font-weight:800;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:10px 0">观测潮汐达到最高等级 Lv10！<br>你的生态圈稳定、和谐而多样。<br>⏱ ${fmtClock(G.t)}</div><div style="text-align:center;margin-top:12px"><button class="btn pri" id="repOk">继续经营</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => $('report').classList.remove('show');
   META.wins = (META.wins || 0) + 1; saveMeta();
 }
+function fmtClock(t) { const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = Math.floor(t % 60); return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'); }
 
 /* ---------- 建造模式 ---------- */
-function enterBuild(d) { document.body.classList.add('building'); UI.build = d; UI.ghost = UI.touch ? [G.orb.x + 60, G.orb.y] : null; $('buildBar').classList.add('show'); $('bbName').textContent = '建造：' + DEVICES[d].name; $('bbRot').style.display = DEVICES[d].len ? '' : 'none'; $('bbOk').style.display = UI.touch ? '' : 'none'; UI.selId = 0; UI.selDev = null; }
-function exitBuild() { document.body.classList.remove('building'); UI.build = -1; UI.ghost = null; $('buildBar').classList.remove('show'); }
+function enterBuild(d) {
+  document.body.classList.add('building'); UI.build = d; UI.ghost = [G.orb.x + 70, G.orb.y]; const def = DEVICES[d];
+  $('bbIcon').src = devIcon(d); $('bbName').textContent = def.name; $('bbName').style.color = DEV_COL[d]; $('bbCost').innerHTML = `<span class="cm">◆${def.mc}</span> · <span class="cc">▣${def.cost}</span> · 🔨${def.time}s`;
+  $('bbRot').style.display = def.len ? '' : 'none'; clearSel(); updateBuildTip();
+}
+function exitBuild() { document.body.classList.remove('building'); UI.build = -1; UI.ghost = null; }
+function updateBuildTip() { if (UI.build < 0 || !UI.ghost) return; const err = canPlace(UI.build, UI.ghost[0], UI.ghost[1]); $('bbTip').innerHTML = err ? '⚠ ' + err : (UI.touch ? '👆 点地面选位置，再按 ✓' : '👆 点击放置 · 右键取消'); $('bbTip').style.color = err ? '#ffb0a0' : '#bff8ff'; $('bbOk').disabled = !!err; $('bbOk').style.opacity = err ? 0.45 : 1; }
 function tryPlace() {
   if (UI.build < 0 || !UI.ghost) return; const [x, y] = UI.ghost; const err = canPlace(UI.build, x, y);
   if (err) { toast('⚠ ' + err); AU.play('error'); return; }
-  placeDev(UI.build, x, y, UI.ang); AU.play('place'); toast('🔧 开始建造 ' + DEVICES[UI.build].name + '（' + DEVICES[UI.build].time + 's）');
-  if (capUsed() + DEVICES[UI.build].cost > buildCap(G.lv)) exitBuild();
+  const t = UI.build; placeDev(t, x, y, UI.ang); AU.play('place');
+  const def = DEVICES[t]; if (capUsed() + def.cost > totalCap() || G.matter < def.mc) exitBuild(); else updateBuildTip();
 }
 
-/* ---------- 事件处理（音效 / 特效 / 提示） ---------- */
+/* ---------- 事件处理 ---------- */
 function inView(x, y) { return Math.abs(x - CAM.x) < CAM.W / 2 / CAM.z + 50 && Math.abs(y - CAM.y) < CAM.H / 2 / CAM.z + 50; }
+let matSnd = 0;
 function processEvents() {
   for (const e of G.events) {
     switch (e.type) {
@@ -294,17 +415,20 @@ function processEvents() {
       case 'death': if (inView(e.a, e.b)) { addFX('puff', e.a, e.b, { life: 0.8, color: '#9ff4ff' }); if (CAM.z > 0.5) AU.play('death'); } break;
       case 'kill': if (inView(e.a, e.b)) { addFX('puff', e.a, e.b, { life: 0.7, color: SPECIES[e.c].col }); addFX('slash', e.a, e.b, { life: 0.45 }); if (CAM.z > 0.5) AU.play('eaten'); } break;
       case 'fight': if (inView(e.a, e.b) && CAM.z > 0.35) { addFX('spark', e.a, e.b, { life: 0.5, big: e.c }); if (CAM.z > 0.6 && Math.random() < 0.5) AU.play('fight'); } break;
-      case 'tidegain': if (inView(e.a, e.b) && CAM.z > 0.4) { addFX('text', e.a, e.b - 10, { text: '+' + (+e.c).toFixed(1), life: 1.2, color: '#8fffd0' }); AU.play('gain'); } break;
+      case 'tidegain': if (inView(e.a, e.b) && CAM.z > 0.4) { addFX('text', e.a, e.b - 10, { text: '+' + (+e.c).toFixed(1), life: 1.2, color: '#8fffd0' }); } break;
+      case 'mat': if (e.c >= 5 && inView(e.a, e.b) && CAM.z > 0.4) addFX('ring', e.a, e.b, { life: 0.5, r: 14, color: '#ffd36b' }); break;
+      case 'matget': addFX('text', e.a, e.b - 26, { text: '+' + e.c + '◆', life: 1, color: '#ffd36b' }); if (G.t - matSnd > 0.15) { matSnd = G.t; AU.play('gain'); } break;
+      case 'found': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1.2, r: 80, color: P.col }); AU.play('lvup'); toast(`<span style="color:${P.col};font-size:18px">${P.icon}</span> 发现 <b style="color:${P.col}">${P.name}</b>`, P.col); break; }
+      case 'poi': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1, r: 60, color: P.col }); CAM.shake = 0.6; AU.play('built'); if (P.key === 'crystal') toast(`🔷 采集晶簇 <b class="cm">+${e.d !== undefined ? e.d : ''}</b>`, P.col); else if (P.key === 'pod') toast('🥚 孵化舱苏醒了！', P.col); break; }
       case 'wallbreak': G.wallBroken = (G.wallBroken || 0) + 1; if (inView(e.a, e.b)) { addFX('ring', e.a, e.b, { life: 0.5, r: 20, color: '#ff9ad0' }); AU.play('wall'); } break;
       case 'tp': addFX('ring', e.a, e.b, { life: 0.4, r: 30 }); AU.play('tp'); break;
-      case 'orbdie': toast('💫 白球被黑墙消融了，2.5 秒后在方塔重生'); AU.play('lvdown'); break;
-      case 'place': break;
-      case 'built': addFX('ring', e.a, e.b, { life: 0.8, r: 50, color: DEV_COL[e.c] }); AU.play('built'); toast('✅ ' + DEVICES[e.c].name + ' 建造完成'); break;
+      case 'orbdie': toast('💫 白球被黑墙消融了，稍后在方塔重生'); AU.play('lvdown'); break;
+      case 'built': addFX('ring', e.a, e.b, { life: 0.8, r: 50, color: DEV_COL[e.c] }); AU.play('built'); toast(`✅ ${DEVICES[e.c].name} 完成`); break;
       case 'summon': addFX('ring', e.a, e.b, { life: 0.8, r: 30, color: SPECIES[e.c].col }); break;
       case 'settle': G._pulse = 1; AU.play('settle', G.lv); break;
-      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 潮汐上升到 <b style="color:${LV_COLORS[e.a]}">Lv.${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐下降到 Lv.${e.a}${e.a === 0 ? ' —— 所有装置停机了…' : ''}`, '#f99'); } refreshPanel(); break;
-      case 'unlock': if (e.a === 's') toast(`🔓 解锁新物种：<b>${SPECIES[e.b].name}</b>`, SPECIES[e.b].col); else toast(`🔓 解锁新装置：<b>${DEVICES[e.b].name}</b>`, DEV_COL[e.b]); saveMeta(); break;
-      case 'extinct': toast(`💀 ${SPECIES[e.a].name} 在这个世界灭绝了`, '#f99'); AU.play('extinct'); break;
+      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 潮汐 <b style="color:${LV_COLORS[e.a]}">Lv${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐降到 Lv${e.a}${e.a === 0 ? ' · 建筑停机' : ''}`, '#f99'); } refreshPanel(); break;
+      case 'unlock': if (e.a === 's') toast(`🔓 <img src="${speciesIcon(e.b, 40)}" style="width:26px;vertical-align:middle"> <b>${SPECIES[e.b].name}</b>`, SPECIES[e.b].col); else toast(`🔓 <b style="color:${DEV_COL[e.b]}">${DEVICES[e.b].name}</b>`, DEV_COL[e.b]); saveMeta(); break;
+      case 'extinct': toast(`💀 ${SPECIES[e.a].name} 灭绝了`, '#f99'); AU.play('extinct'); break;
       case 'win': showWin(); break;
     }
   }
@@ -314,33 +438,35 @@ function processEvents() {
 /* ---------- 输入 ---------- */
 const ptrs = new Map(); let pinch0 = 0, zoom0 = 1, downPos = null, dragMoved = false;
 function hitTest(wx, wy) {
-  if (wx * wx + (wy + 20) * (wy + 20) < 55 * 55) return { tower: true };
   for (const d of G.devs) if (dist2(d.x, d.y - 8, wx, wy) < 26 * 26) return { dev: d };
-  buildCGrid(); const j = findC(wx, wy, 60, 0xffffffff, -1, null); if (j >= 0 && dist2(cx[j], cy[j], wx, wy) < (S_r[csp[j]] + 12) * (S_r[csp[j]] + 12)) return { c: j };
+  buildCGrid(); const j = findC(wx, wy, 60, 0xffffffff, -1, null); if (j >= 0 && dist2(cx[j], cy[j], wx, wy) < (S_r[csp[j]] + 14) * (S_r[csp[j]] + 14)) return { c: j };
+  for (const q of G.pois) if (q.found && POI[q.type].key !== 'cave' && dist2(q.x, q.y - 30, wx, wy) < 50 * 50) return { poi: q };
+  if (wx * wx + (wy + 20) * (wy + 20) < 55 * 55) return { tower: true };
   return null;
 }
 function tap(sx, sy, isTouch) {
   const [wx, wy] = s2w(sx, sy);
-  if (UI.build >= 0) { UI.ghost = [wx, wy]; if (!isTouch) tryPlace(); return; }
+  if (UI.build >= 0) { UI.ghost = [wx, wy]; updateBuildTip(); if (!isTouch) tryPlace(); return; }
   const h = hitTest(wx, wy);
-  if (h && h.tower) { openTower(0); return; }
-  if (h && h.dev) { UI.selDev = h.dev; UI.selId = 0; AU.play('click'); updateCard(); return; }
-  if (h && h.c !== undefined) { UI.sel = h.c; UI.selId = cid[h.c]; UI.selDev = null; AU.play('click'); updateCard(); return; }
-  UI.selId = 0; UI.selDev = null; $('card').style.display = 'none';
-  teleportOrb(wx, wy);
+  if (h && h.tower) { openTide(); return; }
+  if (h && h.dev) { clearSel(); UI.selDev = h.dev; AU.play('click'); updateCard(); return; }
+  if (h && h.c !== undefined) { clearSel(); UI.sel = h.c; UI.selId = cid[h.c]; AU.play('click'); updateCard(); return; }
+  if (h && h.poi) { clearSel(); UI.selPOI = h.poi; AU.play('click'); updateCard(); return; }
+  clearSel(); teleportOrb(wx, wy);
 }
 function setupInput() {
   const c = cvs;
   addEventListener('keydown', e => {
     if (UI.state !== 'play') return; const k = e.key.toLowerCase(); UI.keys[k] = true;
-    if (k === ' ') { e.preventDefault(); }
-    if (k === 'escape') { if (UI.panel) closePanel(); else if (UI.build >= 0) exitBuild(); else { UI.selId = 0; UI.selDev = null; $('card').style.display = 'none'; } }
-    if (k === 'b' && !UI.panel) openTower(0);
+    if (k === ' ' || k === 'tab') e.preventDefault();
+    if (k === 'tab') setDock(UI.dock ? 0 : 1);
+    if (k === 'escape') { if (UI.panel) closePanel(); else if (UI.build >= 0) exitBuild(); else clearSel(); }
+    if (k === 'b') setDock(1);
     if (k === 'r') UI.ang += Math.PI / 8;
     if (k === '=' || k === '+') CAM.tz = Math.min(3, CAM.tz * 1.2); if (k === '-') CAM.tz = Math.max(0.2, CAM.tz / 1.2);
   });
   addEventListener('keyup', e => { UI.keys[e.key.toLowerCase()] = false; });
-  addEventListener('blur', () => { UI.keys = {}; });
+  addEventListener('blur', () => { UI.keys = {}; UI.sprayTouch = false; });
   c.addEventListener('wheel', e => { e.preventDefault(); CAM.tz = Math.max(0.2, Math.min(3, CAM.tz * Math.pow(1.0015, -e.deltaY))); }, { passive: false });
   c.addEventListener('contextmenu', e => { e.preventDefault(); if (UI.build >= 0) exitBuild(); });
   c.addEventListener('pointerdown', e => {
@@ -350,10 +476,10 @@ function setupInput() {
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); zoom0 = CAM.tz; dragMoved = true; }
   });
   c.addEventListener('pointermove', e => {
-    if (UI.build >= 0 && e.pointerType === 'mouse') UI.ghost = s2w(e.clientX, e.clientY);
+    if (UI.build >= 0 && e.pointerType === 'mouse') { UI.ghost = s2w(e.clientX, e.clientY); }
     if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0 > 0) CAM.tz = CAM.z = Math.max(0.2, Math.min(3, zoom0 * d / pinch0)); }
-    else if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 12) { dragMoved = true; if (UI.build >= 0 && e.pointerType !== 'mouse') UI.ghost = s2w(e.clientX, e.clientY); }
+    else if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 12) { dragMoved = true; if (UI.build >= 0 && e.pointerType !== 'mouse') { UI.ghost = s2w(e.clientX, e.clientY); } }
   });
   const up = e => {
     if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
@@ -368,14 +494,19 @@ function setupInput() {
   joy.addEventListener('pointermove', mv);
   const jup = e => { if (UI.joy.id !== e.pointerId) return; UI.joy.id = null; UI.joy.x = UI.joy.y = 0; K.style.transform = ''; };
   joy.addEventListener('pointerup', jup); joy.addEventListener('pointercancel', jup);
-  const att = $('attBtn');
-  att.addEventListener('pointerdown', e => { e.stopPropagation(); UI.attTouch = true; att.setPointerCapture(e.pointerId); });
-  att.addEventListener('pointerup', () => UI.attTouch = false); att.addEventListener('pointercancel', () => UI.attTouch = false);
-  $('bTower').onclick = () => openTower(0); $('bDex').onclick = openDex; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
+  // 播撒按钮（按住）
+  const sp = $('spray');
+  sp.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); AU.init(); UI.sprayTouch = true; sp.setPointerCapture(e.pointerId); });
+  const sup = () => { UI.sprayTouch = false; }; sp.addEventListener('pointerup', sup); sp.addEventListener('pointercancel', sup); sp.addEventListener('lostpointercapture', sup);
+  // 坞站 / 卡片 / 按钮
+  $('dList').addEventListener('click', onDockClick);
+  document.querySelectorAll('.dt').forEach(b => b.onclick = () => { AU.play('click'); setDock(+b.dataset.t); });
+  $('card').addEventListener('click', onCardClick);
+  $('bDex').onclick = openDex; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
+  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 观测潮汐', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast(UI.touch ? '✦ 按住右下角【播撒】喷出能量' : '✦ 按住【空格】喷出能量');
+  $('mm').onclick = () => { CAM.tz = CAM.tz > 0.45 ? 0.3 : 1; };
   $('pClose').onclick = () => { AU.play('click'); closePanel(); };
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
-  $('tide').onclick = () => openTower(2);
-  $('stats').onclick = () => { UI.statsOpen = !UI.statsOpen; updateHUD(); };
   $('bbCancel').onclick = exitBuild; $('bbRot').onclick = () => { UI.ang += Math.PI / 8; }; $('bbOk').onclick = tryPlace;
   $('offSkip').onclick = () => { offCancel = true; };
   $('hint').onclick = () => { META.tut++; saveMeta(); updateHint(); };
@@ -394,56 +525,54 @@ let last = performance.now();
 function frame(now) {
   requestAnimationFrame(frame);
   let dt = (now - last) / 1000; last = now; if (dt > 0.1) dt = 0.1; if (dt <= 0) return;
-  if (UI.state !== 'play') return;
+  if (UI.state !== 'play') { if (UI.state === 'title') { simStep(Math.min(dt, 0.05)); G.events.length = 0; CAM.z += (0.55 - CAM.z) * 0.02; CAM.x = Math.sin(G.t * 0.05) * 60; CAM.y = Math.cos(G.t * 0.04) * 40; render(dt, UI); } return; }
   if ($('offline').classList.contains('show')) return;
   const k = UI.keys, o = G.orb;
   let ix = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0) + UI.joy.x, iy = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0) + UI.joy.y;
   const il = Math.hypot(ix, iy); if (il > 1) { ix /= il; iy /= il; }
-  o.ix = ix; o.iy = iy; o.attract = !!(k[' '] || UI.attTouch);
+  o.ix = ix; o.iy = iy; o.attract = false; o.spray = !!(k[' '] || UI.sprayTouch) && !UI.panel;
+  $('spray').classList.toggle('on', o.spray);
   const spd = UI.boostT > 0 ? 4 : 1; if (UI.boostT > 0) UI.boostT -= dt;
   const simDt = dt * spd, n = Math.ceil(simDt / 0.075);
   for (let s = 0; s < n; s++) simStep(simDt / n);
   processEvents();
   if (G._pulse > 0) G._pulse -= dt * 0.6;
   AU.setDrill && AU.ac && AU.setDrill(o.drill);
-  // 镜头：静态锁定白球，平滑缩放
   CAM.z += (CAM.tz - CAM.z) * Math.min(1, dt * 8); CAM.x = o.x; CAM.y = o.y;
   render(dt, UI);
-  hudT -= dt; if (hudT <= 0) { hudT = 0.3; updateHUD(); }
+  hudT -= dt; if (hudT <= 0) { hudT = 0.25; updateHUD(); }
   mmT -= dt; if (mmT <= 0) { mmT = 0.5; drawMinimap(); }
   if (performance.now() - UI.lastSave > 20000) saveGame(true);
 }
 
 /* ---------- 流程 ---------- */
 function showTitle() {
-  UI.state = 'title'; Ads.gameplayStop(); $('start').style.display = 'flex';
+  UI.state = 'title'; document.body.classList.remove('playing'); Ads.gameplayStop(); $('start').style.display = 'flex';
   const has = !!localStorage.getItem(SAVE_KEY);
   $('bStart').textContent = has ? '继续游戏' : '开始游戏'; $('bNew').style.display = has ? '' : 'none';
-  $('startIcons').innerHTML = SPECIES.map((s, i) => `<img src="${speciesIcon(i, 64)}" style="animation-delay:${i * 0.15}s;${G.unlocked.includes(s.key) ? '' : 'filter:brightness(0) opacity(.4)'}">`).join('');
-  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高潮汐 Lv.' + META.bestLv : '');
+  $('startIcons').innerHTML = SPECIES.map((s, i) => `<img src="${speciesIcon(i, 64)}" style="animation-delay:${i * 0.15}s;${G.unlocked.includes(s.key) || i < 2 ? '' : 'filter:brightness(0) opacity(.4)'}">`).join('');
+  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高潮汐 Lv' + META.bestLv : '');
 }
-function beginPlay() { $('start').style.display = 'none'; UI.state = 'play'; last = performance.now(); Ads.gameplayStart(); AU.init(); AU.setOn(META.sound !== false); AU.setMus(META.music !== false); updateHUD(); drawMinimap(); }
+function beginPlay() { $('start').style.display = 'none'; document.body.classList.add('playing'); UI.state = 'play'; last = performance.now(); Ads.gameplayStart(); AU.init(); AU.setOn(META.sound !== false); AU.setMus(META.music !== false); UI.dockSig = ''; updateHUD(); drawMinimap(); }
 function startNew() {
-  const keepUnlocked = G.unlocked.slice();
-  newGame(); G.unlocked = Array.from(new Set(keepUnlocked.concat(G.unlocked)));
-  UI.selId = 0; UI.selDev = null; exitBuild(); CAM.tz = CAM.z = 1;
-  rebuildFloor();
-  beginPlay(); saveGame(true); toast('🌱 新的世界诞生了');
+  const keep = G.unlocked.slice();
+  newGame(); G.unlocked = Array.from(new Set(keep.concat(G.unlocked)));
+  clearSel(); exitBuild(); CAM.tz = CAM.z = 1;
+  rebuildFloor(); beginPlay(); saveGame(true); toast('🌱 新的世界诞生了');
 }
 function continueGame() {
   const s = loadGame(); if (!s) { startNew(); return; }
-  rebuildFloor();
-  beginPlay(); const away = (Date.now() - s.savedAt) / 1000;
+  rebuildFloor(); beginPlay(); const away = (Date.now() - s.savedAt) / 1000;
   if (away > 30) runOffline(away);
 }
 function boot() {
   loadMeta();
-  G.unlocked = META.unlocked && META.unlocked.length ? META.unlocked.slice() : [];
   AU.on = META.sound !== false; AU.musOn = META.music !== false;
   initRender($('c')); buildSprites();
   newGame(1); // 标题背景世界
   G.unlocked = Array.from(new Set(G.unlocked.concat(META.unlocked || [])));
-  for (let i = 0; i < GN * GN; i++) paintCell(i);
+  for (let k = 0; k < 14; k++) { const s = k % 2, a = k * 0.45, r = 90 + (k % 5) * 30; const i = newC(s, Math.cos(a) * r, Math.sin(a) * r, 12, 0); if (i >= 0) cage[i] = 10; }
+  rebuildFloor();
   setupInput(); Ads.init().then(() => Ads.loadingDone());
   $('bStart').onclick = () => { AU.init(); AU.play('click'); if (localStorage.getItem(SAVE_KEY)) continueGame(); else startNew(); };
   $('bNew').onclick = () => { if (confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) { AU.init(); startNew(); } };

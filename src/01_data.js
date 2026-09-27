@@ -1,6 +1,6 @@
 'use strict';
-/* ===================== 常量与数据表（v0.4：单一能量 + 战力制度） ===================== */
-const VERSION = '0.4';
+/* ===================== 常量与数据表（v0.5：能量不可再生 + 物质资源 + 迷雾遗迹） ===================== */
+const VERSION = '0.5.0';
 const CELL = 24, GN = 400, HALF = GN * CELL / 2;      // 墙体网格：400x400 格，每格 24px，世界 ±4800
 const SC = 48, SN = 200, SNC = SN * SN;               // 空间网格
 const MAXP = 240000, MAXC = 24000;
@@ -28,18 +28,18 @@ const AL_DESC = ['遇到打不过的捕食者就逃', '群体战力够时会一�
 
 /* 生物表 —— pow: 基础战力；shell: 被攻击时防御倍率 */
 const SPECIES = [
-  { key: 'slime', name: '啵啵史莱姆', unlock: 0, r: 9, maxE: 16, repE: 13, childE: 6, life: 50, mature: 8, speed: 38, meta: 0.22, diet: D_E, pow: 1.0, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, cost: 8, col: '#7cf5b0', col2: '#3fc98a', desc: '软糯的群居史莱姆。一只很弱，一群就敢反击捕食者。分裂繁殖。' },
-  { key: 'bunny', name: '团子兔', unlock: 0, r: 10, maxE: 18, repE: 12, childE: 6, life: 42, mature: 7, speed: 64, meta: 0.24, diet: D_E, pow: 0.8, soc: SOC_HERD, al: AL_TIMID, mv: MV_HOP, pair: true, cost: 8, col: '#fff4fa', col2: '#ffb8d6', desc: '跑得快、生得多、死得也快的麻薯兔。胆小，需要两只才能繁殖。' },
-  { key: 'fox', name: '圆滚狸', unlock: 1, r: 13, maxE: 46, repE: 24, childE: 12, life: 160, mature: 20, speed: 76, meta: 0.28, diet: D_M, prey: ['slime', 'bunny', 'fish', 'mush'], pow: 3.5, soc: SOC_PACK, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 30, col: '#ffb45c', col2: '#fff0dc', desc: '成群狩猎的小狸，只吃生物。专挑落单和虚弱的猎物。' },
-  { key: 'mush', name: '菇菇仔', unlock: 1, r: 10, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 16, meta: 0.36, diet: D_E, reach: 12, pow: 2.2, soc: SOC_TERR, al: AL_TERR, mv: MV_SLOW, cost: 12, col: '#ff8a8a', col2: '#fff1dc', desc: '用菌丝远距离吸收能量（吃食范围很大），代谢极低。慢吞吞但很凶，会赶走抢食者和同类。' },
-  { key: 'firefly', name: '萤火团', unlock: 2, r: 6, maxE: 8, repE: 6, childE: 3, life: 24, mature: 5, speed: 44, meta: 0.12, diet: D_E, pow: 0.35, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLY, cost: 5, col: '#fff27a', col2: '#9be86a', desc: '成群飞舞的小光团，地面捕食者抓不到它。寿命极短、繁殖极快。' },
-  { key: 'bird', name: '棉花鸟', unlock: 2, r: 12, maxE: 38, repE: 20, childE: 10, life: 150, mature: 18, speed: 85, meta: 0.24, diet: D_M, prey: ['firefly', 'fish', 'slime', 'bunny'], pow: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 24, col: '#f4f7ff', col2: '#ffd36b', desc: '独行的空中猎手，速度极快，捕食小型生物。' },
-  { key: 'fish', name: '泡泡鱼', unlock: 3, r: 8, maxE: 12, repE: 9, childE: 4, life: 38, mature: 6, speed: 60, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLOAT, cost: 6, col: '#7ab8ff', col2: '#cfe6ff', desc: '在空气里游泳的鱼群，结队吃能量。' },
-  { key: 'snail', name: '果冻蜗牛', unlock: 3, r: 11, maxE: 40, repE: 30, childE: 12, life: 180, mature: 30, speed: 11, meta: 0.46, diet: D_E, pow: 1.2, shell: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 20, col: '#c9a8ff', col2: '#ffd1f0', desc: '背着果冻硬壳，被攻击时防御 ×3。长寿、慢、稳定。' },
-  { key: 'jelly', name: '星星水母', unlock: 4, r: 11, maxE: 36, repE: 28, childE: 12, life: 130, mature: 20, speed: 26, meta: 0.2, diet: D_M, prey: ['slime', 'bunny', 'firefly', 'fish', 'fox', 'bird'], pow: 3, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_ORBIT, cost: 22, col: '#9ff0ff', col2: '#ffb3f2', desc: '绕着方塔漂浮的陷阱型捕食者：不追猎，碰到它的生物会被蛰。' },
-  { key: 'bear', name: '布丁熊', unlock: 5, r: 20, maxE: 120, repE: 96, childE: 40, life: 220, mature: 40, speed: 50, meta: 0.55, diet: D_O, prey: ['fox', 'snail', 'fish', 'bunny', 'slime', 'mush'], pow: 6, soc: SOC_TERR, al: AL_TERR, mv: MV_WALK, pair: true, cost: 60, col: '#e8b27a', col2: '#fff3c4', desc: '杂食大块头。既吃能量也吃生物，领地意识强。' },
-  { key: 'whale', name: '云朵鲸', unlock: 6, r: 34, maxE: 300, repE: 240, childE: 100, life: 360, mature: 70, speed: 22, meta: 1.8, diet: D_E, pow: 9, soc: SOC_HERD, al: AL_BOLD, mv: MV_FLOAT, cost: 150, col: '#bfe0ff', col2: '#ffffff', desc: '巨大温柔的食能者，几乎没有天敌，但吃得非常多。' },
-  { key: 'dragon', name: '糖豆龙', unlock: 7, r: 26, maxE: 240, repE: 200, childE: 80, life: 300, mature: 60, speed: 64, meta: 0.8, diet: D_M, prey: ['bear', 'bird', 'fox', 'whale', 'jelly'], pow: 12, soc: SOC_TERR, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 140, col: '#9dffb0', col2: '#ffe38a', desc: '顶级掠食者，捕食布丁熊、云朵鲸等大型生物。' },
+  { key: 'slime', mat: 1, matT: 12, mcost: 0, name: '啵啵史莱姆', unlock: 0, r: 9, maxE: 16, repE: 13, childE: 6, life: 50, mature: 8, speed: 38, meta: 0.22, diet: D_E, pow: 1.0, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, cost: 8, col: '#7cf5b0', col2: '#3fc98a', desc: '软糯的群居史莱姆。一只很弱，一群就敢反击捕食者。分裂繁殖。' },
+  { key: 'bunny', mat: 1, matT: 10, mcost: 0, name: '团子兔', unlock: 0, r: 10, maxE: 18, repE: 12, childE: 6, life: 42, mature: 7, speed: 64, meta: 0.2, diet: D_E, pow: 0.8, soc: SOC_HERD, al: AL_TIMID, mv: MV_HOP, pair: true, cost: 8, col: '#fff4fa', col2: '#ffb8d6', desc: '跑得快、生得多、死得也快的麻薯兔。胆小，需要两只才能繁殖。' },
+  { key: 'fox', mat: 6, matT: 14, mcost: 15, name: '圆滚狸', unlock: 1, r: 13, maxE: 46, repE: 24, childE: 12, life: 160, mature: 20, speed: 76, meta: 0.28, diet: D_M, prey: ['slime', 'bunny', 'fish', 'mush'], pow: 3.5, soc: SOC_PACK, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 30, col: '#ffb45c', col2: '#fff0dc', desc: '成群狩猎的小狸，只吃生物。专挑落单和虚弱的猎物。' },
+  { key: 'mush', mat: 2, matT: 14, mcost: 5, name: '菇菇仔', unlock: 1, r: 10, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 16, meta: 0.36, diet: D_E, reach: 12, pow: 2.2, soc: SOC_TERR, al: AL_TERR, mv: MV_SLOW, cost: 12, col: '#ff8a8a', col2: '#fff1dc', desc: '用菌丝远距离吸收能量（吃食范围很大），代谢极低。慢吞吞但很凶，会赶走抢食者和同类。' },
+  { key: 'firefly', mat: 1, matT: 16, mcost: 0, name: '萤火团', unlock: 2, r: 6, maxE: 8, repE: 6, childE: 3, life: 24, mature: 5, speed: 44, meta: 0.12, diet: D_E, pow: 0.35, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLY, cost: 5, col: '#fff27a', col2: '#9be86a', desc: '成群飞舞的小光团，地面捕食者抓不到它。寿命极短、繁殖极快。' },
+  { key: 'bird', mat: 6, matT: 14, mcost: 15, name: '棉花鸟', unlock: 2, r: 12, maxE: 38, repE: 20, childE: 10, life: 150, mature: 18, speed: 85, meta: 0.24, diet: D_M, prey: ['firefly', 'fish', 'slime', 'bunny'], pow: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 24, col: '#f4f7ff', col2: '#ffd36b', desc: '独行的空中猎手，速度极快，捕食小型生物。' },
+  { key: 'fish', mat: 1, matT: 10, mcost: 5, name: '泡泡鱼', unlock: 3, r: 8, maxE: 12, repE: 9, childE: 4, life: 38, mature: 6, speed: 60, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLOAT, cost: 6, col: '#7ab8ff', col2: '#cfe6ff', desc: '在空气里游泳的鱼群，结队吃能量。' },
+  { key: 'snail', mat: 3, matT: 16, mcost: 10, name: '果冻蜗牛', unlock: 3, r: 11, maxE: 40, repE: 30, childE: 12, life: 180, mature: 30, speed: 11, meta: 0.46, diet: D_E, pow: 1.2, shell: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 20, col: '#c9a8ff', col2: '#ffd1f0', desc: '背着果冻硬壳，被攻击时防御 ×3。长寿、慢、稳定。' },
+  { key: 'jelly', mat: 8, matT: 14, mcost: 30, name: '星星水母', unlock: 4, r: 11, maxE: 36, repE: 28, childE: 12, life: 130, mature: 20, speed: 26, meta: 0.2, diet: D_M, prey: ['slime', 'bunny', 'firefly', 'fish', 'fox', 'bird'], pow: 3, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_ORBIT, cost: 22, col: '#9ff0ff', col2: '#ffb3f2', desc: '绕着方塔漂浮的陷阱型捕食者：不追猎，碰到它的生物会被蛰。' },
+  { key: 'bear', mat: 25, matT: 16, mcost: 80, name: '布丁熊', unlock: 5, r: 20, maxE: 120, repE: 96, childE: 40, life: 220, mature: 40, speed: 50, meta: 0.55, diet: D_O, prey: ['fox', 'snail', 'fish', 'bunny', 'slime', 'mush'], pow: 6, soc: SOC_TERR, al: AL_TERR, mv: MV_WALK, pair: true, cost: 60, col: '#e8b27a', col2: '#fff3c4', desc: '杂食大块头。既吃能量也吃生物，领地意识强。' },
+  { key: 'whale', mat: 40, matT: 18, mcost: 150, name: '云朵鲸', unlock: 6, r: 34, maxE: 300, repE: 240, childE: 100, life: 360, mature: 70, speed: 22, meta: 1.8, diet: D_E, pow: 9, soc: SOC_HERD, al: AL_BOLD, mv: MV_FLOAT, cost: 150, col: '#bfe0ff', col2: '#ffffff', desc: '巨大温柔的食能者，几乎没有天敌，但吃得非常多。' },
+  { key: 'dragon', mat: 120, matT: 18, mcost: 400, name: '糖豆龙', unlock: 7, r: 26, maxE: 240, repE: 200, childE: 80, life: 300, mature: 60, speed: 64, meta: 0.8, diet: D_M, prey: ['bear', 'bird', 'fox', 'whale', 'jelly'], pow: 12, soc: SOC_TERR, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 140, col: '#9dffb0', col2: '#ffe38a', desc: '顶级掠食者，捕食布丁熊、云朵鲸等大型生物。' },
 ];
 const NS = SPECIES.length;
 const SP_IDX = {}; SPECIES.forEach((s, i) => { s.id = i; SP_IDX[s.key] = i; });
@@ -57,23 +57,26 @@ let E_MASK = 0; SPECIES.forEach((s, i) => { if (s.diet === D_E) E_MASK |= 1 << i
 
 /* 观测者装置 */
 const DEVICES = [
-  { key: 'pylon', name: '导能塔', unlock: 1, cost: 1, time: 10, r: PYLON_FIELD, desc: '提供能量场。必须建在已有能量场内（方塔或其他导能塔），连成网络。其它装置只能建在能量场内。' },
-  { key: 'wire', name: '绊线仪', unlock: 1, cost: 2, time: 20, len: 220, desc: '两根桩之间的光线。每有生物穿过 +0.5 潮汐（同一只 4 秒内只算一次）。R 键旋转。' },
-  { key: 'census', name: '普查环', unlock: 2, cost: 2, time: 25, r: 160, desc: '范围内每只生物每秒 +0.01 潮汐。' },
-  { key: 'ripen', name: '凝能塔', unlock: 2, cost: 2, time: 30, r: 150, desc: '范围内新释放的能量凝结速度 ×4，让食物更快可吃。' },
-  { key: 'well', name: '引力井', unlock: 3, cost: 2, time: 30, r: 260, desc: '把范围内的能量缓缓吸向中心，制造“食堂”（也会吸引争抢）。' },
-  { key: 'prism', name: '多样性棱镜', unlock: 3, cost: 3, time: 40, r: 180, desc: '范围内每有一个不同物种，每秒 +0.15 潮汐。' },
-  { key: 'arena', name: '角斗观测台', unlock: 3, cost: 3, time: 40, r: 190, desc: '范围内每发生一次战斗 +1 潮汐，每次捕杀 +2.5。冲突越多收益越高——但生态会更不稳定。' },
-  { key: 'bell', name: '共鸣钟', unlock: 4, cost: 3, time: 40, r: 200, desc: '范围内每诞生一只生物 +1 潮汐。' },
-  { key: 'lure', name: '诱导信标', unlock: 4, cost: 2, time: 30, r: 320, desc: '吸引范围内闲逛的食能生物靠近（配合绊线仪、普查环）。' },
-  { key: 'nest', name: '孵化巢', unlock: 4, cost: 3, time: 40, r: 160, desc: '可以在这里召唤生物（消耗巢附近的能量）。点击孵化巢使用。' },
-  { key: 'sanct', name: '安宁结界', unlock: 5, cost: 4, time: 60, r: 140, desc: '范围内禁止一切战斗和捕猎，是猎物的避难所。' },
-  { key: 'stasis', name: '静滞场', unlock: 5, cost: 4, time: 60, r: 150, desc: '范围内生物衰老速度 -50%，代谢 -30%。' },
-  { key: 'barrier', name: '屏障发生器', unlock: 5, cost: 3, time: 40, len: 240, desc: '一道只拦截食肉/杂食动物的力场墙。R 键旋转。' },
-  { key: 'chron', name: '长河记录仪', unlock: 6, cost: 5, time: 80, desc: '全局：生物总数越稳定（近 60 秒波动越小），每次结算加成越高（最多 +14）。' },
-  { key: 'lens', name: '潮汐透镜', unlock: 7, cost: 6, time: 100, r: 260, desc: '范围内其它装置产出的潮汐 ×1.3（可叠加）。' },
-  { key: 'elder', name: '回响尖塔', unlock: 8, cost: 5, time: 90, r: 220, desc: '范围内每只年迈生物（寿命过 60%）每秒 +0.04 潮汐。' },
-  { key: 'ark', name: '方舟碑', unlock: 9, cost: 6, time: 120, r: 220, desc: '范围内存活物种 ≥6 时，每秒 +0.6 潮汐。' },
+  { key: 'pylon', mc: 5, name: '导能塔', unlock: 1, cost: 1, time: 10, r: PYLON_FIELD, desc: '提供能量场。必须建在已有能量场内（方塔或其他导能塔），连成网络。其它装置只能建在能量场内。' },
+  { key: 'collector', mc: 12, name: '物质收集器', unlock: 1, cost: 1, time: 15, r: 210, desc: '自动吸取范围内生物掉落的物质结晶（离线时也能收集）。' },
+  { key: 'wire', mc: 10, name: '绊线仪', unlock: 1, cost: 2, time: 20, len: 220, desc: '两根桩之间的光线。每有生物穿过 +0.5 潮汐（同一只 4 秒内只算一次）。R 键旋转。' },
+  { key: 'census', mc: 15, name: '普查环', unlock: 2, cost: 2, time: 25, r: 160, desc: '范围内每只生物每秒 +0.01 潮汐。' },
+  { key: 'ripen', mc: 15, name: '凝能塔', unlock: 2, cost: 2, time: 30, r: 150, desc: '范围内新释放的能量凝结速度 ×4，让食物更快可吃。' },
+  { key: 'well', mc: 20, name: '引力井', unlock: 3, cost: 2, time: 30, r: 260, desc: '把范围内的能量缓缓吸向中心，制造“食堂”（也会吸引争抢）。' },
+  { key: 'prism', mc: 30, name: '多样性棱镜', unlock: 3, cost: 3, time: 40, r: 180, desc: '范围内每有一个不同物种，每秒 +0.15 潮汐。' },
+  { key: 'arena', mc: 30, name: '角斗观测台', unlock: 3, cost: 3, time: 40, r: 190, desc: '范围内每发生一次战斗 +1 潮汐，每次捕杀 +2.5。冲突越多收益越高——但生态会更不稳定。' },
+  { key: 'bell', mc: 30, name: '共鸣钟', unlock: 4, cost: 3, time: 40, r: 200, desc: '范围内每诞生一只生物 +1 潮汐。' },
+  { key: 'lure', mc: 20, name: '诱导信标', unlock: 4, cost: 2, time: 30, r: 320, desc: '吸引范围内闲逛的食能生物靠近（配合绊线仪、普查环）。' },
+  { key: 'nest', mc: 40, name: '孵化巢', unlock: 4, cost: 3, time: 40, r: 160, desc: '可以在这里召唤生物（消耗巢附近的能量）。点击孵化巢使用。' },
+  { key: 'gen', mc: 60, name: '能量发生器', unlock: 3, cost: 2, time: 40, r: 120, out: 1.5, desc: '持续生成能量：每秒 1.5 点。潮汐越高，能量越充足。' },
+  { key: 'sanct', mc: 60, name: '安宁结界', unlock: 5, cost: 4, time: 60, r: 140, desc: '范围内禁止一切战斗和捕猎，是猎物的避难所。' },
+  { key: 'stasis', mc: 60, name: '静滞场', unlock: 5, cost: 4, time: 60, r: 150, desc: '范围内生物衰老速度 -50%，代谢 -30%。' },
+  { key: 'barrier', mc: 40, name: '屏障发生器', unlock: 5, cost: 3, time: 40, len: 240, desc: '一道只拦截食肉/杂食动物的力场墙。R 键旋转。' },
+  { key: 'chron', mc: 120, name: '长河记录仪', unlock: 6, cost: 5, time: 80, desc: '全局：生物总数越稳定（近 60 秒波动越小），每次结算加成越高（最多 +14）。' },
+  { key: 'sun', mc: 220, name: '恒星炉', unlock: 6, cost: 4, time: 90, r: 180, out: 6, desc: '大型能量源：每秒生成 6 点能量。' },
+  { key: 'lens', mc: 150, name: '潮汐透镜', unlock: 7, cost: 6, time: 100, r: 260, desc: '范围内其它装置产出的潮汐 ×1.3（可叠加）。' },
+  { key: 'elder', mc: 120, name: '回响尖塔', unlock: 8, cost: 5, time: 90, r: 220, desc: '范围内每只年迈生物（寿命过 60%）每秒 +0.04 潮汐。' },
+  { key: 'ark', mc: 200, name: '方舟碑', unlock: 9, cost: 6, time: 120, r: 220, desc: '范围内存活物种 ≥6 时，每秒 +0.6 潮汐。' },
 ];
 const ND = DEVICES.length;
 const DV_IDX = {}; DEVICES.forEach((d, i) => { d.id = i; DV_IDX[d.key] = i; });
@@ -82,3 +85,20 @@ const D_PYLON = DV_IDX.pylon;
 function buildCap(lv) { return 4 + 3 * lv; }
 function wallHP(d) { return 4 + 3 * Math.pow(Math.max(0, d - START_R + 60) / 300, 1.7); }
 function wallE(d) { return 1 + Math.floor(d / 350); }
+
+/* ---------- v0.5 经济 ---------- */
+function tankMax(lv) { return 80 + 40 * lv; }           // 白球能量槽上限
+function tankRegen(lv) { return 3 + 1.2 * lv; }         // 每秒回充
+const SPRAY_RATE = 26;                                  // 按住喷洒：每秒喷出能量
+const MAT_LIFE = 240;                                   // 物质结晶掉在地上 240 秒后消散
+const MAXM = 6000;
+/* 特殊地点（遗迹）：藏在黑墙里 */
+const POI = [
+  { key: 'cave', name: '能量洞', icon: '✦', col: '#9ff4ff', desc: '封存着一大团能量的洞穴。挖通后能量会被生物找到。' },
+  { key: 'reactor', name: '远古反应堆', icon: '☢', col: '#7dffb0', desc: '用导能塔把它接入能量网络后，每秒生成 4 点能量。' },
+  { key: 'crystal', name: '物质晶簇', icon: '◆', col: '#ffd36b', desc: '白球触碰即可采集一大笔物质（一次性）。' },
+  { key: 'obelisk', name: '观测古碑', icon: '▲', col: '#c9a8ff', desc: '接入能量网络后：每秒 +0.4 潮汐，建造额度 +2。' },
+  { key: 'pod', name: '休眠孵化舱', icon: '⬭', col: '#ff9fd0', desc: '白球触碰唤醒：放出一群生物，并永久解锁该物种。' },
+  { key: 'relay', name: '远古中继塔', icon: '⌬', col: '#8fd8ff', desc: '接入能量网络后，提供半径 320 的超大能量场。' },
+];
+const POI_IDX = {}; POI.forEach((p, i) => POI_IDX[p.key] = i);

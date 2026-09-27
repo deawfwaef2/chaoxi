@@ -8,7 +8,8 @@ let hiDirty = null; // 需要重绘的格子范围 [gx0,gy0,gx1,gy1]
 const FX = [];
 const MOTES = [];
 const LOD = { lodPx: 2.6, avg: 8, maxSpr: 4000, nSpr: 0, fAvg: 16, stars: 1400 };
-const DEV_COL = ['#7fe8ff', '#8fffd0', '#9fd0ff', '#dffcff', '#b890ff', '#ff9ff0', '#ffd27a', '#ff8fa8', '#ffd0a0', '#ffe0c0', '#a8ffd0', '#d0ffa0', '#ff7a7a', '#ffc8ff', '#fff2b0', '#e0b8ff', '#c8e0ff'];
+// 顺序与 DEVICES 一致
+const DEV_COL = ['#7fe8ff', '#ffd36b', '#8fffd0', '#9fd0ff', '#dffcff', '#b890ff', '#ff9ff0', '#ffd27a', '#ff8fa8', '#ffd0a0', '#ffe0c0', '#7dffb0', '#a8ffd0', '#d0ffa0', '#ff7a7a', '#ffc8ff', '#ffb35a', '#fff2b0', '#e0b8ff', '#c8e0ff'];
 
 function mkC(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h || w; return c; }
 function initRender(canvas) {
@@ -20,7 +21,7 @@ function initRender(canvas) {
   rimC = mkC(RW); rimG = rimC.getContext('2d');
   invC = mkC(RW); invG = invC.getContext('2d');
   pbC = mkC(4); pbG = pbC.getContext('2d'); bloomC = mkC(4); bloomG = bloomC.getContext('2d');
-  starSpr = makeStar(); glowSpr = makeGlow(); runeC = makeRune();
+  starSpr = makeStar(); glowSpr = makeGlow(); runeC = makeRune(); buildProps();
   for (let k = 0; k < 46; k++) MOTES.push({ x: Math.random(), y: Math.random(), z: 0.2 + Math.random() * 0.8, s: 0.5 + Math.random() * 1.8, ph: Math.random() * 6.28 });
   resize();
   rebuildFloor();
@@ -73,7 +74,7 @@ function maskRegion(gx0, gy0, gx1, gy1) {
   const X = gx0 * FS, Y = gy0 * FS, Wd = (gx1 - gx0 + 1) * FS, Ht = (gy1 - gy0 + 1) * FS;
   // 平滑开阔度场（3×3 加权）→ 双线性采样 → smoothstep 阈值 = 抗锯齿的圆润洞壁
   const fx0 = gx0 - 1, fy0 = gy0 - 1, fw = gx1 - gx0 + 3, fh = gy1 - gy0 + 3, F = new Float32Array(fw * fh);
-  const op = (x, y) => (x < 0 || y < 0 || x >= GN || y >= GN) ? 0 : (whp[y * GN + x] <= 0 ? 1 : 0);
+  const op = (x, y) => (x < 0 || y < 0 || x >= GN || y >= GN) ? 0 : (whp[y * GN + x] <= 0 && seen[y * GN + x] ? 1 : 0);
   for (let j = 0; j < fh; j++) for (let i = 0; i < fw; i++) {
     const x = fx0 + i, y = fy0 + j, c = op(x, y);
     const sm = (2 * c + op(x - 1, y) + op(x + 1, y) + op(x, y - 1) + op(x, y + 1) + 0.5 * (op(x - 1, y - 1) + op(x + 1, y - 1) + op(x - 1, y + 1) + op(x + 1, y + 1))) / 8;
@@ -109,13 +110,14 @@ function rebuildFloor() {
   for (let i = 0; i < GN * GN; i++) paintCell(i);
   floorDirty = true;
   // 只重绘有开阔格子的范围
-  let a = GN, b = GN, c = 0, d = 0; for (let i = 0; i < GN * GN; i++) if (whp[i] <= 0) { const gx = i % GN, gy = (i / GN) | 0; if (gx < a) a = gx; if (gy < b) b = gy; if (gx > c) c = gx; if (gy > d) d = gy; }
+  let a = GN, b = GN, c = 0, d = 0; SEEN_DIRTY.length = 0; for (let i = 0; i < GN * GN; i++) if (whp[i] <= 0 && seen[i]) { const gx = i % GN, gy = (i / GN) | 0; if (gx < a) a = gx; if (gy < b) b = gy; if (gx > c) c = gx; if (gy > d) d = gy; }
   maskG.clearRect(0, 0, FW, FW); hiG.clearRect(0, 0, FW, FW);
   if (c >= a) maskRegion(a, b, c, d);
   rebuildRim(); rimDirty = false; hiDirty = null;
 }
 function paintCell(i) { // 低清地面：小地图 + 墙体受损的裂纹色
   const h = whp[i];
+  if (!seen[i]) { floor32[i] = 0; return; }
   if (h <= 0) { const gx = i % GN, gy = (i / GN) | 0, d = Math.hypot((gx + 0.5) * CELL - HALF, (gy + 0.5) * CELL - HALF), t = Math.min(1, d / 2600); floor32[i] = (255 << 24) | ((62 - 26 * t) << 16) | ((34 - 16 * t) << 8) | (18 - 9 * t); }
   else if (h === Infinity) floor32[i] = 0;
   else { const dm = 1 - h / wMax[i]; floor32[i] = dm > 0.02 ? ((Math.round(dm * 230) << 24) | (170 << 16) | (60 << 8) | 255) : 0; }
@@ -127,6 +129,10 @@ function flushFloor() {
       if (whp[i] <= 0) { const gx = i % GN, gy = (i / GN) | 0; if (!hiDirty) hiDirty = [gx, gy, gx, gy]; else { hiDirty[0] = Math.min(hiDirty[0], gx); hiDirty[1] = Math.min(hiDirty[1], gy); hiDirty[2] = Math.max(hiDirty[2], gx); hiDirty[3] = Math.max(hiDirty[3], gy); } }
     }
     WALL_DIRTY.length = 0; floorDirty = true;
+  }
+  if (SEEN_DIRTY.length) {
+    for (const i of SEEN_DIRTY) { paintCell(i); if (whp[i] <= 0) { const gx = i % GN, gy = (i / GN) | 0; if (!hiDirty) hiDirty = [gx, gy, gx, gy]; else { hiDirty[0] = Math.min(hiDirty[0], gx); hiDirty[1] = Math.min(hiDirty[1], gy); hiDirty[2] = Math.max(hiDirty[2], gx); hiDirty[3] = Math.max(hiDirty[3], gy); } } }
+    SEEN_DIRTY.length = 0; floorDirty = true;
   }
   if (floorDirty) { floorG.putImageData(floorImg, 0, 0); floorDirty = false; }
   if (hiDirty) { const [a, b, c, d] = hiDirty; maskRegion(a - 1, b - 1, c + 1, d + 1); hiDirty = null; rimDirty = true; }
@@ -176,17 +182,22 @@ function render(realDt, ui) {
     ctx.globalAlpha = pulse * (G.lv > 0 ? 0.55 : 0.3); ctx.drawImage(rimC, gx0 * RS, gy0 * RS, (gx1 - gx0) * RS, (gy1 - gy0) * RS, sx, sy, sw, sh);
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
+  drawAmbient(x0, y0, x1, y1);
+  drawProps(gx0, gy0, gx1, gy1);
   drawRune();
+  drawPOIs(x0, y0, x1, y1);
   if (ui.build >= 0 || ui.showField) drawFields();
   drawPylonLinks();
   for (const d of G.devs) if (d.x > x0 - 300 && d.x < x1 + 300 && d.y > y0 - 300 && d.y < y1 + 300) drawDevice(d, false);
   drawParticles(x0, y0, x1, y1);
   worldT();
+  drawMatter(x0, y0, x1, y1);
   drawCreatures(x0, y0, x1, y1, ui);
   for (const d of G.devs) if (d.x > x0 - 300 && d.x < x1 + 300 && d.y > y0 - 300 && d.y < y1 + 300) drawDevice(d, true);
   drawTower();
   drawOrb(ui);
   if (ui.build >= 0 && ui.ghost) drawGhost(ui);
+  drawSignals(x0, y0, x1, y1);
   drawFX(realDt);
   drawScreenFX(realDt);
   CAM.x = cx0; CAM.y = cy0;
@@ -219,6 +230,7 @@ function drawParticles(x0, y0, x1, y1) {
     const v = pv[i]; if (v === 0) continue;
     const bx = (px[i] * k + ox) | 0, by = (py[i] * k + oy) | 0;
     if (bx < 1 || by < 1 || bx >= bw - 1 || by >= bh - 1) continue;
+    { const gi = (((py[i] + HALF) / CELL) | 0) * GN + (((px[i] + HALF) / CELL) | 0); if (!seen[gi]) continue; }
     const idx = by * bw + bx, w = v > 6 ? 6 : v;
     if (pr[i] === 255) {
       const tw = TWK[(i * 23 + tf) & 63];
@@ -277,6 +289,7 @@ function drawCreatures(x0, y0, x1, y1, ui) {
     if (cdead[i]) continue;
     const s = csp[i], r = S_r[s] * cg[i], x = cx[i], y = cy[i];
     if (x < x0 - r * 3 || x > x1 + r * 3 || y < y0 - r * 3 || y > y1 + r * 3) continue;
+    { const gi = gIdx(x, y); if (gi >= 0 && !seen[gi]) continue; }
     if (r * z < lod || nSpr >= maxSpr || dist2(x, y, ox0, oy0) > farR2) {
       const bx = (x * hk + hox) | 0, by = (y * hk + hoy) | 0; let rr = r * hk; if (rr < 0.8) rr = 0.8; if (rr > 7) rr = 7;
       const ri = Math.ceil(rr), r2 = rr * rr, col = SP_PACK[s], hi = SP_PACK_HI[s];
@@ -384,6 +397,15 @@ function drawDevice(d, top) {
       ctx.fillStyle = act ? '#fff' : '#888'; ctx.beginPath(); ctx.arc(0, -10 + bob, 3.5, 0, 7); ctx.fill();
       if (act && z > 0.4 && d.n) { ctx.fillStyle = 'rgba(200,230,255,0.9)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d.n, 0, -30 + bob); }
       break; }
+    case 'collector': {
+      glowDot(0, -14, 22); ctx.fillStyle = act ? '#2a2414' : '#2a2a2e'; ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-7, -18); ctx.lineTo(7, -18); ctx.lineTo(10, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(0, -26 + bob); ctx.rotate(act ? t * 1.2 : 0); ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; ctx.lineTo(Math.cos(a) * 9, Math.sin(a) * 9); } ctx.closePath(); ctx.fillStyle = act ? '#ffd36b' : '#777'; ctx.fill(); ctx.strokeStyle = act ? '#fff3c0' : '#999'; ctx.stroke(); ctx.restore();
+      if (act) { ctx.strokeStyle = 'rgba(255,211,107,0.5)'; for (let k = 0; k < 2; k++) { const p = 1 - ((t * 0.8 + k / 2) % 1); ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(0, -26, 12 + p * 30, 0, 7); ctx.stroke(); } ctx.globalAlpha = building ? 0.6 : 1; } break; }
+    case 'gen': case 'sun': {
+      const big = key === 'sun', R = big ? 16 : 10;
+      glowDot(0, -24, big ? 40 : 26); ctx.fillStyle = act ? '#16302a' : '#2a2a2e'; ctx.fillRect(-R * 0.8, -20, R * 1.6, 20); ctx.strokeRect(-R * 0.8, -20, R * 1.6, 20);
+      for (let k = 0; k < (big ? 3 : 2); k++) { ctx.save(); ctx.translate(0, -30 - (big ? 8 : 0) + bob); ctx.rotate((act ? t * (1 + k * 0.6) : 0.5) * (k % 2 ? -1 : 1) + k); ctx.globalAlpha = (act ? 0.9 : 0.5) * (building ? 0.6 : 1); ctx.beginPath(); ctx.ellipse(0, 0, R + 4 + k * 4, (R + 4 + k * 4) * 0.4, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+      ctx.globalAlpha = building ? 0.6 : 1; const gg = ctx.createRadialGradient(0, -30 - (big ? 8 : 0) + bob, 1, 0, -30 - (big ? 8 : 0) + bob, R); gg.addColorStop(0, act ? '#ffffff' : '#888'); gg.addColorStop(1, act ? col : '#444'); ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(0, -30 - (big ? 8 : 0) + bob, R * 0.75 + (act ? Math.sin(t * 4) * 1.2 : 0), 0, 7); ctx.fill(); break; }
     case 'ripen': {
       glowDot(0, -12, 24); ctx.fillStyle = act ? '#16283a' : '#2a2a2e'; ctx.beginPath(); ctx.moveTo(-9, 2); ctx.lineTo(-6, -22); ctx.lineTo(6, -22); ctx.lineTo(9, 2); ctx.closePath(); ctx.fill(); ctx.stroke();
       if (act) for (let k = 0; k < 5; k++) { const p = ((t * 0.7 + k / 5) % 1), a = k * 1.26 + t; ctx.globalAlpha = 1 - p; ctx.fillStyle = '#dffcff'; ctx.beginPath(); ctx.arc(Math.cos(a) * (4 + p * 10), -22 - p * 18 + bob, 1.6, 0, 7); ctx.fill(); } ctx.globalAlpha = building ? 0.6 : 1;
@@ -491,7 +513,11 @@ function drawOrb(ui) {
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   const g = ctx.createRadialGradient(o.x - 3, o.y - 4, 1, o.x, o.y, 12); g.addColorStop(0, '#ffffff'); g.addColorStop(0.7, '#eafcff'); g.addColorStop(1, '#a8e8ff');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, 11 + Math.sin(t * 4) * 0.8, 0, 7); ctx.fill();
-  if (o.attract) { ctx.strokeStyle = 'rgba(160,240,255,0.5)'; ctx.lineWidth = 1.5; for (let k = 0; k < 3; k++) { const p = 1 - ((t * 1.2 + k / 3) % 1); ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(o.x, o.y, 20 + p * 170, 0, 7); ctx.stroke(); } ctx.globalAlpha = 1; }
+  // 能量槽环（白球身上的“电量”）
+  const tf = o.tank / tankMax(G.lv); ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(0,10,20,0.5)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(o.x, o.y, 16, 0, 7); ctx.stroke();
+  ctx.strokeStyle = tf > 0.2 ? '#7ff4ff' : '#ff9a8a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, 16, -Math.PI / 2, -Math.PI / 2 + tf * 6.283); ctx.stroke();
+  if (o.spray && o.tank >= 1) { ctx.globalCompositeOperation = 'lighter'; for (let k = 0; k < 3; k++) { const p = (t * 2.2 + k / 3) % 1; ctx.globalAlpha = (1 - p) * 0.7; ctx.strokeStyle = '#bff8ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(o.x, o.y, 18 + p * 50, 0, 7); ctx.stroke(); } ctx.globalAlpha = 0.8; ctx.drawImage(glowSpr, o.x - 60, o.y - 60, 120, 120); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
   if (o.hp < 100) { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.stroke(); ctx.strokeStyle = o.hp > 40 ? '#bff' : '#ff8a8a'; ctx.beginPath(); ctx.arc(o.x, o.y, 20, -Math.PI / 2, -Math.PI / 2 + o.hp / 100 * 6.283); ctx.stroke(); }
   if (o.drill) { ctx.globalCompositeOperation = 'lighter'; for (let k = 0; k < 5; k++) { const a = rnd() * 6.28, d = 14 + rnd() * 8; ctx.fillStyle = rnd() < 0.5 ? '#fff' : '#ff9ad0'; ctx.fillRect(o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, 2, 2); } ctx.globalCompositeOperation = 'source-over'; }
 }
