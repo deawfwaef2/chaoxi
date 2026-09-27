@@ -158,7 +158,7 @@ const R0=430;                        // 初始开放半径
 const GCS=40, GN=Math.ceil(WSIZE/GCS), NC=GN*GN; // 模拟空间网格
 const CCAP=40000, MCAP=160000;
 const TIDE_T=10;                     // 潮汐结算周期(秒)
-const THRESH=[0,1,10,25,50,90,150,240,360,520,750];
+const THRESH=[0,1,12,30,60,110,190,320,520,800,1200];
 const LVCOL=['#5a6275','#4fd1ff','#4fffc3','#7dff6a','#d7ff4f','#ffd04f','#ff9a4f','#ff5fa8','#c46bff','#8d8dff','#ffffff'];
 const SAVE_KEY='chaoxi_save_v1', META_KEY='chaoxi_meta_v1';
 
@@ -168,10 +168,10 @@ const SAVE_KEY='chaoxi_save_v1', META_KEY='chaoxi_meta_v1';
 const SPECIES=[
  {id:'slime',name:'果冻史莱姆',unlock:0,r:9,col:'#7ee0a1',col2:'#c8ffd9',shape:'slime',move:'hop',speed:50,maxE:14,birthE:5,reproE:12,cool:8,mat:10,metab:0.10,life:90,sense:120,mote:1,prey:[],desc:'Q弹的基础食能者，跳跳地吃掉散落的能量。'},
  {id:'fluff',name:'绒绒球',unlock:0,r:8,col:'#ffd1ec',col2:'#fff3fa',shape:'fluff',move:'float',speed:26,maxE:10,birthE:4,reproE:9,cool:10,mat:12,metab:0.06,life:150,sense:90,mote:1,prey:[],desc:'慢悠悠飘着的毛球，省能长寿。'},
- {id:'fish',name:'泡泡鱼',unlock:1,r:7,col:'#7cc8ff',col2:'#d6f0ff',shape:'fish',move:'swim',speed:72,maxE:9,birthE:3,reproE:8,cool:6,mat:6,metab:0.12,life:60,sense:130,mote:1,prey:[],desc:'游得飞快的小鱼，繁殖迅速，是很多掠食者的点心。'},
- {id:'mush',name:'蘑菇仔',unlock:1,r:8,col:'#ff7a8a',col2:'#fff1dd',shape:'mush',move:'still',speed:0,maxE:16,birthE:5,reproE:13,cool:12,mat:15,metab:0.04,life:220,sense:34,mote:1,prey:[],desc:'扎根不动，吸收飘过身边的能量，用孢子繁衍。'},
+ {id:'fish',name:'泡泡鱼',unlock:1,r:7,col:'#7cc8ff',col2:'#d6f0ff',shape:'fish',move:'swim',speed:72,maxE:9,birthE:3,reproE:7,cool:6,mat:6,metab:0.08,life:70,sense:150,mote:1,prey:[],desc:'游得飞快的小鱼，繁殖迅速，是很多掠食者的点心。'},
+ {id:'mush',name:'蘑菇仔',unlock:1,r:8,col:'#ff7a8a',col2:'#fff1dd',shape:'mush',move:'still',speed:0,maxE:16,birthE:6,reproE:15,cool:16,mat:20,metab:0.07,life:150,sense:26,mote:1,prey:[],desc:'扎根不动，吸收飘过身边的能量，用孢子繁衍。'},
  {id:'bunny',name:'麻薯兔',unlock:2,r:10,col:'#fff6e8',col2:'#ffc6d6',shape:'bunny',move:'hop',speed:64,maxE:24,birthE:9,reproE:20,cool:12,mat:15,metab:0.12,life:110,sense:150,mote:0,prey:['mush','fluff'],desc:'软糯的麻薯兔，最爱啃蘑菇仔和绒绒球。'},
- {id:'fly',name:'萤火团',unlock:2,r:5,col:'#fff27a',col2:'#fffbd1',shape:'firefly',move:'fly',speed:82,maxE:5,birthE:2,reproE:5,cool:4,mat:4,metab:0.10,life:35,sense:100,mote:1,prey:[],desc:'一闪一闪的小光团，寿命短暂但生生不息。'},
+ {id:'fly',name:'萤火团',unlock:2,r:5,col:'#fff27a',col2:'#fffbd1',shape:'firefly',move:'fly',speed:82,maxE:6,birthE:2,reproE:5,cool:4,mat:4,metab:0.06,life:40,sense:140,mote:1,prey:[],desc:'一闪一闪的小光团，寿命短暂但生生不息。'},
  {id:'fox',name:'小狐团',unlock:3,r:12,col:'#ffa55c',col2:'#fff4e6',shape:'fox',move:'walk',speed:74,maxE:40,birthE:14,reproE:34,cool:18,mat:20,metab:0.18,life:150,sense:190,mote:0,prey:['slime','bunny','fish','fly'],desc:'圆滚滚的小狐狸，生态圈的中层掠食者。'},
  {id:'jelly',name:'星星水母',unlock:3,r:13,col:'#b9a6ff',col2:'#efe9ff',shape:'jelly',move:'float',speed:22,maxE:30,birthE:10,reproE:26,cool:20,mat:20,metab:0.08,life:260,sense:140,mote:1,prey:[],desc:'在空中漂流的星光水母，温柔地过滤能量。'},
  {id:'turtle',name:'布丁龟',unlock:4,r:16,col:'#e0a458',col2:'#fff0b8',shape:'turtle',move:'walk',speed:16,maxE:60,birthE:18,reproE:50,cool:30,mat:30,metab:0.10,life:420,sense:120,mote:1,prey:['mush'],desc:'背着焦糖布丁壳的慢吞吞乌龟，非常长寿。'},
@@ -189,8 +189,8 @@ SPECIES.forEach(s=>{SPECIES.forEach(p=>{if(p.preyMask&(1<<s.idx))s.predMask|=1<<
 /* ------------------------- 观测者装置定义 ------------------------- */
 const DEVICES=[
  {id:'pylon',name:'谐振电塔',unlock:0,bw:1,time:8,radius:190,col:'#7df9ff',desc:'提供供能范围。装置必须建在供能范围内，电塔可连续铺设。'},
- {id:'census',name:'普查环',unlock:0,bw:3,time:15,radius:130,col:'#4fd1ff',desc:'范围内每个生物每秒 +0.02 潮汐。'},
- {id:'wire',name:'量子绊线',unlock:0,bw:2,time:12,len:220,col:'#7dff9a',desc:'每有生物穿过光线 +1 潮汐。放置时可旋转。'},
+ {id:'census',name:'普查环',unlock:0,bw:3,time:15,radius:130,col:'#4fd1ff',desc:'范围内每个生物每秒 +0.01 潮汐。'},
+ {id:'wire',name:'量子绊线',unlock:0,bw:2,time:12,len:220,col:'#7dff9a',desc:'每有生物穿过光线 +0.5 潮汐（同一只生物 4 秒内只计一次）。放置时可旋转。'},
  {id:'bell',name:'诞生之钟',unlock:1,bw:3,time:18,radius:150,col:'#ffd04f',desc:'范围内每次繁衍 +1.5 潮汐。'},
  {id:'pump',name:'引能漩涡',unlock:1,bw:2,time:14,radius:220,col:'#c46bff',desc:'缓缓把能量粒子吸向自身（装置不储存能量）。'},
  {id:'incub',name:'孵化舱',unlock:2,bw:4,time:24,radius:120,col:'#ff9ad5',desc:'每 20 秒吸取周围能量孵化指定物种，帮助生态恢复。'},
@@ -208,8 +208,9 @@ const TOWER_R=240;
 /* ------------------------- 世界：墙 ------------------------- */
 const wallHP=new Float32Array(WN*WN), wallMax=new Float32Array(WN*WN), wallE=new Uint8Array(WN*WN);
 let wallLatent=0, wallDirty=true;
-const wallCv=document.createElement('canvas');wallCv.width=wallCv.height=WN;
-const wallCtx=wallCv.getContext('2d');const wallImg=wallCtx.createImageData(WN,WN);
+const WPX=4; // 墙体遮罩：每格 4 像素，用圆形“挖空”得到圆润有机的边缘
+const wallCv=document.createElement('canvas');wallCv.width=wallCv.height=WN*WPX;
+const wallCtx=wallCv.getContext('2d');const carveQ=[];
 function wIdx(x,y){const gx=((x+HALF)/WCS)|0,gy=((y+HALF)/WCS)|0;if(x<-HALF||y<-HALF||gx>=WN||gy>=WN)return -1;return gy*WN+gx;}
 function isWall(x,y){const i=wIdx(x,y);return i<0||wallHP[i]>0;}
 function wallBaseHP(d){return 20*Math.pow(d/R0,2.2);}
@@ -218,24 +219,26 @@ function initWalls(){
   for(let gy=0;gy<WN;gy++)for(let gx=0;gx<WN;gx++){
     const i=gy*WN+gx,x=gx*WCS-HALF+WCS/2,y=gy*WCS-HALF+WCS/2,d=Math.hypot(x,y);
     const edge=gx<2||gy<2||gx>=WN-2||gy>=WN-2;
-    wallE[i]=1+Math.floor(d/600);
+    wallE[i]=Math.min(250,2+Math.floor(d/400));
     if(d<R0){wallHP[i]=0;wallMax[i]=0;}
     else{wallMax[i]=edge?1e9:wallBaseHP(d);wallHP[i]=wallMax[i];}
   }
   recomputeWallLatent();wallDirty=true;
 }
 function recomputeWallLatent(){wallLatent=0;for(let i=0;i<WN*WN;i++)if(wallHP[i]>0)wallLatent+=wallE[i];}
+function carveCell(g,i){const gx=i%WN,gy=(i/WN)|0;g.moveTo(gx*WPX+WPX/2+WPX*.85,gy*WPX+WPX/2);g.arc(gx*WPX+WPX/2,gy*WPX+WPX/2,WPX*.85,0,TAU);}
 function refreshWallImg(){
-  const d=wallImg.data;
-  for(let i=0;i<WN*WN;i++){d[i*4]=0;d[i*4+1]=0;d[i*4+2]=0;d[i*4+3]=wallHP[i]>0?255:0;}
-  wallCtx.putImageData(wallImg,0,0);wallDirty=false;
+  const g=wallCtx;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,wallCv.width,wallCv.height);
+  g.globalCompositeOperation='destination-out';g.beginPath();for(let i=0;i<WN*WN;i++)if(wallHP[i]<=0)carveCell(g,i);g.fill();
+  g.globalCompositeOperation='source-over';wallDirty=false;carveQ.length=0;
 }
+function flushCarve(){if(!carveQ.length)return;const g=wallCtx;g.globalCompositeOperation='destination-out';g.beginPath();for(const i of carveQ)carveCell(g,i);g.fill();g.globalCompositeOperation='source-over';carveQ.length=0;}
 function breakWall(i){
   if(wallHP[i]<=0&&wallMax[i]===0)return;
   wallHP[i]=0;const e=wallE[i];wallLatent-=e;
   const gx=i%WN,gy=(i/WN)|0,x=gx*WCS-HALF+WCS/2,y=gy*WCS-HALF+WCS/2;
   for(let k=0;k<e;k++)spawnMote(x+(R()-.5)*20,y+(R()-.5)*20,1,40,1.0);
-  wallDirty=true;stats.cells++;
+  carveQ.push(i);stats.cells++;
   fx.push({t:'ring',x,y,life:0.6,max:0.6,r:30,col:'#fff'});
 }
 
@@ -293,7 +296,7 @@ function forCellsIn(x0,y0,x1,y1,fn){
 /* ------------------------- 生物（SoA TypedArray） ------------------------- */
 const cx=new Float32Array(CCAP),cy=new Float32Array(CCAP),cvx=new Float32Array(CCAP),cvy=new Float32Array(CCAP);
 const cdx=new Float32Array(CCAP),cdy=new Float32Array(CCAP),cpx=new Float32Array(CCAP),cpy=new Float32Array(CCAP);
-const cage=new Float32Array(CCAP),cmeta=new Float32Array(CCAP),cthink=new Float32Array(CCAP),ccool=new Float32Array(CCAP),cphase=new Float32Array(CCAP),cslow=new Float32Array(CCAP);
+const cchase=new Float32Array(CCAP),cwire=new Float32Array(CCAP),cage=new Float32Array(CCAP),cmeta=new Float32Array(CCAP),cthink=new Float32Array(CCAP),ccool=new Float32Array(CCAP),cphase=new Float32Array(CCAP),cslow=new Float32Array(CCAP);
 const cen=new Int32Array(CCAP),ctgt=new Int32Array(CCAP),ctgtId=new Int32Array(CCAP),cid=new Int32Array(CCAP),cgen=new Uint16Array(CCAP);
 const csp=new Uint8Array(CCAP),calive=new Uint8Array(CCAP),cmode=new Uint8Array(CCAP),cFree=new Int32Array(CCAP);
 let cFreeN=0,cHigh=0,cCount=0,cSerial=1;
@@ -302,7 +305,7 @@ function resetCreatures(){calive.fill(0);cFreeN=0;cHigh=0;cCount=0;spCount.fill(
 function spawnCreature(sp,x,y,en,gen){
   let i;if(cFreeN>0)i=cFree[--cFreeN];else if(cHigh<CCAP)i=cHigh++;else return -1;
   cx[i]=x;cy[i]=y;cpx[i]=x;cpy[i]=y;cvx[i]=0;cvy[i]=0;cdx[i]=0;cdy[i]=0;
-  cage[i]=0;cmeta[i]=R();cthink[i]=R()*0.3;ccool[i]=SPECIES[sp].cool*0.5;cphase[i]=R()*100;cslow[i]=0;
+  cage[i]=0;cwire[i]=0;cchase[i]=0;cmeta[i]=R();cthink[i]=R()*0.3;ccool[i]=SPECIES[sp].cool*0.5;cphase[i]=R()*100;cslow[i]=0;
   cen[i]=en;ctgt[i]=-1;ctgtId[i]=0;cid[i]=cSerial++;cgen[i]=gen||0;csp[i]=sp;calive[i]=1;cmode[i]=0;
   cCount++;spCount[sp]++;return i;
 }
@@ -351,18 +354,18 @@ function nearestCreature(x,y,range,mask,self){
 function think(i){
   const s=SPECIES[csp[i]];const x=cx[i],y=cy[i];
   const old=cage[i]>s.life*0.8;const spd=s.speed*(old?0.7:1);
-  cthink[i]=0.35+R()*0.3;
+  const TS=thinkScale;cthink[i]=(0.35+R()*0.3)*TS;
   if(s.move==='still'){cmode[i]=0;cdx[i]=0;cdy[i]=0;cthink[i]=0.5;return;}
   // 逃跑
   if(s.predMask&presentMask){
-    const p=nearestCreature(x,y,s.sense*0.75,s.predMask,i);
-    if(p>=0){let ax=x-cx[p],ay=y-cy[p];const d=Math.hypot(ax,ay)||1;cdx[i]=ax/d*spd*1.25;cdy[i]=ay/d*spd*1.25;cmode[i]=3;cthink[i]=0.25;return;}
+    const p=nearestCreature(x,y,Math.min(170,s.sense*0.75),s.predMask,i);
+    if(p>=0){let ax=x-cx[p],ay=y-cy[p];const d=Math.hypot(ax,ay)||1;cdx[i]=ax/d*spd*1.4;cdy[i]=ay/d*spd*1.4;cmode[i]=3;cthink[i]=0.25;return;}
   }
   // 觅食
   if(cen[i]<s.maxE*0.92){
-    if(s.preyMask&presentMask){
+    if((s.preyMask&presentMask)&&cen[i]<s.maxE*0.6&&cchase[i]<=0){
       const p=nearestCreature(x,y,s.sense,s.preyMask,i);
-      if(p>=0&&SPECIES[csp[p]].r<=s.r*1.1){ctgt[i]=p;ctgtId[i]=cid[p];cmode[i]=2;return;}
+      if(p>=0&&SPECIES[csp[p]].r<=s.r*1.1){if(cmode[i]!==2)cchase[i]=-4;ctgt[i]=p;ctgtId[i]=cid[p];cmode[i]=2;return;}
     }
     if(s.mote){const m=nearestMote(x,y,s.sense);if(m>=0){ctgt[i]=m;cmode[i]=1;return;}}
   }
@@ -374,7 +377,7 @@ function think(i){
     const d=Math.hypot(x,y);if(d>200&&R()<0.25)a=Math.atan2(-y,-x)+(R()-.5);
     const w=spd*(0.3+R()*0.4);cdx[i]=Math.cos(a)*w;cdy[i]=Math.sin(a)*w;
   }
-  cthink[i]=0.6+R()*0.8;
+  cthink[i]=(0.6+R()*0.8)*TS;
 }
 
 function hopLift(i,t){const s=SPECIES[csp[i]];const h=((t*s.speed/40+cphase[i])%1);return Math.sin(h*Math.PI);}
@@ -385,7 +388,7 @@ function updateCreatures(dt){
     if(!calive[i])continue;
     const sp=csp[i],s=SPECIES[sp];
     // 衰老
-    cage[i]+=dt*(cslow[i]>0?0.5:1);if(cslow[i]>0)cslow[i]-=dt;
+    cage[i]+=dt*(cslow[i]>0?0.5:1);if(cslow[i]>0)cslow[i]-=dt;if(cwire[i]>0)cwire[i]-=dt;
     if(cage[i]>=s.life){killCreature(i,true);continue;}
     // 代谢：能量以粒子形式散逸回地图（守恒）
     cmeta[i]+=s.metab*dt;
@@ -394,17 +397,21 @@ function updateCreatures(dt){
     // 思考（分帧）
     cthink[i]-=dt;if(cthink[i]<=0)think(i);
     const old=cage[i]>s.life*0.8;const spd=s.speed*(old?0.7:1);
+    if(cchase[i]<0){cchase[i]+=dt;if(cchase[i]>=0&&cmode[i]===2){cmode[i]=0;cchase[i]=2.5;cthink[i]=2.5;cdx[i]*=0.3;cdy[i]*=0.3;}} // 追累了：休息
+    else if(cchase[i]>0)cchase[i]-=dt;
     let tx=cdx[i],ty=cdy[i];
     const m=cmode[i];
     if(m===1){const j=ctgt[i];
       if(!malive[j]){cthink[i]=Math.min(cthink[i],0.05);}
       else{const ddx=mx[j]-cx[i],ddy=my[j]-cy[i],d=Math.hypot(ddx,ddy);
-        if(d<s.r+4){if(cen[i]+mval[j]<=s.maxE){cen[i]+=eatMote(j);}cthink[i]=0;}
+        if(d<s.r+4+spd*dt){if(cen[i]+mval[j]<=s.maxE){cen[i]+=eatMote(j);}cthink[i]=0;}
         else{tx=ddx/d*spd;ty=ddy/d*spd;}}
     }else if(m===2){const j=ctgt[i];
       if(!calive[j]||cid[j]!==ctgtId[i]){cthink[i]=Math.min(cthink[i],0.05);}
       else{const ddx=cx[j]-cx[i],ddy=cy[j]-cy[i],d=Math.hypot(ddx,ddy);const rr=s.r+SPECIES[csp[j]].r;
-        if(d<rr+2){ // 捕食：能量转移，溢出爆回地图
+        if(d<rr+2+spd*dt*0.8&&R()>(s.catchP||0.45)){ // 扑空：猎物弹开逃走，捕食者喘口气
+          const k=1/(d||1);cvx[j]+=ddx*k*160;cvy[j]+=ddy*k*160;cmode[i]=0;cchase[i]=1.2;cthink[i]=1.2;cvx[i]*=0.2;cvy[i]*=0.2;
+        }else if(d<rr+2+spd*dt*0.8){ // 捕食：能量转移，溢出爆回地图
           const gain=Math.min(cen[j],s.maxE-cen[i]);cen[i]+=gain;const rest=cen[j]-gain;
           if(rest>0)spawnMote(cx[j],cy[j],rest,40,1.0);
           cen[j]=0;killCreature(j,false);stats.preds++;onPredation(cx[i],cy[i]);cthink[i]=0.2;
@@ -432,7 +439,8 @@ function updateCreatures(dt){
     const acc=Math.min(1,dt*(s.move==='float'?1.5:5));
     cvx[i]+=(tx*k-cvx[i])*acc;cvy[i]+=(ty*k-cvy[i])*acc;
     cpx[i]=cx[i];cpy[i]=cy[i];
-    let nx=cx[i]+cvx[i]*dt,ny=cy[i]+cvy[i]*dt;
+    let mdx=cvx[i]*dt,mdy=cvy[i]*dt;const ml=Math.abs(mdx)+Math.abs(mdy);if(ml>28){mdx*=28/ml;mdy*=28/ml;}
+    let nx=cx[i]+mdx,ny=cy[i]+mdy;
     if(isWall(nx,ny)){
       if(!isWall(nx,cy[i])){ny=cy[i];cvy[i]*=-0.6;}
       else if(!isWall(cx[i],ny)){nx=cx[i];cvx[i]*=-0.6;}
@@ -456,7 +464,7 @@ function updateCreatures(dt){
     ccool[i]-=dt;
     if(ccool[i]<=0&&cage[i]>s.mat&&cen[i]>=s.reproE){
       const cc=cCell[i];const crowd=cc>=0?st[cc+1]-st[cc]:0;
-      if(crowd<(s.r>14?4:10)){
+      if(crowd<(s.move==='still'?3:s.r>14?4:10)){
         const a=R()*TAU,dd=s.move==='still'?60+R()*90:s.r*1.6;
         let bx=cx[i]+Math.cos(a)*dd,by=cy[i]+Math.sin(a)*dd;if(isWall(bx,by)){bx=cx[i];by=cy[i];}
         const ch=spawnCreature(sp,bx,by,s.birthE,cgen[i]+1);
@@ -468,9 +476,9 @@ function updateCreatures(dt){
 }
 
 function updateMotes(dt){
-  const st=MG.start;const damp=Math.exp(-1.6*dt);
+  dt*=2;const par=tick&1;const st=MG.start;const damp=Math.exp(-1.6*dt);
   const ppx=player.x,ppy=player.y,pull=player.pulling;
-  for(let i=0;i<mHigh;i++){
+  for(let i=par;i<mHigh;i+=2){
     if(!malive[i])continue;
     let vx=mvx[i],vy=mvy[i];const x=mx[i],y=my[i];
     if(mlock[i]>0)mlock[i]-=dt;
@@ -489,7 +497,8 @@ function updateMotes(dt){
     else if(pd2<400&&pd2>0.01){const pd=Math.sqrt(pd2),f=120/pd*dt;vx+=px*f;vy+=py*f;}
     vx*=damp;vy*=damp;
     const sp2=vx*vx+vy*vy;if(sp2>6400){const k=80/Math.sqrt(sp2);vx*=k;vy*=k;}
-    let nx=x+vx*dt,ny=y+vy*dt;
+    let ddx=vx*dt,ddy=vy*dt;if(ddx>30)ddx=30;else if(ddx<-30)ddx=-30;if(ddy>30)ddy=30;else if(ddy<-30)ddy=-30;
+    let nx=x+ddx,ny=y+ddy;
     if(isWall(nx,ny)){nx=x;ny=y;vx=-vx*0.5+(-x)*0.002;vy=-vy*0.5+(-y)*0.002;}
     mx[i]=nx;my[i]=ny;mvx[i]=vx;mvy[i]=vy;
   }
@@ -526,14 +535,14 @@ function updateDevices(dt){
     const def=DEVMAP[d.type],r=def.radius,r2=r*r;d.t=(d.t||0)+dt;
     switch(d.type){
       case 'census':
-        if(d.t>=1){d.t-=1;let n=0;forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(calive[j]&&(cx[j]-d.x)**2+(cy[j]-d.y)**2<r2)n++;}});addTide(d,n*0.02*ampMul());d.n=n;}
+        if(d.t>=1){d.t-=1;let n=0;forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(calive[j]&&(cx[j]-d.x)**2+(cy[j]-d.y)**2<r2)n++;}});addTide(d,n*0.01*ampMul());d.n=n;}
         break;
       case 'wire':{
         const [x0,y0,x1,y1]=wireEnds(d);const ex=x1-x0,ey=y1-y0,len2=ex*ex+ey*ey;
         forCellsIn(Math.min(x0,x1)-10,Math.min(y0,y1)-10,Math.max(x0,x1)+10,Math.max(y0,y1)+10,c=>{
           for(let k=st[c];k<st[c+1];k++){const j=it[k];if(!calive[j])continue;
             const s1=(cpx[j]-x0)*ey-(cpy[j]-y0)*ex,s2=(cx[j]-x0)*ey-(cy[j]-y0)*ex;
-            if((s1<0)!==(s2<0)){const tpar=((cx[j]-x0)*ex+(cy[j]-y0)*ey)/len2;if(tpar>=0&&tpar<=1){addTide(d,1*ampMul());d.flash=0.25;}}}
+            if((s1<0)!==(s2<0)&&cwire[j]<=0){const tpar=((cx[j]-x0)*ex+(cy[j]-y0)*ey)/len2;if(tpar>=0&&tpar<=1){addTide(d,0.5*ampMul());d.flash=0.25;cwire[j]=4;}}}
         });if(d.flash>0)d.flash-=dt;break;}
       case 'pump': case 'diff':{
         const sgn=d.type==='pump'?-1:1,str=d.type==='pump'?30:40;
@@ -574,6 +583,8 @@ function settleTide(silent){
     let n=0;for(let s=0;s<NS;s++)if(mask&(1<<s))n++;const v=n*n*1.5*efficiency();tp+=v;d.last+=v;}
   const H=devByType.harm;if(H&&tide.hist.length>=3){const h=tide.hist.slice(-3);const mn=Math.min(...h),mxv=Math.max(...h),av=(h[0]+h[1]+h[2])/3;
     if(av>0&&(mxv-mn)/av<0.15){let n=0;for(const d of H)if(devActive(d))n++;const b=tp*0.15*n*efficiency();tp+=b;for(const d of H)if(devActive(d))d.last=b/n;}}
+  // 多样性倍率：生态越丰富，潮汐越强
+  tide.div=0.6+0.2*sa;tp*=tide.div;
   if(cCount===0)tp=0;
   tide.acc=0;tide.last=tp;tide.hist.push(tp);if(tide.hist.length>120)tide.hist.shift();
   const pop=[];for(let s=0;s<NS;s++)pop.push(spCount[s]);tide.popHist.push(pop);if(tide.popHist.length>120)tide.popHist.shift();
@@ -643,10 +654,11 @@ function fmtClock(){const t=simTime|0;return '['+String((t/60)|0).padStart(2,'0'
 function toast(msg){if(inOffline)return;const el=document.createElement('div');el.className='toast';el.textContent=msg;const box=document.getElementById('toasts');box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.remove(),500);},2600);}
 
 /* ------------------------- 模拟步进 ------------------------- */
-let simTime=0,tick=0;
+let simTime=0,tick=0,thinkScale=1;
 function simStep(dt){
   tick++;simTime+=dt;
   presentMask=0;for(let s=0;s<NS;s++)if(spCount[s]>0){presentMask|=1<<s;everSeen[s]=1;}
+  thinkScale=1+cCount/5000;
   buildMoteGrid();buildCreatureGrid();
   updateDevices(dt);
   updateCreatures(dt);
@@ -738,10 +750,11 @@ function drawFace(g,s,variant){
   if(variant===2){g.strokeStyle='#eee';g.lineWidth=3;[-1,1].forEach(k=>{g.beginPath();g.moveTo(fx+k*ex-er,fy-er*2.2+(k>0?-2:2)*0);g.lineTo(fx+k*ex+er,fy-er*2.0);g.stroke();});}
 }
 function makeSprite(s,variant){const c=document.createElement('canvas');c.width=c.height=SPR;const g=c.getContext('2d');g.translate(SCX,SCY);
-  let col=s.col,col2=s.col2;if(variant===2){col=desat(col,.55);col2=desat(col2,.55);}
+  let col=s.col,col2=s.col2;if(variant===2){col=desat(col,.3);col2=desat(col2,.3);}
   SHAPES[s.shape](g,col,col2,s);drawFace(g,s,variant);return c;}
 let SPRITES=[];
-function buildSprites(){SPRITES=SPECIES.map(s=>[makeSprite(s,0),makeSprite(s,1),makeSprite(s,2)]);}
+function mips(c){const out=[c];let src=c;for(const sz of [64,32,16]){const m=document.createElement('canvas');m.width=m.height=sz;const g=m.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(src,0,0,sz,sz);out.push(m);src=m;}return out;}
+function buildSprites(){SPRITES=SPECIES.map(s=>[mips(makeSprite(s,0)),mips(makeSprite(s,1)),mips(makeSprite(s,2))]);}
 const glowSpr=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');const gr=g.createRadialGradient(16,16,0,16,16,16);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(170,255,255,.8)');gr.addColorStop(.6,'rgba(90,200,255,.2)');gr.addColorStop(1,'rgba(60,150,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);return c;})();
 const shadowSpr=(()=>{const c=document.createElement('canvas');c.width=64;c.height=32;const g=c.getContext('2d');const gr=g.createRadialGradient(32,16,0,32,16,30);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.save();g.scale(1,.5);g.beginPath();g.arc(32,32,30,0,TAU);g.restore();g.fill();return c;})();
 
@@ -789,7 +802,7 @@ function render(t){
   // 玩家
   drawPlayer(t);
   // 黑墙
-  if(wallDirty)refreshWallImg();
+  if(wallDirty)refreshWallImg();else flushCarve();
   ctx.imageSmoothingEnabled=true;ctx.drawImage(wallCv,sx(-HALF),sy(-HALF),WSIZE*zoom,WSIZE*zoom);
   // 挖掘中的墙体提示
   if(player.dig!=null&&player.dig>=0){const i=player.dig,gx=i%WN,gy=(i/WN)|0,x=gx*WCS-HALF,y=gy*WCS-HALF;const f=wallHP[i]/wallMax[i];
@@ -808,13 +821,14 @@ function render(t){
   if(selDev){ctx.save();ctx.strokeStyle='#fff';ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(sx(selDev.x),sy(selDev.y),(DEVMAP[selDev.type].radius||30)*zoom,0,TAU);ctx.stroke();ctx.restore();}
 }
 
+let lodPx=3.2,maxSpr=3000,renderAvg=8;
 function drawCreatures(t,vx0,vy0,vx1,vy1){
-  const small=[];
+  const small=[];let nSpr=0;
   ctx.save();
   for(let i=0;i<cHigh;i++){
     if(!calive[i])continue;const x=cx[i],y=cy[i];if(x<vx0||x>vx1||y<vy0||y>vy1)continue;
     const sp=csp[i],s=SPECIES[sp];const pr=s.r*zoom;
-    if(pr<3.2){small.push(i);continue;}
+    if(pr<lodPx||nSpr>maxSpr){small.push(i);continue;}nSpr++;
     const ph=t*1+cphase[i];let ox=0,oy=0,scx=1,scy=1,rot=0;
     switch(s.move){
       case 'hop':{const l=hopLift(i,simTime);oy=-l*s.r*.9;const land=1-l;scy=1+(l>0.15?.12*l:-.18*land);scx=1/(scy);break;}
@@ -825,17 +839,18 @@ function drawCreatures(t,vx0,vy0,vx1,vy1){
       case 'fly':oy=Math.sin(ph*4)*s.r*.3-s.r*.3;scy=1+Math.sin(ph*8)*.06;scx=1-Math.sin(ph*8)*.04;break;
     }
     const X=sx(x),Y=sy(y);
-    if(pr>5){const sw=pr*2.2*(1+oy/(s.r*4));ctx.setTransform(DPR,0,0,DPR,0,0);ctx.drawImage(shadowSpr,X-sw/2,Y+pr*.7-sw*.18,sw,sw*.36);}
+    if(pr>7){const sw=pr*2.2*(1+oy/(s.r*4));ctx.setTransform(DPR,0,0,DPR,0,0);ctx.drawImage(shadowSpr,X-sw/2,Y+pr*.7-sw*.18,sw,sw*.36);}
     const flip=cvx[i]<-2?-1:1;const blink=((ph*0.6)%4)<0.12;const old=cage[i]>s.life*0.8;
-    const spr=SPRITES[sp][old?2:blink?1:0];
+    const ds=pr*SPR/SRAD;const mp=SPRITES[sp][old?2:blink?1:0];const spr=ds<=18?mp[3]:ds<=36?mp[2]:ds<=70?mp[1]:mp[0];
     const k=pr/SRAD;const c=Math.cos(rot),sn=Math.sin(rot);
     const a=c*k*scx*flip,b=sn*k*scx*flip,cc=-sn*k*scy,d=c*k*scy;
     ctx.setTransform(a*DPR,b*DPR,cc*DPR,d*DPR,X*DPR,(Y+oy*zoom+(1-scy)*pr*.8)*DPR);
-    ctx.drawImage(spr,-SCX,-SCY);
+    ctx.drawImage(spr,-SCX,-SCY,SPR,SPR);
   }
   ctx.setTransform(DPR,0,0,DPR,0,0);
   // LOD：远景用色块
-  if(small.length){for(const i of small){const s=SPECIES[csp[i]];const pr=Math.max(1.3,s.r*zoom);ctx.fillStyle=s.col;ctx.fillRect(sx(cx[i])-pr,sy(cy[i])-pr,pr*2,pr*2);}}
+  if(small.length){for(let sp=0;sp<NS;sp++){if(!spCount[sp])continue;const s=SPECIES[sp];const pr=Math.max(1.3,s.r*zoom);ctx.beginPath();let any=false;
+      for(const i of small){if(csp[i]!==sp)continue;any=true;ctx.rect(sx(cx[i])-pr,sy(cy[i])-pr,pr*2,pr*2);}if(any){ctx.fillStyle=s.col;ctx.fill();}}}
   ctx.restore();
 }
 
@@ -892,7 +907,7 @@ function drawDevice(d,t){
         if(act){const r=(tt*25)%30;ctx.globalAlpha=1-r/30;ctx.beginPath();ctx.arc(0,0,10+r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}break;}
       case 'pump': case 'diff':{const sg=d.type==='pump'?-1:1;for(let k=0;k<3;k++){ctx.beginPath();for(let a=0;a<4;a+=.2){const r=2+a*3.2;const aa=a*sg+k*TAU/3+tt*2*-sg;ctx.lineTo(Math.cos(aa)*r,Math.sin(aa)*r);}ctx.stroke();}break;}
       case 'incub':{ctx.fillStyle='rgba(255,200,240,.25)';ctx.beginPath();ctx.ellipse(0,-4,9,13,0,0,TAU);ctx.fill();ctx.stroke();
-        const s=SPECIES[d.sp|0];if(SPRITES[s.idx]){ctx.shadowBlur=0;ctx.drawImage(SPRITES[s.idx][0],-8,-12,16,16);}
+        const s=SPECIES[d.sp|0];if(SPRITES[s.idx]){ctx.shadowBlur=0;ctx.drawImage(SPRITES[s.idx][0][2],-8,-12,16,16);}
         if(d.flash>0){ctx.globalAlpha=d.flash;ctx.beginPath();ctx.arc(0,0,22,0,TAU);ctx.stroke();ctx.globalAlpha=1;}break;}
       case 'prism':{ctx.save();ctx.rotate(tt*.5);ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(10,7);ctx.lineTo(-10,7);ctx.closePath();ctx.globalAlpha=.3;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.restore();
         if(act)['#ff6b6b','#ffd04f','#7dff6a','#4fd1ff','#c46bff'].forEach((c,k)=>{ctx.strokeStyle=c;ctx.globalAlpha=.6;ctx.beginPath();const a=k*.35-0.7+tt*.5;ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*24,Math.sin(a)*24);ctx.stroke();});ctx.globalAlpha=1;break;}
@@ -946,7 +961,7 @@ function trySeed(x,y){
   buildMoteGrid();
   const need=s.birthE;const list=[];let have=0;const r2=SEED_R*SEED_R;
   forCellsIn(x-SEED_R,y-SEED_R,x+SEED_R,y+SEED_R,c=>{for(let k=MG.start[c];k<MG.start[c+1];k++){if(have>=need)return;const j=MG.items[k];if(!malive[j])continue;if((mx[j]-x)**2+(my[j]-y)**2<r2){list.push(j);have+=mval[j];}}});
-  if(have<need){toast('这里的能量不足（需要 '+need+'，范围内只有 '+have+'）');return;}
+  if(have<need){toast('能量不足（需要 '+need+'，这里只有 '+have+'）· 按住空格吸引能量，或撞开黑墙释放封存能量');return;}
   let got=0;for(const j of list)got+=eatMote(j);
   const ch=spawnCreature(s.idx,x,y,need,0);if(ch<0){spawnMote(x,y,got,20,0);toast('生物数量已达上限');return;}
   if(got>need)spawnMote(x,y,got-need,20,0.5);
@@ -1064,7 +1079,7 @@ function updateHUD(){
   let sa=0;for(let s=0;s<NS;s++)if(spCount[s]>0)sa++;
   $('pop').textContent=cCount;$('spc').textContent=sa;$('bw').textContent=bwUsed()+'/'+bwCap()+(efficiency()<1?' ⚠效率'+Math.round(efficiency()*100)+'%':'');
   const L=tide.level;const lv=$('tideLv');lv.textContent='观测潮汐 Lv.'+L+(L===0?' · 遗迹':'');lv.style.color=LVCOL[L];
-  const nxt=L<10?THRESH[L+1]:THRESH[10];$('tideSub').textContent='上次结算 '+tide.last.toFixed(1)+(L<10?' · 下一级需 '+nxt:' · 已满溢')+' · 本轮累计 '+tide.acc.toFixed(1);
+  const nxt=L<10?THRESH[L+1]:THRESH[10];$('tideSub').textContent='上次结算 '+tide.last.toFixed(1)+' (多样性×'+(tide.div||1).toFixed(1)+')'+(L<10?' · 下一级需 '+nxt:' · 已满溢')+' · 本轮累计 '+tide.acc.toFixed(1);
   const lo=THRESH[L],f=L>=10?1:clamp((tide.last-lo)/(nxt-lo),0,1);const tb=document.querySelector('#tideBar i');tb.style.width=(f*100)+'%';tb.style.background=LVCOL[Math.min(10,L+1)];
   document.querySelector('#winBar i').style.width=(tide.winT/TIDE_T*100)+'%';
   document.querySelector('#hpbar i').style.width=player.hp+'%';
@@ -1140,8 +1155,8 @@ function runOffline(seconds,onDone){
   inOffline=true;const before=Array.from(spCount),lvBefore=tide.level,popBefore=cCount;
   offlineReport={events:[],births:stats.births,deaths:stats.deaths};
   const t0=performance.now();for(let k=0;k<10;k++)simStep(0.2);const per=(performance.now()-t0)/10+0.01;
-  const budgetMs=12000;const maxSteps=Math.max(50,budgetMs/per);
-  let dt=clamp(seconds/maxSteps,0.2,1.0);let total=Math.min(seconds,maxSteps*dt);let done=2;
+  const budgetMs=15000;const maxSteps=Math.max(50,budgetMs/per);
+  let dt=clamp(seconds/maxSteps,0.2,2.0);let total=Math.min(seconds,maxSteps*dt);let done=2;
   function chunk(){const ts=performance.now();while(done<total&&performance.now()-ts<40){simStep(dt);done+=dt;}
     document.querySelector('#prog i').style.width=(done/total*100)+'%';
     if(done<total){setTimeout(chunk,0);return;}
@@ -1206,14 +1221,16 @@ function frame(now){
     saveT+=rdt;if(saveT>15){saveT=0;saveGame();}
   }
   camX+=(player.x-camX)*Math.min(1,rdt*10);camY+=(player.y-camY)*Math.min(1,rdt*10);
-  render(now/1000);
+  const r0=performance.now();render(now/1000);const rt=performance.now()-r0;renderAvg+=(rt-renderAvg)*0.05;
+  // 自适应画质：渲染太慢就提高 LOD 阈值、减少精灵数量
+  if(renderAvg>18){lodPx=Math.min(9,lodPx+0.05);maxSpr=Math.max(600,maxSpr-20);}else if(renderAvg<9){lodPx=Math.max(3.2,lodPx-0.02);maxSpr=Math.min(4000,maxSpr+10);}
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&started)saveGame();});
 addEventListener('beforeunload',()=>{if(started)saveGame();});
 addEventListener('pagehide',()=>{if(started)saveGame();});
 
 function boot(){
-  buildSprites();sprURL=SPRITES.map(s=>s[0].toDataURL());loadMeta();
+  buildSprites();sprURL=SPRITES.map(s=>s[0][0].toDataURL());loadMeta();
   const has=!!localStorage.getItem(SAVE_KEY);
   const sb=$('startBtns');
   sb.innerHTML=(has?'<button class="btn big gold" id="bCont">▶ 继续游戏</button><br>':'')+'<button class="btn big" id="bNew">'+(has?'✦ 新的生态圈':'▶ 开始游戏')+'</button>';
