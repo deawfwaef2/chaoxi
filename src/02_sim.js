@@ -2,14 +2,14 @@
 const rnd = Math.random;
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-/* ---------- 能量粒子 SoA：pr = 凝结度 0..255（255 才能被吃） ---------- */
+/* ---------- 光粒子 SoA：pr = 凝结度 0..255（255 才能被吃） ---------- */
 const px = new Float32Array(MAXP), py = new Float32Array(MAXP), pvx = new Float32Array(MAXP), pvy = new Float32Array(MAXP);
 const pr = new Uint8Array(MAXP), pv = new Uint16Array(MAXP);
 let pN = 0;
 // 空间网格按“是否已凝结”分两个桶：桶 1 = 可吃
 const pStart = new Int32Array(2 * SNC + 1), pItems = new Int32Array(MAXP), pCur = new Int32Array(2 * SNC), pKey = new Int32Array(MAXP);
 
-/* ---------- 生物 SoA ---------- */
+/* ---------- 小怪 SoA ---------- */
 const cx = new Float32Array(MAXC), cy = new Float32Array(MAXC), cvx = new Float32Array(MAXC), cvy = new Float32Array(MAXC);
 const cpx = new Float32Array(MAXC), cpy = new Float32Array(MAXC);
 const ce = new Int32Array(MAXC), csp = new Uint8Array(MAXC), cage = new Float32Array(MAXC), cmeta = new Float32Array(MAXC);
@@ -19,10 +19,10 @@ const cph = new Float32Array(MAXC), ctim = new Float32Array(MAXC), cwire = new F
 const chop = new Float32Array(MAXC), cdead = new Uint8Array(MAXC), cgen = new Uint16Array(MAXC), cmood = new Float32Array(MAXC);
 const cg = new Float32Array(MAXC), ckin = new Uint8Array(MAXC), cfc = new Float32Array(MAXC), cang = new Float32Array(MAXC), cmt = new Float32Array(MAXC);
 const cflag = new Uint8Array(MAXC), cdr = new Float32Array(MAXC); // cflag bit0 = 已涅槃；cdr = 汲取/祝福计时
-/* ---------- 光灵（环境中的白色能量球）SoA ---------- */
+/* ---------- 流光（环境中的白色光球）SoA ---------- */
 const wx = new Float32Array(MAXW), wy = new Float32Array(MAXW), wvx = new Float32Array(MAXW), wvy = new Float32Array(MAXW), wval = new Uint8Array(MAXW), wage = new Float32Array(MAXW), wph = new Float32Array(MAXW), wtg = new Int16Array(MAXW);
 let wN = 0;
-/* ---------- 物质结晶 SoA ---------- */
+/* ---------- 魂晶 SoA ---------- */
 const mx = new Float32Array(MAXM), my = new Float32Array(MAXM), mvx = new Float32Array(MAXM), mvy = new Float32Array(MAXM), mval = new Uint16Array(MAXM), mage = new Float32Array(MAXM);
 let mN = 0;
 let cN = 0;
@@ -61,7 +61,7 @@ function unstick(x, y) {
 }
 function dist2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
 
-/* ===================== 世界生成 ===================== */
+/* ===================== 夜晚生成 ===================== */
 function genWorld(seed) {
   G.seed = seed; const R = mulberry32(seed);
   for (let gy = 0; gy < GN; gy++) for (let gx = 0; gx < GN; gx++) {
@@ -71,8 +71,8 @@ function genWorld(seed) {
     else if (d < START_R + wob) { whp[i] = 0; wMax[i] = 0; wE[i] = 0; }
     else { const h = wallHP(d) * (0.85 + R() * 0.3); whp[i] = h; wMax[i] = h; wE[i] = wallE(d); }
   }
-  for (let i = 0; i < GN * GN; i++) wE[i] = 0; // v0.5：墙里没有能量（能量不可再生）
-  // 特殊地点：藏在黑墙里的遗迹 / 能量洞（彼此保持距离）
+  for (let i = 0; i < GN * GN; i++) wE[i] = 0; // v0.5：墙里没有光（光不可再生）
+  // 特殊地点：藏在黑墙里的遗迹 / 光洞（彼此保持距离）
   const pois = [], plan = [['cave', 11, 800, 3800], ['crystal', 6, 700, 2400], ['pod', 5, 800, 2600], ['reactor', 4, 1000, 3200], ['relay', 4, 900, 3000], ['obelisk', 3, 1500, 3700]];
   for (const [key, n, d0, d1] of plan) for (let k = 0; k < n; k++) {
     for (let tries = 0; tries < 40; tries++) {
@@ -95,7 +95,7 @@ function genWorld(seed) {
   seen.fill(0); revealFlood(gIdx(0, 0));
   G.total0 = ledger().total; computeOpen();
 }
-/* ---------- 迷雾：只看得见与中心连通的区域 + 白球附近 ---------- */
+/* ---------- 迷雾：只看得见与中心连通的区域 + 小灯附近 ---------- */
 function markSeen(i) { if (!seen[i]) { seen[i] = 1; SEEN_DIRTY.push(i); const x = (i % GN + 0.5) * CELL - HALF, y = ((i / GN | 0) + 0.5) * CELL - HALF, d = Math.hypot(x, y); if (d > G.expR && whp[i] <= 0) G.expR = d; } }
 const SEEN_DIRTY = [];
 function revealFlood(i0) {
@@ -134,7 +134,7 @@ function addP(x, y, v, vx, vy, ripe) {
   while (v > 60000) { addP(x, y, 60000, vx, vy, ripe); v -= 60000; }
   px[pN] = x; py[pN] = y; pvx[pN] = vx; pvy[pN] = vy; pr[pN] = ripe || 0; pv[pN] = v; pN++;
 }
-// 把 e 点能量溅射成若干未凝结粒子
+// 把 e 点光溅射成若干未凝结粒子
 function burst(x, y, e, spread) {
   if (e <= 0) return;
   const n = Math.min(12, e), base = Math.floor(e / n); let rem = e - base * n;
@@ -150,7 +150,7 @@ function buildPGrid() {
 function cellDensity(c) { return pStart[c + 1] - pStart[c] + pStart[SNC + c + 1] - pStart[SNC + c]; }
 function compactP() { let j = 0; for (let i = 0; i < pN; i++) { if (pv[i] > 0) { if (i !== j) { px[j] = px[i]; py[j] = py[i]; pvx[j] = pvx[i]; pvy[j] = pvy[i]; pr[j] = pr[i]; pv[j] = pv[i]; } j++; } } pN = j; }
 
-// 环形搜索最近的【已凝结】能量
+// 环形搜索最近的【已凝结】光
 function findP(x, y, R, rmin, rmax) {
   const b0 = rmin < 255 ? 0 : 1, b1 = rmax < 255 ? 0 : 1;
   const gx0 = ((x + HALF) / SC) | 0, gy0 = ((y + HALF) / SC) | 0; const rings = Math.min(6, Math.ceil(R / SC));
@@ -195,7 +195,7 @@ function buildCGrid() {
   for (let i = 0; i < cN; i++) cItems[cCur[cKey[i]]++] = i;
 }
 
-/* ===================== 生物属性（基因影响） ===================== */
+/* ===================== 小怪属性（基因影响） ===================== */
 function capE(i) { const g = cg[i]; return Math.max(3, (S_maxE[csp[i]] * g * g + 0.5) | 0); }
 function repEi(i) { const g = cg[i]; return SPECIES[csp[i]].repE * g * g; }
 function radius(i) { return S_r[csp[i]] * cg[i]; }
@@ -217,14 +217,14 @@ let CAN_FX = true;
 function inR(list, x, y, R) { for (const d of list) if (dist2(x, y, d.x, d.y) < R * R) return true; return false; }
 function special(i, s, r) {
   const sp = SPECIES[s];
-  if (sp.drain) { // 汲取：贴近其他物种，慢慢吸走能量
+  if (sp.drain) { // 汲取：贴近其他物种，慢慢吸走光
     const cap = capE(i); if (ce[i] >= cap - 1) return;
     const j = findC(cx[i], cy[i], r + 30, ~(1 << s), i, null); if (j < 0) { if (cst[i] === ST_WANDER && rnd() < 0.5) { const k = findC(cx[i], cy[i], 200, ~(1 << s), i, null); if (k >= 0) { ctx_[i] = cx[k]; cty[i] = cy[k]; } } return; }
     if (G.sancts.length && inSanct(cx[j], cy[j])) return;
     const take = Math.min(ce[j], 2, cap - ce[i]); ce[j] -= take; ce[i] += take; ctx_[i] = cx[j]; cty[i] = cy[j];
     if (CAN_FX && rnd() < 0.5) emit('drain', cx[j], cy[j], cx[i], cy[i]);
     if (ce[j] <= 0) { killC(j, false); G.deaths++; emit('death', cx[j], cy[j], csp[j]); }
-  } else { // 祝福：身边生物衰老减半
+  } else { // 祝福：身边小怪衰老减半
     countInR(cx[i], cy[i], 90, j => { if (cstas[j] < 0.6) cstas[j] = 0.6; });
   }
 }
@@ -354,7 +354,7 @@ function think(i) {
       if (j >= 0) { cst[i] = ST_HUNT; ctg[i] = j; ctgId[i] = cid[j]; ctim[i] = 7; return; }
     }
   }
-  // 5. 吃能量（食能 / 杂食）
+  // 5. 吃光（食能 / 杂食）
   if (S_eats[s] && e < cap - 1) {
     const j = findP(x, y, sense, S_ripeMin[s], S_ripeMax[s]);
     if (j >= 0) {
@@ -395,7 +395,7 @@ function eatNear(i, R) {
   return ate;
 }
 
-/* ---------- 战斗（守恒：受伤掉的能量洒回地图） ---------- */
+/* ---------- 战斗（守恒：受伤掉的光洒回地图） ---------- */
 function hurt(i, frac) {
   const dmg = Math.min(ce[i], Math.max(1, Math.ceil(capE(i) * frac)));
   ce[i] -= dmg; burst(cx[i], cy[i], dmg, 40);
@@ -434,12 +434,12 @@ function fight(a, d, lethal) {
 const S_crowd = new Float32Array(NS).fill(1);
 // 种内竞争（同种之间争夺空间/配偶，比种间竞争更强 → 多物种共存）。容量随开拓面积增长 → 探索黑墙有意义
 function inRate() { return Math.max(tankRegen(G.lv), G.inRate || 0); }
-// 能量金字塔：捕食者只能拿到下一级能量的一小部分 → 容量约为食能者的 30%
+// 光金字塔：捕食者只能拿到下一级光的一小部分 → 容量约为食能者的 30%
 function nicheK(s) { return Math.max(3, (S_diet[s] === D_E ? 0.35 : 0.11) * inRate() / (S_meta[s] * META_MUL)) * Math.sqrt(G.kMul || 1); }
 const META_MUL = 0.7;
 const S_K = new Float32Array(NS);
 function updateCrowd() { for (let s = 0; s < NS; s++) { const K = S_K[s] = nicheK(s); S_crowd[s] = 1 + 0.5 * G.spCount[s] / K; } }
-// 密度依赖的繁殖：接近容量时繁殖意愿下降，超过就不繁殖（给其他物种留能量）
+// 密度依赖的繁殖：接近容量时繁殖意愿下降，超过就不繁殖（给其他物种留光）
 function breedRoom(s) { const q = G.spCount[s] / S_K[s]; return q < 0.6 || rnd() < (1 - q) / 0.4; }
 function stepC(dt) {
   updateCrowd();
@@ -453,13 +453,13 @@ function stepC(dt) {
     cage[i] += dt * ageMul;
     const life = S_life[s];
     if (cage[i] > life) { killC(i, true, true); G.oldDeaths++; emit('death', cx[i], cy[i], s); continue; }
-    // 代谢：能量以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
+    // 代谢：光以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
     cmeta[i] += S_meta[s] * META_MUL * g * Math.sqrt(g) * dt * metaMul * (1 + 0.1 * ckin[i]) * S_crowd[s]; // 同类拥挤 + 生态位饱和 → 代谢升高
     if (cmeta[i] >= 1) {
       let k = Math.floor(cmeta[i]); if (k > ce[i]) k = ce[i]; cmeta[i] -= Math.floor(cmeta[i]);
-      if (k > 0) { ce[i] -= k; G.flow.burn += k; G.flowWin.burn += k; } // v0.5：代谢让能量消失（不可再生）
+      if (k > 0) { ce[i] -= k; G.flow.burn += k; G.flowWin.burn += k; } // v0.5：代谢让光消失（不可再生）
     }
-    // 代谢物 → 物质结晶（吃饱的成年个体才会产出；高级生物产量高得多）
+    // 代谢物 → 魂晶（吃饱的成年个体才会产出；高级小怪产量高得多）
     cmt[i] -= dt;
     if (cmt[i] <= 0) { cmt[i] = sp.matT * (0.8 + rnd() * 0.4); if (cage[i] >= sp.mature && ce[i] > capE(i) * 0.4) dropMatter(cx[i], cy[i] + r * 0.5, sp.mat * (WOOL[s] && ckin[i] >= 2 ? 2 : 1)); }
     if (SPECIAL[s]) { cdr[i] -= dt; if (cdr[i] <= 0) { cdr[i] = 0.5; special(i, s, r); if (cdead[i]) continue; } }
@@ -512,7 +512,7 @@ function stepC(dt) {
       const dvx = (dx + wx) * spd * arrive, dvy = (dy + wy) * spd * arrive;
       const k = Math.min(1, 3.5 * dt); cvx[i] += (dvx - cvx[i]) * k; cvy[i] += (dvy - cvy[i]) * k;
     }
-    // 白球推挤
+    // 小灯推挤
     const ox = cx[i] - orb.x, oy = cy[i] - orb.y, od2 = ox * ox + oy * oy, orr = r + 16;
     if (od2 < orr * orr && od2 > 0.01 && !orb.dead) { const od = Math.sqrt(od2); cvx[i] += ox / od * 140; cvy[i] += oy / od * 140; }
     cpx[i] = cx[i]; cpy[i] = cy[i];
@@ -572,7 +572,7 @@ function stepP(dt) {
   }
 }
 
-/* ===================== 墙体与白球 ===================== */
+/* ===================== 墙体与小灯 ===================== */
 function breakCell(i) {
   if (whp[i] <= 0 || whp[i] === Infinity) return;
   whp[i] = 0; const gx = i % GN, gy = (i / GN) | 0, x = (gx + 0.5) * CELL - HALF, y = (gy + 0.5) * CELL - HALF;
@@ -601,7 +601,7 @@ function stepOrb(dt) {
     if (d2 < (R + 4) * (R + 4) && whp[i] !== Infinity && (o.ix || o.iy)) { whp[i] -= dps * dt; touching++; if (whp[i] <= 0) breakCell(i); else if ((G.frame & 3) === 0) WALL_DIRTY.push(i); }
     if (whp[i] > 0 && d2 < R * R) { const d = Math.sqrt(d2) || 0.01; const push = R - d; if (d2 > 1e-6) { nx += dx / d * push; ny += dy / d * push; } else { nx -= o.vx * dt; ny -= o.vy * dt; } }
   }
-  // 能量槽：按住喷洒 / 松开回充
+  // 光槽：按住喷洒 / 松开回充
   const TM = tankMax(G.lv);
   if (o.spray && o.tank >= 1) {
     o.sprAcc += SPRAY_RATE * dt; let n = Math.min(Math.floor(o.sprAcc), Math.floor(o.tank)); o.sprAcc -= Math.floor(o.sprAcc);
@@ -625,7 +625,7 @@ function teleportOrb(tx, ty) {
   o.x = lx; o.y = ly; o.vx = dx / d * 60; o.vy = dy / d * 60; emit('tp', x, y); return true;
 }
 
-/* ===================== 光灵：环境中的白色能量球（v0.6 唯一的“天然”能量来源） ===================== */
+/* ===================== 流光：环境中的白色光球（v0.6 唯一的“天然”光来源） ===================== */
 function addW(x, y, v) { if (wN >= MAXW) return -1; const k = wN++; wx[k] = x; wy[k] = y; const a = rnd() * 6.2832; wvx[k] = Math.cos(a) * 8; wvy[k] = Math.sin(a) * 8; wval[k] = v; wage[k] = 0; wph[k] = rnd() * 6.28; wtg[k] = -1; return k; }
 function wispTarget() { return Math.min(260, 26 + G.open / 140); }
 function spawnWisp() {
@@ -634,15 +634,15 @@ function spawnWisp() {
     const a = rnd() * 6.2832, d = Math.sqrt(rnd()) * R, x = Math.cos(a) * d, y = Math.sin(a) * d, i = gIdx(x, y);
     if (i < 0 || !seen[i] || whp[i] > 0 || d < 110) continue;
     if (isWall(x + 14, y) || isWall(x - 14, y) || isWall(x, y + 14) || isWall(x, y - 14)) continue;
-    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
+    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的流光越亮（光越多）
   }
   return false;
 }
 function stepW(dt) {
-  // 生成：已探索区域越大，光灵越多
+  // 生成：已探索区域越大，流光越多
   G.wAcc += dt * (0.6 + G.open / 8000);
   while (G.wAcc >= 1) { G.wAcc -= 1; if (wN < wispTarget()) spawnWisp(); }
-  // 星光汇聚塔：在周围降下光灵
+  // 人造月亮：在周围降下流光
   if (G.lv >= 1) for (const d of G.suns) { d.acc2 = (d.acc2 || 0) + dt / 1.5; while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 40 + rnd() * 160, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r; if (!isWall(x, y)) { const k = addW(x, y, 5); if (k >= 0) emit('wdrop', x, y); } } }
   const o = G.orb, TM = tankMax(G.lv), canAbs = !o.dead && !G.offline && o.tank < TM - 0.5, cat = G.lv >= 1 ? G.catchers : [];
   let got = 0;
@@ -667,11 +667,11 @@ function stepW(dt) {
   if (!wval[0] || (G.frame & 15) === 0) { let j = 0; for (let k = 0; k < wN; k++) if (wval[k]) { if (k !== j) { wx[j] = wx[k]; wy[j] = wy[k]; wvx[j] = wvx[k]; wvy[j] = wvy[k]; wval[j] = wval[k]; wage[j] = wage[k]; wph[j] = wph[k]; } j++; } wN = j; }
   return got;
 }
-/* ===================== 科研（研究速度由潮汐驱动） ===================== */
+/* ===================== 调查（调查速度由光域驱动） ===================== */
 function resKey(kind, idx) { return kind === 's' ? SPECIES[idx].key : 'd' + DEVICES[idx].key; }
 function resItem(key) { if (key[0] === 'd' && DV_IDX[key.slice(1)] !== undefined) { const d = DEVICES[DV_IDX[key.slice(1)]]; return { kind: 'd', idx: d.id, def: d, tier: d.tier, cost: RES_COST[d.tier] || 0 }; } const i = SP_IDX[key]; if (i === undefined) return null; const sp = SPECIES[i]; return { kind: 's', idx: i, def: sp, tier: sp.tier, cost: RES_COST[sp.tier] || 0 }; }
-function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要潮汐 Lv' + resGate(it.tier); return ''; }
-/* v0.7 极简：科研全自动，按固定顺序解锁（每阶 生物/建筑 交替） */
+function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要光域 Lv' + resGate(it.tier); return ''; }
+/* v0.7 极简：调查全自动，按固定顺序解锁（每阶 小怪/建筑 交替） */
 let RES_ORDER = null;
 function resOrder() {
   if (RES_ORDER) return RES_ORDER; RES_ORDER = [];
@@ -679,7 +679,7 @@ function resOrder() {
   return RES_ORDER;
 }
 function nextRes() { for (const k of resOrder()) if (!G.unlocked.includes(k)) return k; return ''; }
-function researchRate() { // 每秒研究点数（基础 0.15 + 科研设施）
+function researchRate() { // 每秒调查点数（基础 0.15 + 调查设施）
   let base = 0.15; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
   return base * (1 + Math.max(0, G.lastScore) / WINDOW);
 }
@@ -722,7 +722,7 @@ function stepPOIs(dt) {
   }
 }
 function poiBonusCap() { let n = 0; for (const q of G.pois) if (q.on && POI[q.type].key === 'obelisk') n += 2; return n; }
-/* ===================== 物质结晶 ===================== */
+/* ===================== 魂晶 ===================== */
 function dropMatter(x, y, v) {
   if (v <= 0) return;
   if (mN >= MAXM) { const j = (rnd() * mN) | 0; mval[j] = Math.min(60000, mval[j] + v); return; }
@@ -738,7 +738,7 @@ function stepM(dt) {
     if (!mval[j]) continue;
     mage[j] += dt; if (mage[j] > MAT_LIFE) { mval[j] = 0; continue; }
     let vx = mvx[j], vy = mvy[j];
-    // 白球吸取
+    // 小灯吸取
     if (!o.dead && !G.offline) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
     if (car.length) { let hit = -1; for (const i of car) { const dx = cx[i] - mx[j], dy = cy[i] - my[j]; if (dx * dx + dy * dy < 26 * 26) { hit = i; break; } } if (hit >= 0) { const v = collectM(j); if (CAN_FX) emit('carry', cx[hit], cy[hit], v); continue; } }
     for (const c of cols) { const dx = c.x - mx[j], dy = c.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 18 * 18) { collectM(j); c.n = (c.n || 0) + 1; break; } if (d2 < 210 * 210) { const d = Math.sqrt(d2); vx += dx / d * 260 * dt; vy += dy / d * 260 * dt; } }
@@ -757,7 +757,7 @@ function recomputePower() {
   const pylons = G.devs.filter(d => DEVICES[d.type].pf);
   for (const p of pylons) { p.conn = false; p.fr = DEVICES[p.type].pf; }
   const q = [];
-  // 远古中继塔：找到后也算一个导能节点（能量场半径 320）
+  // 远古中继塔：找到后也算一个导能节点（灯光范围半径 320）
   for (const r of G.pois) if (POI[r.type].key === 'relay') { r.conn = false; r.bt = r.found ? 0 : 1; r.fr = 320; if (r.found) pylons.push(r); }
   const fr = p => p.fr || PYLON_FIELD;
   for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD + (p.fr > PYLON_FIELD ? p.fr - PYLON_FIELD : 0)) { p.conn = true; q.push(p); }
@@ -784,12 +784,12 @@ function capUsed() { let s = 0; for (const d of G.devs) s += DEVICES[d.type].cos
 function devUnlocked(type) { return DEVICES[type].tier === 0 || G.unlocked.includes('d' + DEVICES[type].key); }
 function canPlace(type, x, y) {
   const def = DEVICES[type];
-  if (!devUnlocked(type)) return '需要先在科研站研究';
-  if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升潮汐等级可增加）';
-  if (G.matter < def.mc) return '物质不足（需要 ' + def.mc + '）';
-  if (x * x + y * y < 80 * 80) return '离方塔太近';
+  if (!devUnlocked(type)) return '需要先在调查站调查';
+  if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升光域等级可增加）';
+  if (G.matter < def.mc) return '魂晶不足（需要 ' + def.mc + '）';
+  if (x * x + y * y < 80 * 80) return '离长明灯太近';
   for (const q of G.pois) if (dist2(q.x, q.y, x, y) < 50 * 50) return '离遗迹太近';
-  if (!inField(x, y, null)) return '必须建在能量场内（先铺设导能塔）';
+  if (!inField(x, y, null)) return '必须建在灯光范围内（先铺设路灯）';
   if (isWall(x, y)) return '这里被黑墙挡住了';
   for (let a = 0; a < 6.28; a += 1.05) if (isWall(x + Math.cos(a) * 14, y + Math.sin(a) * 14)) return '这里被黑墙挡住了';
   for (const d of G.devs) if (dist2(d.x, d.y, x, y) < 40 * 40) return '离其他装置太近';
@@ -832,7 +832,7 @@ function stepDevs(dt) {
   for (const d of G.devs) if (d.bt > 0) { d.bt -= dt; if (d.bt <= 0) { d.bt = 0; emit('built', d.x, d.y, d.type); dirty = true; } }
   if (dirty) recomputePower();
   stepResearch(dt);
-  if (G.lv < 1) return; // 潮汐归零：所有装置停机（遗迹）
+  if (G.lv < 1) return; // 光域归零：所有装置停机（遗迹）
   for (const d of G.devs) {
     if (!devActive(d)) continue;
     const def = DEVICES[d.type], key = def.key; d.tt += dt;
@@ -869,7 +869,7 @@ function chronBonus() {
   return Math.max(0, 14 * (1 - (mx - mn) / mx / 0.2));
 }
 
-/* ===================== 潮汐结算（多样性 × 营养级） ===================== */
+/* ===================== 光域结算（多样性 × 营养级） ===================== */
 function trophic() {
   let e = 0, m = 0, a = 0;
   for (let s = 0; s < NS; s++) if (G.spCount[s] > 0) { if (S_apex[s]) a = 1; else if (S_diet[s] !== D_E) m = 1; else e = 1; }
@@ -898,12 +898,12 @@ function settle() {
   emit('settle', score, G.lv, prevLv);
   if (G.lv >= MAXLV && !G.won) { G.won = true; emit('win'); }
 }
-function unlockUpTo() { // v0.6：只有 tier 0 自带，其它全部靠科研
+function unlockUpTo() { // v0.6：只有 tier 0 自带，其它全部靠调查
   for (const s of SPECIES) if (s.tier === 0 && !G.unlocked.includes(s.key)) G.unlocked.push(s.key);
   for (const d of DEVICES) if (d.tier === 0 && !G.unlocked.includes('d' + d.key)) G.unlocked.push('d' + d.key);
 }
 
-/* ===================== 召唤（消耗方塔/孵化巢附近的能量，守恒） ===================== */
+/* ===================== 召唤（消耗长明灯/孵化巢附近的光，守恒） ===================== */
 function gatherLight(x, y, R, need, dry) {
   let got = 0; const list = [];
   for (let b = 1; b >= 0; b--) forPInR(x, y, R, b, j => { if (!dry && got >= need) return; got += pv[j]; list.push(j); });
@@ -914,12 +914,12 @@ function gatherLight(x, y, R, need, dry) {
 function summonErr(s) {
   const sp = SPECIES[s];
   if (!G.unlocked.includes(sp.key)) return '尚未解锁';
-  if (cN >= MAXC) return '生物数量已达上限';
-  if (G.orb.tank < sp.cost) return '白球能量不足（需要 ' + sp.cost + '）';
-  if (G.matter < sp.mcost) return '物质不足（需要 ' + sp.mcost + '）';
+  if (cN >= MAXC) return '小怪数量已达上限';
+  if (G.orb.tank < sp.cost) return '小灯光不足（需要 ' + sp.cost + '）';
+  if (G.matter < sp.mcost) return '魂晶不足（需要 ' + sp.mcost + '）';
   return '';
 }
-// 召唤：白球能量槽里的能量凝聚成生物（+ 高级生物需要物质）
+// 召唤：小灯光槽里的光凝聚成小怪（+ 高级小怪需要魂晶）
 function summon(s, at) {
   const sp = SPECIES[s], err = summonErr(s); if (err) return err;
   const x0 = at ? at.x : 0, y0 = at ? at.y : 0;
@@ -931,7 +931,7 @@ function summon(s, at) {
   return '';
 }
 
-/* ===================== 能量账本 ===================== */
+/* ===================== 光账本 ===================== */
 function ledger() {
   let ripe = 0, raw = 0, c = 0;
   for (let i = 0; i < pN; i++) { if (pr[i] === 255) ripe += pv[i]; else raw += pv[i]; }

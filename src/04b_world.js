@@ -1,7 +1,7 @@
 /* ===================== 世界细节 v0.5：异星植被 / 物质结晶 / 遗迹 / 信号 / 环境光 ===================== */
 let PROPS = null, MATSPR = null, SIGSPR = null;
-const PROP_GLOW = [1, 1, 1, 1, 1, 0, 0, 1, 1, 0]; // 哪些植被会发光
-const PROP_GCOL = ['#7ff4ff', '#c79bff', '#6fffd8', '#ff9fd8', '#b8ff8a', '', '', '#7fd8ff', '#ff9fb8', ''];
+const PROP_GLOW = [0, 1, 1, 1, 0, 0, 0, 1, 0, 1]; // 哪些植被会发光
+const PROP_GCOL = ['#ffb347', '#ffb347', '#b8ff6a', '#c07aff', '#8a5aff', '#8a5aff', '#8a5aff', '#ff7a3a', '#8a5aff', '#ff3a4a'];
 function hash2(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 function propCanvas(fn) { const S = 96, c = mkC(S), g = c.getContext('2d'); g.translate(S / 2, S * 0.78); fn(g); return c; }
 function shard(g, x, y, w, h, a, c1, c2) {
@@ -15,56 +15,67 @@ function shard(g, x, y, w, h, a, c1, c2) {
 function buildProps() {
   if (PROPS) return;
   const P = [];
-  const crystal = (c1, c2) => propCanvas(g => { g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 26, 7, 0, 0, 7); g.fill(); shard(g, -14, 0, 7, 26, -0.35, c1, c2); shard(g, 12, 0, 6, 22, 0.4, c1, c2); shard(g, 0, 2, 9, 42, 0.02, c1, c2); shard(g, 5, 2, 4, 14, 0.9, c1, c2); });
-  P.push(crystal('#e6ffff', '#2bb8e8'));
-  P.push(crystal('#f6e8ff', '#7a4ad8'));
-  const mush = (cap, stem) => propCanvas(g => {
-    g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(0, 0, 24, 6, 0, 0, 7); g.fill();
-    for (const [x, h, r] of [[-11, 20, 11], [9, 30, 14], [20, 12, 7]]) {
-      g.fillStyle = stem; g.beginPath(); g.moveTo(x - 3, 0); g.quadraticCurveTo(x - 2, -h * 0.6, x - 2, -h); g.lineTo(x + 2, -h); g.quadraticCurveTo(x + 2, -h * 0.6, x + 3, 0); g.fill();
-      const gr = g.createRadialGradient(x - r * 0.3, -h - r * 0.4, 1, x, -h, r * 1.2); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.35, cap); gr.addColorStop(1, 'rgba(0,0,0,0.2)');
+  const sh = (g, w) => { g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(0, 0, w, w * 0.26, 0, 0, 7); g.fill(); };
+  P.push(propCanvas(g => { // 0 小墓碑（歪的）
+    sh(g, 22); g.rotate(-0.12); const gr = g.createLinearGradient(-12, -34, 12, 0); gr.addColorStop(0, '#8a8698'); gr.addColorStop(1, '#3a3746'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(-13, 0); g.lineTo(-13, -22); g.arc(0, -22, 13, Math.PI, 0); g.lineTo(13, 0); g.closePath(); g.fill(); g.strokeStyle = '#25222e'; g.lineWidth = 2; g.stroke();
+    g.strokeStyle = '#2a2733'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(0, -30); g.lineTo(0, -14); g.moveTo(-6, -24); g.lineTo(6, -24); g.stroke();
+    g.fillStyle = '#4f8a5a'; g.beginPath(); g.ellipse(-8, -1, 9, 3.5, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,0.15)'; g.fillRect(-10, -30, 3, 24);
+  }));
+  P.push(propCanvas(g => { // 1 蜡烛丛
+    sh(g, 20); for (const [x, h, w] of [[-10, 16, 5], [2, 26, 6], [12, 11, 4.5]]) {
+      g.fillStyle = '#efe6d2'; g.fillRect(x - w / 2, -h, w, h); g.fillStyle = '#d6cbb2'; g.fillRect(x + w / 2 - 1.6, -h, 1.6, h); g.fillStyle = '#fff8e6'; g.beginPath(); g.ellipse(x, -h, w / 2, 1.4, 0, 0, 7); g.fill();
+      g.fillStyle = '#efe6d2'; g.beginPath(); g.ellipse(x + 1, -h + 5, 1.2, 3, 0, 0, 7); g.fill();
+      const fg = g.createRadialGradient(x, -h - 5, 0, x, -h - 5, 6); fg.addColorStop(0, '#fffbe0'); fg.addColorStop(0.5, '#ffc04a'); fg.addColorStop(1, 'rgba(255,120,40,0)'); g.fillStyle = fg; g.beginPath(); g.ellipse(x, -h - 5, 3, 6, 0, 0, 7); g.fill(); }
+  }));
+  P.push(propCanvas(g => { // 2 眼球花
+    sh(g, 18); g.lineCap = 'round'; for (const [x, h, r, a] of [[-8, 26, 6, -0.2], [7, 18, 5, 0.25], [14, 30, 4, 0.1]]) {
+      g.strokeStyle = '#3f7a4a'; g.lineWidth = 2.2; g.beginPath(); g.moveTo(x * 0.3, 0); g.quadraticCurveTo(x, -h * 0.5, x + a * 10, -h); g.stroke();
+      const ex = x + a * 10, ey = -h; g.fillStyle = '#6a3a5a'; for (let q = 0; q < 6; q++) { const aa = q * 1.047; g.beginPath(); g.ellipse(ex + Math.cos(aa) * r * 0.9, ey + Math.sin(aa) * r * 0.9, r * 0.55, r * 0.35, aa, 0, 7); g.fill(); }
+      g.fillStyle = '#f4f0e8'; g.beginPath(); g.arc(ex, ey, r * 0.72, 0, 7); g.fill(); g.fillStyle = '#9dff5a'; g.beginPath(); g.arc(ex + a * 3, ey, r * 0.38, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(ex + a * 3, ey, r * 0.18, 0, 7); g.fill(); }
+  }));
+  P.push(propCanvas(g => { // 3 毒蘑菇（紫）
+    sh(g, 22); for (const [x, h, r] of [[-10, 18, 10], [8, 28, 13], [19, 10, 6]]) {
+      g.fillStyle = '#e8dcc8'; g.beginPath(); g.moveTo(x - 3, 0); g.quadraticCurveTo(x - 2, -h * 0.6, x - 2, -h); g.lineTo(x + 2, -h); g.quadraticCurveTo(x + 2, -h * 0.6, x + 3, 0); g.fill();
+      const gr = g.createRadialGradient(x - r * 0.3, -h - r * 0.4, 1, x, -h, r * 1.2); gr.addColorStop(0, '#f2d8ff'); gr.addColorStop(0.4, '#a45ad8'); gr.addColorStop(1, '#3a1a5a');
       g.fillStyle = gr; g.beginPath(); g.ellipse(x, -h, r, r * 0.62, 0, Math.PI, 0); g.quadraticCurveTo(x, -h + r * 0.25, x - r, -h); g.fill();
-      g.fillStyle = 'rgba(255,255,255,0.8)'; for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(x - r * 0.4 + k * r * 0.4, -h - r * 0.3 + (k % 2) * 2, r * 0.1, 0, 7); g.fill(); }
-    }
-  });
-  P.push(mush('#5ff0d0', '#d8fff4'));
-  P.push(mush('#ff8fcf', '#fff0f8'));
-  P.push(propCanvas(g => { // 卷曲蕨类 + 发光芽尖
-    g.lineCap = 'round';
-    for (let k = 0; k < 6; k++) { const a = -1.2 + k * 0.48, L = 22 + (k % 3) * 8; g.strokeStyle = k % 2 ? '#3fa87a' : '#57c98f'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); const ex = Math.sin(a) * L, ey = -Math.cos(a) * L; g.quadraticCurveTo(ex * 0.3, ey * 0.7, ex, ey); g.stroke();
-      g.fillStyle = '#d9ff9a'; g.beginPath(); g.arc(ex, ey, 3.2, 0, 7); g.fill(); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(ex - 1, ey - 1, 1.2, 0, 7); g.fill(); }
+      g.fillStyle = '#e6ff9a'; for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(x - r * 0.45 + k * r * 0.45, -h - r * 0.28 + (k % 2) * 2, r * 0.11, 0, 7); g.fill(); } }
   }));
-  P.push(propCanvas(g => { // 圆石 + 苔藓
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 28, 7, 0, 0, 7); g.fill();
-    const gr = g.createLinearGradient(-20, -30, 20, 0); gr.addColorStop(0, '#5a6a8a'); gr.addColorStop(1, '#1e2438'); g.fillStyle = gr;
+  P.push(propCanvas(g => { // 4 枯枝
+    g.lineCap = 'round'; g.strokeStyle = '#3a2e2a'; const br = (x, y, a, L, w, d) => { if (d > 3) return; const ex = x + Math.sin(a) * L, ey = y - Math.cos(a) * L; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(ex, ey); g.stroke(); br(ex, ey, a - 0.5, L * 0.68, w * 0.65, d + 1); br(ex, ey, a + 0.45, L * 0.62, w * 0.6, d + 1); };
+    br(0, 0, 0.1, 16, 4, 0);
+  }));
+  P.push(propCanvas(g => { // 5 圆石
+    sh(g, 28); const gr = g.createLinearGradient(-20, -30, 20, 0); gr.addColorStop(0, '#5e5866'); gr.addColorStop(1, '#221e28'); g.fillStyle = gr;
     g.beginPath(); g.moveTo(-24, 0); g.bezierCurveTo(-28, -18, -10, -32, 6, -28); g.bezierCurveTo(22, -26, 28, -10, 24, 0); g.closePath(); g.fill();
-    g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.ellipse(-6, -22, 10, 4, -0.3, 0, 7); g.fill();
-    g.fillStyle = '#4fbf8a'; g.beginPath(); g.moveTo(-24, -2); g.bezierCurveTo(-18, -12, -4, -8, 4, -4); g.bezierCurveTo(-2, 0, -14, 0, -24, -2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.12)'; g.beginPath(); g.ellipse(-6, -22, 10, 4, -0.3, 0, 7); g.fill(); g.fillStyle = '#3f6a48'; g.beginPath(); g.moveTo(-24, -2); g.bezierCurveTo(-18, -12, -4, -8, 4, -4); g.bezierCurveTo(-2, 0, -14, 0, -24, -2); g.fill();
   }));
-  P.push(propCanvas(g => { // 卵石
-    for (const [x, y, r, c] of [[-14, -3, 6, '#3a4666'], [2, -2, 8, '#46557a'], [15, -4, 5, '#2e3854'], [-3, -9, 4, '#52628a']]) { g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(x, y + r * 0.6, r * 1.1, r * 0.35, 0, 0, 7); g.fill(); g.fillStyle = c; g.beginPath(); g.ellipse(x, y, r, r * 0.75, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,0.2)'; g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.3, r * 0.4, r * 0.2, 0, 0, 7); g.fill(); }
+  P.push(propCanvas(g => { // 6 卵石 + 小骨头
+    for (const [x, y, r, c] of [[-14, -3, 6, '#46404e'], [2, -2, 8, '#524b5a'], [15, -4, 5, '#38333f']]) { g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(x, y + r * 0.6, r * 1.1, r * 0.4, 0, 0, 7); g.fill(); g.fillStyle = c; g.beginPath(); g.ellipse(x, y, r, r * 0.7, 0, 0, 7); g.fill(); }
+    g.fillStyle = '#e8e0cc'; g.save(); g.translate(-2, -12); g.rotate(0.4); g.fillRect(-7, -1.3, 14, 2.6); for (const s of [-1, 1]) { g.beginPath(); g.arc(s * 7, -1.4, 1.8, 0, 7); g.arc(s * 7, 1.4, 1.8, 0, 7); g.fill(); } g.restore();
   }));
-  P.push(propCanvas(g => { // 科技残骸：碎裂的六边形板 + 暗灯
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 28, 7, 0, 0, 7); g.fill();
-    g.save(); g.scale(1, 0.5); g.fillStyle = '#2a3446'; g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + 0.3; g.lineTo(Math.cos(a) * 24, Math.sin(a) * 24 - 8); } g.closePath(); g.fill();
-    g.strokeStyle = '#6f8bb0'; g.lineWidth = 2; g.stroke(); g.strokeStyle = 'rgba(0,0,0,0.6)'; g.beginPath(); g.moveTo(-10, -20); g.lineTo(2, -6); g.lineTo(-4, 10); g.stroke(); g.restore();
-    g.fillStyle = '#7fe8ff'; g.beginPath(); g.arc(8, -6, 2.2, 0, 7); g.fill(); g.fillStyle = '#ff9fb8'; g.beginPath(); g.arc(-12, -2, 1.6, 0, 7); g.fill();
-    g.fillStyle = '#3a4a64'; g.fillRect(12, -14, 4, 10); g.fillStyle = '#9fd8ff'; g.fillRect(12.5, -13, 3, 2);
+  P.push(propCanvas(g => { // 7 纸灯笼
+    sh(g, 12); g.strokeStyle = '#3a2a22'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -40); g.lineTo(8, -44); g.stroke();
+    const gr = g.createRadialGradient(8, -30, 1, 8, -30, 12); gr.addColorStop(0, '#fff0b0'); gr.addColorStop(0.5, '#ff7a3a'); gr.addColorStop(1, '#a8201a'); g.fillStyle = gr;
+    g.beginPath(); g.ellipse(8, -30, 9, 11, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(90,20,10,0.6)'; g.lineWidth = 1; for (const k of [-5, 0, 5]) { g.beginPath(); g.ellipse(8, -30, Math.abs(k) + 1, 11, 0, 0, 7); g.stroke(); }
+    g.fillStyle = '#2a1a14'; g.fillRect(4, -42, 8, 2.5); g.fillRect(4, -20, 8, 2.5); g.fillStyle = '#ffd36b'; g.fillRect(7.3, -18, 1.4, 6);
   }));
-  P.push(propCanvas(g => { // 珊瑚扇
-    g.lineCap = 'round';
-    const br = (x, y, a, L, w, d) => { if (d > 3) return; const ex = x + Math.sin(a) * L, ey = y - Math.cos(a) * L; g.strokeStyle = d < 2 ? '#ff7fa8' : '#ffb0c8'; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(ex, ey); g.stroke(); br(ex, ey, a - 0.45, L * 0.72, w * 0.7, d + 1); br(ex, ey, a + 0.45, L * 0.72, w * 0.7, d + 1); if (d === 3) { g.fillStyle = '#fff0f6'; g.beginPath(); g.arc(ex, ey, 1.6, 0, 7); g.fill(); } };
-    br(0, 0, 0, 14, 4, 0);
+  P.push(propCanvas(g => { // 8 树桩（有个洞，洞里有眼睛）
+    sh(g, 22); const gr = g.createLinearGradient(-16, 0, 16, 0); gr.addColorStop(0, '#2e241f'); gr.addColorStop(0.5, '#4a3a30'); gr.addColorStop(1, '#241c18'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(-17, 0); g.lineTo(-14, -26); g.lineTo(-6, -30); g.lineTo(2, -24); g.lineTo(9, -31); g.lineTo(15, -25); g.lineTo(17, 0); g.closePath(); g.fill();
+    g.fillStyle = '#0a0606'; g.beginPath(); g.ellipse(0, -13, 6, 8, 0, 0, 7); g.fill(); g.fillStyle = '#ffe36a'; g.beginPath(); g.arc(-2.3, -14, 1.4, 0, 7); g.arc(2.3, -14, 1.4, 0, 7); g.fill();
   }));
-  P.push(propCanvas(g => { // 小花丛
-    for (let k = 0; k < 7; k++) { const x = (k - 3) * 6 + (k % 2) * 2, h = 8 + (k * 7) % 12; g.strokeStyle = '#4aa878'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + (k % 3 - 1) * 2, -h); g.stroke();
-      const c = ['#fff27a', '#ffffff', '#9ff4ff', '#ffb3f2'][k % 4]; g.fillStyle = c; for (let q = 0; q < 5; q++) { const a = q * 1.2566; g.beginPath(); g.arc(x + (k % 3 - 1) * 2 + Math.cos(a) * 2.6, -h + Math.sin(a) * 2.6, 1.9, 0, 7); g.fill(); } g.fillStyle = '#ffcf5a'; g.beginPath(); g.arc(x + (k % 3 - 1) * 2, -h, 1.4, 0, 7); g.fill(); }
+  P.push(propCanvas(g => { // 9 彼岸花
+    g.lineCap = 'round'; for (const [x, h] of [[-9, 24], [3, 32], [13, 20]]) {
+      g.strokeStyle = '#3f7a3a'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(x * 0.4, 0); g.lineTo(x, -h); g.stroke();
+      g.strokeStyle = '#ff2a3a'; g.lineWidth = 1.5; for (let q = 0; q < 7; q++) { const a = -Math.PI / 2 + (q - 3) * 0.42, L = 8 + (q % 2) * 3; g.beginPath(); g.moveTo(x, -h); g.quadraticCurveTo(x + Math.cos(a) * L * 0.5, -h + Math.sin(a) * L * 0.9, x + Math.cos(a) * L, -h + Math.sin(a) * L * 0.4 + 2); g.stroke(); }
+      g.fillStyle = '#ff4a5a'; g.beginPath(); g.arc(x, -h, 3, 0, 7); g.fill(); }
   }));
   PROPS = P;
   // 物质结晶（金色六棱晶体）
-  MATSPR = mkC(48); { const g = MATSPR.getContext('2d'); g.translate(24, 26); const gl = g.createRadialGradient(0, 0, 0, 0, 0, 22); gl.addColorStop(0, 'rgba(255,220,120,0.55)'); gl.addColorStop(1, 'rgba(255,200,80,0)'); g.fillStyle = gl; g.fillRect(-24, -26, 48, 48);
-    const gr = g.createLinearGradient(-8, -12, 8, 10); gr.addColorStop(0, '#fff8d8'); gr.addColorStop(0.5, '#ffd36b'); gr.addColorStop(1, '#c47a16'); g.fillStyle = gr;
-    g.beginPath(); g.moveTo(0, -13); g.lineTo(8, -6); g.lineTo(8, 6); g.lineTo(0, 13); g.lineTo(-8, 6); g.lineTo(-8, -6); g.closePath(); g.fill(); g.strokeStyle = '#fff3c0'; g.lineWidth = 1.2; g.stroke();
+  MATSPR = mkC(48); { const g = MATSPR.getContext('2d'); g.translate(24, 26); const gl = g.createRadialGradient(0, 0, 0, 0, 0, 22); gl.addColorStop(0, 'rgba(200,150,255,0.6)'); gl.addColorStop(1, 'rgba(170,110,255,0)'); g.fillStyle = gl; g.fillRect(-24, -26, 48, 48);
+    const gr = g.createLinearGradient(-8, -12, 8, 10); gr.addColorStop(0, '#f6ecff'); gr.addColorStop(0.5, '#b98cff'); gr.addColorStop(1, '#5a2fb4'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(0, -13); g.lineTo(8, -6); g.lineTo(8, 6); g.lineTo(0, 13); g.lineTo(-8, 6); g.lineTo(-8, -6); g.closePath(); g.fill(); g.strokeStyle = '#efe0ff'; g.lineWidth = 1.2; g.stroke();
     g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.moveTo(0, -13); g.lineTo(-8, -6); g.lineTo(-3, -3); g.lineTo(0, -8); g.closePath(); g.fill(); }
   SIGSPR = mkC(64); { const g = SIGSPR.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.25, 'rgba(160,220,255,0.4)'); gr.addColorStop(1, 'rgba(120,180,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }
 }
@@ -183,7 +194,7 @@ function drawSignals(x0, y0, x1, y1) {
 let WISPSPR = null;
 function wispSprite() {
   if (WISPSPR) return WISPSPR; const S = 64, c = mkC(S), g = c.getContext('2d');
-  let gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.18, 'rgba(250,254,255,0.95)'); gr.addColorStop(0.32, 'rgba(200,240,255,0.45)'); gr.addColorStop(0.6, 'rgba(150,210,255,0.12)'); gr.addColorStop(1, 'rgba(120,190,255,0)');
+  let gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,245,1)'); gr.addColorStop(0.18, 'rgba(255,246,210,0.95)'); gr.addColorStop(0.32, 'rgba(255,214,150,0.45)'); gr.addColorStop(0.6, 'rgba(255,170,90,0.12)'); gr.addColorStop(1, 'rgba(255,150,80,0)');
   g.fillStyle = gr; g.fillRect(0, 0, S, S); return WISPSPR = c;
 }
 function drawWisps(x0, y0, x1, y1) {

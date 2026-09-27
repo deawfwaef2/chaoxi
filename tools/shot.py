@@ -10,7 +10,7 @@ with sync_playwright() as p:
         if dev == 'phone': ctx = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         else: ctx = b.new_context(viewport={'width': 1366, 'height': 768})
         pg = ctx.new_page(); errs = []
-        pg.on('pageerror', lambda e: errs.append(str(e)))
+        pg.on('pageerror', lambda e: errs.append(str(e) + ' @ ' + str(getattr(e,'stack',''))[:300]))
         pg.on('console', lambda m: errs.append('console:' + m.text) if m.type == 'error' else None)
         pg.goto('file://' + root + '/index.html'); time.sleep(1.2)
         pg.screenshot(path=f'{out}/{dev}_0start.png')

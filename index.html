@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#050a14">
-<title>潮汐生态圈 · Chaoxi</title>
+<title>别关灯 · 黑暗生态缸</title>
 <!--
   ===== 平台广告 SDK（上传到对应平台时，取消注释其中一行即可，游戏会自动识别） =====
   CrazyGames:  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
@@ -347,13 +347,41 @@ body.touch #spray span{display:none}@media (pointer:coarse){#spray span{display:
 body.pOpen #tutF,body.pOpen #tutCap,body.pOpen #press{display:none!important}
 @media (max-width:760px){#tutCap span{font-size:16px}#tutCap{gap:8px;padding:10px 10px 10px 12px}.dc.nx{width:84px}.nxr{width:62px;height:62px}.nxr svg{width:62px;height:62px}.nxr img{left:10px;top:10px;width:42px;height:42px}}
 .dc{height:138px;flex:none}.dc>*{flex-shrink:0}.dc .nm{white-space:nowrap}@media (max-width:760px){.dc{height:124px}}
+
+/* ===== v0.7 微恐主题：暖灯 + 深黑 ===== */
+:root{--gl:rgba(20,12,14,.8);--bd:rgba(255,200,130,.2);--hi:#ffcf7a;--mat:#c9a0ff;--pn:linear-gradient(180deg,rgba(38,24,24,.92),rgba(12,8,12,.95));--pb:rgba(255,200,130,.22)}
+html,body{background:#050307}
+.glass{box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,190,.08),inset 0 0 24px rgba(255,160,80,.04)}
+#dock{background:linear-gradient(180deg,rgba(36,22,22,.94),rgba(8,5,8,.98));border-top:1px solid rgba(255,200,130,.28)}
+#dock::before{background:linear-gradient(90deg,transparent,rgba(255,200,120,.7),rgba(255,120,90,.6),transparent)}
+.dc{background:linear-gradient(180deg,rgba(255,230,200,.07),rgba(255,255,255,.015) 60%,rgba(0,0,0,.2));border-color:rgba(255,210,150,.16)}
+.dc:hover{background:linear-gradient(180deg,rgba(255,210,150,.16),rgba(255,210,150,.03) 60%,rgba(0,0,0,.1));border-color:rgba(255,215,150,.45)}
+.dc .cs .ce,.ce{color:#ffd98a!important}.cm{color:#d6b4ff!important}
+.btn{border-color:rgba(255,200,130,.35);background:rgba(44,26,22,.88);color:#fff0dc}.btn:hover{background:rgba(70,40,30,.95)}
+.btn.pri,.btn.big{background:linear-gradient(180deg,#ffb24a,#c4541a);border-color:#ffd88a;box-shadow:0 0 30px rgba(255,150,60,.35);color:#fff}
+#tLv{color:#ffcf7a}#tArc{stroke:#ffcf7a}
+#tankBar{background:linear-gradient(90deg,#ff8a3a,#ffd36b)!important}
+.toast{background:linear-gradient(180deg,rgba(40,24,22,.95),rgba(14,9,12,.95));border-color:rgba(255,200,130,.35)}
+.bign{background:linear-gradient(135deg,rgba(50,28,24,.96),rgba(14,9,14,.96))}
+.bign .bt{color:#ffd9a0}
+#panel #pBox,#introBox{background:linear-gradient(180deg,rgba(38,24,24,.96),rgba(12,8,12,.97))}
+.ipic{background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 26%,rgba(40,24,20,.9)),rgba(8,5,8,.96) 72%)}
+#start{background:radial-gradient(ellipse at 50% 38%,rgba(255,150,60,.16),rgba(5,3,7,.2) 38%,rgba(5,3,7,.92) 70%)}
+#start h1{font-size:64px;letter-spacing:14px;background:linear-gradient(180deg,#fff6de,#ffc26a 55%,#c4541a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(255,160,60,.45));animation:flick 4s infinite}
+@keyframes flick{0%,100%{opacity:1}91%{opacity:1}92%{opacity:.35}93%{opacity:1}95%{opacity:.6}96%{opacity:1}}
+#start .tag{font-size:15px;letter-spacing:6px;color:#d8b890;opacity:.8;margin-top:-6px}
+#start .sub b{color:#ffcf7a;font-size:18px}
+.lamp{width:70px;height:70px;position:relative;margin-bottom:-6px}.lamp i{position:absolute;left:17px;top:6px;width:36px;height:50px;border-radius:50% 50% 45% 45%/62% 62% 38% 38%;background:radial-gradient(circle at 50% 70%,#fffbe8,#ffd36b 45%,#ff7a2a 85%);box-shadow:0 0 40px 10px rgba(255,160,60,.5);animation:lampf .18s ease-in-out infinite alternate}
+@keyframes lampf{to{transform:scale(1.04,0.97) skewX(2deg)}}
+.newr,.nw,.dc.new::after{background:linear-gradient(90deg,#ff4a5a,#ffab4a)!important}
+.dc{height:126px}@media (max-width:760px){.dc{height:114px}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="res" class="hud">
-  <div class="chip glass" id="cTank" title="白球能量槽：按住播撒把能量喷到地上"><div class="ic"><svg width="26" height="26" viewBox="0 0 26 26"><defs><radialGradient id="og" cx=".4" cy=".35"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#cff8ff"/><stop offset="1" stop-color="#5fc8ff"/></radialGradient></defs><circle cx="13" cy="13" r="10" fill="url(#og)"/><circle cx="13" cy="13" r="12" fill="none" stroke="#7ff4ff" stroke-opacity=".5"/></svg></div><div class="meter"><i id="tankBar"></i></div><span id="tankV">80</span></div>
-  <div class="chip glass" id="cMat" title="物质：生物掉落的结晶，用于建造与召唤高级生物"><div class="ic"><svg width="24" height="26" viewBox="0 0 24 26"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff8d8"/><stop offset=".5" stop-color="#ffd36b"/><stop offset="1" stop-color="#c47a16"/></linearGradient></defs><path d="M12 1l10 6v12l-10 6-10-6V7z" fill="url(#mg)" stroke="#fff3c0" stroke-width="1"/><path d="M12 1L2 7l5 3 5-5z" fill="#fff" opacity=".6"/></svg></div><span id="matV">0</span><small id="matR"></small></div>
+  <div class="chip glass" id="cTank" title="小灯里的光：按住屏幕不动就能洒出去"><div class="ic"><svg width="24" height="28" viewBox="0 0 24 28"><defs><radialGradient id="og" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#fffbe8"/><stop offset=".5" stop-color="#ffd36b"/><stop offset="1" stop-color="#ff7a2a"/></radialGradient></defs><path d="M12 1C14 7 22 11 22 18a10 10 0 0 1-20 0C2 11 10 7 12 1z" fill="url(#og)"/><ellipse cx="9" cy="17" rx="1.6" ry="2.2" fill="#4a2410"/><ellipse cx="15" cy="17" rx="1.6" ry="2.2" fill="#4a2410"/></svg></div><div class="meter"><i id="tankBar"></i></div><span id="tankV">80</span></div>
+  <div class="chip glass" id="cMat" title="魂晶：小怪们掉落的结晶，用来建造"><div class="ic"><svg width="24" height="26" viewBox="0 0 24 26"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6ecff"/><stop offset=".5" stop-color="#b98cff"/><stop offset="1" stop-color="#5a2fb4"/></linearGradient></defs><path d="M12 1l10 6v12l-10 6-10-6V7z" fill="url(#mg)" stroke="#efe0ff" stroke-width="1"/><path d="M12 1L2 7l5 3 5-5z" fill="#fff" opacity=".6"/></svg></div><span id="matV">0</span><small id="matR"></small></div>
   <div class="chip glass" id="cEco" title="世界能量（地面 + 生物体内）与趋势"><div class="ic" style="font-size:22px;color:#9ff4ff">✦</div><span id="ecoV">0</span><small id="ecoR"></small><span style="opacity:.35;font-weight:400">|</span><span style="font-size:19px">🐾</span><span id="popV">0</span><small id="spV"></small></div>
   <div class="chip glass" id="cRes"><span class="ric">🔬</span><div class="rt"><b id="resN">科研</b><div class="rbar2"><i id="resBar"></i></div></div></div>
   <div id="tide" class="glass"><div id="tRing"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.12)" stroke-width="5"/><circle id="tArc" cx="26" cy="26" r="22" fill="none" stroke="#9ff4ff" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200" transform="rotate(-90 26 26)"/></svg><div id="tLv">0</div></div><div><div id="tName">观测潮汐</div><div id="tSub"><span id="tNext"></span><div id="tWin"><i></i></div></div></div></div>
@@ -384,29 +412,31 @@ body.pOpen #tutF,body.pOpen #tutCap,body.pOpen #press{display:none!important}
 <div id="offline" class="overlay"><div class="glass"><div style="font-size:20px;font-weight:800">🌙 离线推演中…</div><div id="offTxt" style="opacity:.8">你离开期间，生态圈仍在运转</div><div id="offBar"><i></i></div><button class="btn" id="offSkip" style="margin-top:10px">跳过剩余推演</button></div></div>
 <div id="report" class="overlay" style="background:rgba(0,0,0,.6)"><div class="glass" id="repBox"></div></div>
 <div id="start" class="overlay">
-  <h1>潮汐生态圈</h1>
-  <div class="sub">能量有限，生命无限循环。<br>用白球播撒能量、召唤可爱的生物，搭建完整的食物链，<br>让生态圈在平衡中延续，把【观测潮汐】推向最高等级。</div>
+  <div class="lamp"><i></i></div>
+  <h1>别关灯</h1>
+  <div class="tag">黑 暗 生 态 缸</div>
+  <div class="sub"><b>守则第一条：别让灯灭。</b><br>吸收飘着的光，洒在地上，喂饱黑暗里的小怪们。<br>它们越热闹，黑暗退得越远——熬到天亮吧。</div>
   <div class="icons" id="startIcons"></div>
   <button class="btn big" id="bStart">开始游戏</button>
   <button class="btn" id="bNew" style="display:none">🌱 新的世界</button>
-  <div class="keys">电脑：WASD 移动 · 按住空格播撒能量 · 点击地面瞬移 · 滚轮缩放 · 撞黑墙探索 · Tab 切换生物/建筑<br>手机：左下摇杆移动 · 右下按住播撒 · 点地面瞬移 · 双指缩放</div>
+  <div class="keys">拖动 = 移动小灯 · 按住不动 = 洒光 · 轻点 = 查看 · 双指 / 滚轮 = 缩放</div>
   <div class="keys" id="ver"></div>
 </div>
 <script>
 'use strict';
-/* ===================== 常量与数据表（v0.5：能量不可再生 + 物质资源 + 迷雾遗迹） ===================== */
-const VERSION = '0.6.0';
+/* ===================== 常量与数据表（v0.5：光不可再生 + 魂晶资源 + 迷雾遗迹） ===================== */
+const VERSION = '0.7.0';
 const CELL = 24, GN = 400, HALF = GN * CELL / 2;      // 墙体网格：400x400 格，每格 24px，世界 ±4800
 const SC = 48, SN = 200, SNC = SN * SN;               // 空间网格
 const MAXP = 240000, MAXC = 24000;
 const START_R = 470, VOID_R = 4550;
 const TOWER_R = 40, TOWER_FIELD = 250, PYLON_FIELD = 175, TOWER_PULL = 300;
 const WINDOW = 10;
-const RIPEN = 4;                                      // 新释放的能量需要 4 秒凝结才能被吃
+const RIPEN = 4;                                      // 新释放的光需要 4 秒凝结才能被吃
 const THRESH = [0, 2, 6, 14, 28, 50, 80, 120, 175, 250, 350];
 const MAXLV = 10;
-const LV_NAMES = ['沉寂', '微澜', '涟漪', '细流', '回涌', '潮起', '盈潮', '大潮', '天潮', '星潮', '永恒之潮'];
-const LV_COLORS = ['#707a88', '#6fd8ff', '#5ff0c8', '#8cff7a', '#e6ff6a', '#ffd35a', '#ff9f5a', '#ff6fa8', '#c77dff', '#8f9bff', '#ffffff'];
+const LV_NAMES = ['漆黑', '烛影', '萤火', '灯笼', '篝火', '长明', '灯海', '晨星', '破晓', '天亮', '白昼'];
+const LV_COLORS = ['#8a8090', '#c9a070', '#e8c060', '#ffcf6a', '#ffb04a', '#ff9a4a', '#ffc86a', '#ffe0a0', '#fff0c8', '#fff8e0', '#ffffff'];
 
 const MV_WALK = 0, MV_SLOW = 1, MV_HOP = 2, MV_FLY = 3, MV_FLOAT = 4, MV_ORBIT = 5;
 // 食性
@@ -419,55 +449,55 @@ const SOC_DESC = ['同类聚在一起，附近同类越多战力越高（最多 
 // 对异类
 const AL_TIMID = 0, AL_MOB = 1, AL_TERR = 2, AL_BOLD = 3, AL_PASSIVE = 4;
 const AL_NAME = ['胆小', '抱团反击', '护食', '无畏', '被动捕食'];
-const AL_DESC = ['遇到打不过的捕食者就逃', '群体战力够时会一起反击捕食者', '会赶走来抢能量的其他食能生物', '不怕比自己弱的对手', '不追猎，碰到猎物就蛰'];
+const AL_DESC = ['遇到打不过的捕食者就逃', '群体战力够时会一起反击捕食者', '会赶走来抢光的其他食能生物', '不怕比自己弱的对手', '不追猎，碰到猎物就蛰'];
 
-/* 生物表 —— v0.6：体型拉开差距（微小→巨型）；tier = 科研层级（需要潮汐 Lv ≥ tier-1 才能研究）
+/* 生物表 —— v0.6：体型拉开差距（微小→巨型）；tier = 调查层级（需要光域 Lv ≥ tier-1 才能调查）
    pow: 基础战力；shell: 被攻击时防御倍率；tr: 特性（见 TRAITS） */
 const SPECIES = [
-  { key: 'slime', tier: 0, mat: 1, matT: 30, mcost: 0, name: '啵啵史莱姆', r: 7, maxE: 16, repE: 13, childE: 6, life: 50, mature: 8, speed: 38, meta: 0.22, diet: D_E, pow: 1.0, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, cost: 8, col: '#7cf5b0', col2: '#3fc98a', tr: ['split'], desc: '软糯的群居史莱姆。一只很弱，一群就敢反击捕食者。自己分裂繁殖。' },
-  { key: 'bunny', tier: 0, mat: 1, matT: 30, mcost: 0, name: '团子兔', r: 7, maxE: 18, repE: 12, childE: 6, life: 42, mature: 7, speed: 64, meta: 0.2, diet: D_E, pow: 0.8, soc: SOC_HERD, al: AL_TIMID, mv: MV_HOP, pair: true, cost: 8, col: '#fff4fa', col2: '#ffb8d6', tr: ['fast'], desc: '跑得快、生得多、死得也快的麻薯兔。胆小，需要两只才能繁殖。' },
-  { key: 'mite', tier: 1, mat: 1, matT: 50, mcost: 0, name: '星尘蚁', r: 3.5, maxE: 5, repE: 4, childE: 2, life: 22, mature: 4, speed: 40, meta: 0.08, diet: D_E, pow: 0.25, soc: SOC_HERD, al: AL_TIMID, mv: MV_WALK, cost: 4, col: '#ffe08a', col2: '#c8844a', tr: ['carrier'], desc: '米粒大小的搬运工。会把附近掉落的物质结晶搬回方塔（离线也在工作）。' },
-  { key: 'mush', tier: 1, mat: 2, matT: 26, mcost: 5, name: '菇菇仔', r: 8, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 16, meta: 0.36, diet: D_E, reach: 12, pow: 2.2, soc: SOC_TERR, al: AL_TERR, mv: MV_SLOW, cost: 12, col: '#ff8a8a', col2: '#fff1dc', tr: ['reach'], desc: '用菌丝远距离吸收能量。慢吞吞但很凶，会赶走抢食者和同类。' },
-  { key: 'firefly', tier: 1, mat: 1, matT: 40, mcost: 0, name: '萤火团', r: 4, maxE: 8, repE: 6, childE: 3, life: 24, mature: 5, speed: 44, meta: 0.12, diet: D_E, pow: 0.35, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLY, cost: 5, col: '#fff27a', col2: '#9be86a', tr: ['fly'], desc: '成群飞舞的小光团。寿命极短、繁殖极快。' },
-  { key: 'fox', tier: 2, mat: 5, matT: 18, mcost: 15, name: '圆滚狸', r: 11, maxE: 46, repE: 24, childE: 12, life: 160, mature: 20, speed: 76, meta: 0.28, diet: D_M, prey: ['slime', 'bunny', 'fish', 'mush', 'mite', 'beetle', 'spore'], pow: 3.5, soc: SOC_PACK, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 30, col: '#ffb45c', col2: '#fff0dc', tr: [], desc: '成群狩猎的小狸，只吃生物。专挑落单和虚弱的猎物。' },
-  { key: 'fish', tier: 2, mat: 1, matT: 30, mcost: 5, name: '泡泡鱼', r: 6, maxE: 12, repE: 9, childE: 4, life: 38, mature: 6, speed: 60, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLOAT, cost: 6, col: '#7ab8ff', col2: '#cfe6ff', tr: [], desc: '在空气里游泳的鱼群，结队吃能量。' },
-  { key: 'hedgehog', tier: 2, mat: 2, matT: 26, mcost: 5, name: '刺球猬', r: 8, maxE: 22, repE: 17, childE: 8, life: 90, mature: 12, speed: 30, meta: 0.24, diet: D_E, pow: 1.4, soc: SOC_SOLO, al: AL_BOLD, mv: MV_WALK, cost: 12, col: '#d9b38c', col2: '#fff3e0', tr: ['thorn'], desc: '浑身软刺。谁敢咬它，谁就会被扎掉一大口能量——捕食者都绕着它走。' },
-  { key: 'spore', tier: 2, mat: 1, matT: 30, mcost: 5, name: '孢孢球', r: 6.5, maxE: 14, repE: 11, childE: 5, life: 45, mature: 8, speed: 14, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_SLOW, cost: 8, col: '#d9a0ff', col2: '#fff4ff', tr: ['spore'], desc: '寿终正寝时“噗”地炸开，把剩余能量变成两只新的孢孢球。' },
-  { key: 'bird', tier: 3, mat: 5, matT: 18, mcost: 15, name: '棉花鸟', r: 10, maxE: 38, repE: 20, childE: 10, life: 150, mature: 18, speed: 85, meta: 0.24, diet: D_M, prey: ['firefly', 'fish', 'slime', 'bunny', 'mite', 'spore', 'frog'], pow: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 24, col: '#f4f7ff', col2: '#ffd36b', tr: ['fly'], desc: '独行的空中猎手，速度极快，捕食小型生物。' },
-  { key: 'snail', tier: 3, mat: 3, matT: 26, mcost: 10, name: '果冻蜗牛', r: 9, maxE: 40, repE: 30, childE: 12, life: 180, mature: 30, speed: 11, meta: 0.46, diet: D_E, pow: 1.2, shell: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 20, col: '#c9a8ff', col2: '#ffd1f0', tr: ['shell'], desc: '背着果冻硬壳，被攻击时防御 ×3。长寿、慢、稳定。' },
-  { key: 'beetle', tier: 3, mat: 2, matT: 28, mcost: 5, name: '拾荒甲虫', r: 6.5, maxE: 14, repE: 11, childE: 5, life: 70, mature: 9, speed: 42, meta: 0.14, diet: D_E, ripeMin: 0, ripeMax: 254, pow: 1.0, shell: 1.8, soc: SOC_SOLO, al: AL_TIMID, mv: MV_WALK, cost: 8, col: '#7d8cff', col2: '#b6f0ff', tr: ['scav'], desc: '只吃刚爆出、还没凝结的新鲜能量（战斗和死亡留下的）。不和别人抢饭碗的清道夫。' },
-  { key: 'frog', tier: 3, mat: 3, matT: 20, mcost: 10, name: '泡泡蛙', r: 8.5, maxE: 28, repE: 18, childE: 9, life: 110, mature: 14, speed: 55, meta: 0.2, diet: D_M, prey: ['firefly', 'mite', 'fish', 'beetle', 'spore'], pow: 2.2, soc: SOC_SOLO, al: AL_BOLD, mv: MV_HOP, pair: true, tongue: 45, cost: 16, col: '#8ce06a', col2: '#fff6c8', tr: ['tongue'], desc: '用长舌头隔空捕食小虫和小鱼，是飞行小生物的克星。' },
-  { key: 'jelly', tier: 4, mat: 8, matT: 14, mcost: 30, name: '星星水母', r: 11, maxE: 36, repE: 28, childE: 12, life: 130, mature: 20, speed: 26, meta: 0.2, diet: D_M, prey: ['slime', 'bunny', 'firefly', 'fish', 'fox', 'bird', 'mite', 'octo'], pow: 3, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_ORBIT, cost: 22, col: '#9ff0ff', col2: '#ffb3f2', tr: ['sting'], desc: '绕着方塔漂浮的陷阱型捕食者：不追猎，碰到它的生物会被蛰。' },
-  { key: 'octo', tier: 4, mat: 4, matT: 22, mcost: 15, name: '墨墨章鱼', r: 9, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 34, meta: 0.2, diet: D_E, pow: 1.2, soc: SOC_SOLO, al: AL_TIMID, mv: MV_FLOAT, cost: 14, col: '#ff9fb8', col2: '#ffe0ea', tr: ['ink'], desc: '被咬时有六成几率喷出墨云、瞬间逃走，毫发无伤。' },
-  { key: 'sheep', tier: 4, mat: 4, matT: 20, mcost: 20, name: '棉棉羊', r: 12, maxE: 40, repE: 30, childE: 14, life: 150, mature: 20, speed: 30, meta: 0.3, diet: D_E, pow: 1.6, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, pair: true, cost: 20, col: '#fbf7ff', col2: '#c9b8ff', tr: ['wool'], desc: '三只以上聚在一起时，羊毛物质产量翻倍。群体会一起顶走捕食者。' },
-  { key: 'bear', tier: 5, mat: 25, matT: 16, mcost: 80, name: '布丁熊', r: 24, maxE: 120, repE: 96, childE: 40, life: 220, mature: 40, speed: 50, meta: 0.55, diet: D_O, prey: ['fox', 'snail', 'fish', 'bunny', 'slime', 'mush', 'sheep', 'hedgehog', 'frog', 'weasel'], pow: 6, soc: SOC_TERR, al: AL_TERR, mv: MV_WALK, pair: true, cost: 60, col: '#e8b27a', col2: '#fff3c4', tr: [], desc: '杂食大块头。既吃能量也吃生物，领地意识强。' },
-  { key: 'weasel', tier: 5, mat: 6, matT: 18, mcost: 40, name: '闪电貂', r: 10, maxE: 40, repE: 22, childE: 11, life: 120, mature: 18, speed: 80, meta: 0.3, diet: D_M, prey: ['bunny', 'slime', 'mite', 'beetle', 'spore', 'hedgehog', 'frog', 'fish', 'sheep'], pow: 3.2, soc: SOC_SOLO, al: AL_BOLD, mv: MV_WALK, pair: true, dash: true, cost: 28, col: '#ffe066', col2: '#fffaf0', tr: ['dash'], desc: '追猎时爆发 1.8 倍冲刺，但冲完要喘好几秒。连刺球猬都敢咬。' },
-  { key: 'turtle', tier: 5, mat: 12, matT: 24, mcost: 60, name: '苔藓龟', r: 17, maxE: 90, repE: 70, childE: 30, life: 500, mature: 60, speed: 10, meta: 0.35, diet: D_E, pow: 2.5, shell: 5, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 50, col: '#7fcf8f', col2: '#d8b07a', tr: ['shell', 'ancient'], desc: '活得最久的生物之一，龟壳防御 ×5。缓慢、稳定，是生态圈的“压舱石”。' },
-  { key: 'whale', tier: 6, mat: 40, matT: 18, mcost: 150, name: '云朵鲸', r: 50, maxE: 300, repE: 240, childE: 100, life: 360, mature: 70, speed: 22, meta: 1.8, diet: D_E, pow: 9, soc: SOC_HERD, al: AL_BOLD, mv: MV_FLOAT, cost: 150, col: '#bfe0ff', col2: '#ffffff', tr: ['giant'], desc: '巨大温柔的食能者，几乎没有天敌，但吃得非常多。' },
-  { key: 'ghost', tier: 6, mat: 10, matT: 18, mcost: 60, name: '灯笼幽灵', r: 10, maxE: 34, repE: 26, childE: 12, life: 140, mature: 20, speed: 30, meta: 0.22, diet: D_M, drain: true, pow: 1.5, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_FLOAT, cost: 30, col: '#c8d4ff', col2: '#9fffe6', tr: ['drain'], desc: '不捕猎，而是悄悄贴近别的生物、一点点吸走它们的能量。' },
-  { key: 'dragon', tier: 7, mat: 120, matT: 18, mcost: 400, name: '糖豆龙', r: 34, maxE: 240, repE: 200, childE: 80, life: 300, mature: 60, speed: 64, meta: 0.8, diet: D_M, prey: ['bear', 'bird', 'fox', 'whale', 'jelly', 'sheep', 'turtle', 'weasel', 'unicorn'], pow: 12, soc: SOC_TERR, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 140, col: '#9dffb0', col2: '#ffe38a', tr: ['apex'], desc: '顶级掠食者，捕食布丁熊、云朵鲸等大型生物。' },
-  { key: 'unicorn', tier: 7, mat: 50, matT: 18, mcost: 200, name: '彩虹独角兽', r: 24, maxE: 150, repE: 120, childE: 50, life: 300, mature: 50, speed: 55, meta: 0.7, diet: D_E, pow: 5, soc: SOC_HERD, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 90, col: '#fff0fb', col2: '#b8e4ff', tr: ['bless'], desc: '身边的生物衰老速度减半、代谢降低——走到哪里，哪里就欣欣向荣。' },
-  { key: 'phoenix', tier: 8, mat: 150, matT: 18, mcost: 600, name: '焰尾凤凰', r: 30, maxE: 260, repE: 210, childE: 90, life: 320, mature: 60, speed: 90, meta: 0.9, diet: D_M, prey: ['bird', 'fox', 'weasel', 'sheep', 'bear', 'jelly', 'frog', 'octo', 'unicorn', 'ghost'], pow: 13, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 160, col: '#ff8a5c', col2: '#ffe066', tr: ['rebirth', 'fly'], desc: '传说中的空中霸主。寿终时会带着余烬浴火重生一次。' },
+  { key: 'slime', tier: 0, mat: 1, matT: 30, mcost: 0, name: '黑团子', r: 7, maxE: 16, repE: 13, childE: 6, life: 50, mature: 8, speed: 38, meta: 0.22, diet: D_E, pow: 1.0, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, cost: 8, col: '#4d4570', col2: '#2c2748', eye: '#ffe36a', tr: ['split'], desc: '黑乎乎的一团影子，被咬一口就分裂成两只。一只很怂，一群就敢反击。' },
+  { key: 'bunny', tier: 0, mat: 1, matT: 30, mcost: 0, name: '纸扎兔', r: 7, maxE: 18, repE: 12, childE: 6, life: 42, mature: 7, speed: 64, meta: 0.2, diet: D_E, pow: 0.8, soc: SOC_HERD, al: AL_TIMID, mv: MV_HOP, pair: true, cost: 8, col: '#f4efe4', col2: '#e2d6c0', eye: '#ff5a5a', tr: ['fast'], desc: '纸糊的小兔子，脸蛋画着两团红。跑得快、生得多，要两只才能繁殖。' },
+  { key: 'mite', tier: 1, mat: 1, matT: 50, mcost: 0, name: '煤灰精', r: 3.5, maxE: 5, repE: 4, childE: 2, life: 22, mature: 4, speed: 40, meta: 0.08, diet: D_E, pow: 0.25, soc: SOC_HERD, al: AL_TIMID, mv: MV_WALK, cost: 4, col: '#2e2a33', col2: '#16131a', eye: '#fff27a', tr: ['carrier'], desc: '一撮会走路的煤灰。喜欢把地上的魂晶偷偷搬回长明灯。' },
+  { key: 'mush', tier: 1, mat: 2, matT: 26, mcost: 5, name: '眼睛菇', r: 8, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 16, meta: 0.36, diet: D_E, reach: 12, pow: 2.2, soc: SOC_TERR, al: AL_TERR, mv: MV_SLOW, cost: 12, col: '#b784ff', col2: '#5a2f8a', eye: '#b8ff6a', tr: ['reach'], desc: '伞盖上长了一只大眼睛的蘑菇。一动不动，用菌丝远远地吸光。' },
+  { key: 'firefly', tier: 1, mat: 1, matT: 40, mcost: 0, name: '鬼火', r: 4, maxE: 8, repE: 6, childE: 3, life: 24, mature: 5, speed: 44, meta: 0.12, diet: D_E, pow: 0.35, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLY, cost: 5, col: '#9dffcf', col2: '#3fbf8a', eye: '#e8fff4', tr: ['fly'], desc: '一簇飘来飘去的幽绿小火苗。活得短、生得快，自己就会发光。' },
+  { key: 'fox', tier: 2, mat: 5, matT: 18, mcost: 15, name: '白面狐', r: 11, maxE: 46, repE: 24, childE: 12, life: 160, mature: 20, speed: 76, meta: 0.28, diet: D_M, prey: ['slime', 'bunny', 'fish', 'mush', 'mite', 'beetle', 'spore'], pow: 3.5, soc: SOC_PACK, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 30, col: '#ffb37a', col2: '#c4602a', eye: '#ff4a3a', tr: [], desc: '戴着白色面具的狐狸，专在黑暗里抓小怪吃。' },
+  { key: 'fish', tier: 2, mat: 1, matT: 30, mcost: 5, name: '灯笼鱼', r: 6, maxE: 12, repE: 9, childE: 4, life: 38, mature: 6, speed: 60, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_FLOAT, cost: 6, col: '#5a7aa8', col2: '#2a3a60', eye: '#ffe36a', tr: [], desc: '头顶挂着小灯笼的深渊鱼，在黑暗里游来游去。' },
+  { key: 'hedgehog', tier: 2, mat: 2, matT: 26, mcost: 5, name: '针包包', r: 8, maxE: 22, repE: 17, childE: 8, life: 90, mature: 12, speed: 30, meta: 0.24, diet: D_E, pow: 1.4, soc: SOC_SOLO, al: AL_BOLD, mv: MV_WALK, cost: 12, col: '#c9a07a', col2: '#7a5a40', eye: '#ff7a5a', tr: ['thorn'], desc: '浑身插满针的针线包。谁咬它谁就被扎。' },
+  { key: 'spore', tier: 2, mat: 1, matT: 30, mcost: 5, name: '霉霉球', r: 6.5, maxE: 14, repE: 11, childE: 5, life: 45, mature: 8, speed: 14, meta: 0.16, diet: D_E, pow: 0.6, soc: SOC_HERD, al: AL_TIMID, mv: MV_SLOW, cost: 8, col: '#9ec46a', col2: '#5a7a30', eye: '#f4ff7a', tr: ['spore'], desc: '一团毛茸茸的霉菌，老死时会炸成两只小霉霉。' },
+  { key: 'bird', tier: 3, mat: 5, matT: 18, mcost: 15, name: '夜鸦', r: 10, maxE: 38, repE: 20, childE: 10, life: 150, mature: 18, speed: 85, meta: 0.24, diet: D_M, prey: ['firefly', 'fish', 'slime', 'bunny', 'mite', 'spore', 'frog'], pow: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 24, col: '#3a3448', col2: '#1c1826', eye: '#ff4a4a', tr: ['fly'], desc: '黑夜里盘旋的小乌鸦，俯冲下来叼走小怪。' },
+  { key: 'snail', tier: 3, mat: 3, matT: 26, mcost: 10, name: '眼球蜗牛', r: 9, maxE: 40, repE: 30, childE: 12, life: 180, mature: 30, speed: 11, meta: 0.46, diet: D_E, pow: 1.2, shell: 3, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 20, col: '#d8c0a8', col2: '#8a6a5a', eye: '#7affd8', tr: ['shell'], desc: '背着一只大眼球慢慢爬。遇到危险就缩进壳里。' },
+  { key: 'beetle', tier: 3, mat: 2, matT: 28, mcost: 5, name: '棺材虫', r: 6.5, maxE: 14, repE: 11, childE: 5, life: 70, mature: 9, speed: 42, meta: 0.14, diet: D_E, ripeMin: 0, ripeMax: 254, pow: 1.0, shell: 1.8, soc: SOC_SOLO, al: AL_TIMID, mv: MV_WALK, cost: 8, col: '#6a4a3a', col2: '#3a2418', eye: '#ffd36a', tr: ['scav'], desc: '背着一口小棺材的甲虫，只吃打架和死去时洒出的光。' },
+  { key: 'frog', tier: 3, mat: 3, matT: 20, mcost: 10, name: '长舌鬼蛙', r: 8.5, maxE: 28, repE: 18, childE: 9, life: 110, mature: 14, speed: 55, meta: 0.2, diet: D_M, prey: ['firefly', 'mite', 'fish', 'beetle', 'spore'], pow: 2.2, soc: SOC_SOLO, al: AL_BOLD, mv: MV_HOP, pair: true, tongue: 45, cost: 16, col: '#b8d8a8', col2: '#6a8a5a', eye: '#ff5a8a', tr: ['tongue'], desc: '脸色惨白的蛙，舌头能伸得老长，隔空卷走小虫。' },
+  { key: 'jelly', tier: 4, mat: 8, matT: 14, mcost: 30, name: '幽灵水母', r: 11, maxE: 36, repE: 28, childE: 12, life: 130, mature: 20, speed: 26, meta: 0.2, diet: D_M, prey: ['slime', 'bunny', 'firefly', 'fish', 'fox', 'bird', 'mite', 'octo'], pow: 3, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_ORBIT, cost: 22, col: '#d8c8ff', col2: '#8a6ad8', eye: '#8affff', tr: ['sting'], desc: '半透明的水母在空中漂，碰到它的会被蛰。' },
+  { key: 'octo', tier: 4, mat: 4, matT: 22, mcost: 15, name: '触手娃', r: 9, maxE: 26, repE: 20, childE: 9, life: 100, mature: 14, speed: 34, meta: 0.2, diet: D_E, pow: 1.2, soc: SOC_SOLO, al: AL_TIMID, mv: MV_FLOAT, cost: 14, col: '#ff8ab8', col2: '#b84a7a', eye: '#fff27a', tr: ['ink'], desc: '软软的小章鱼，被咬时喷一团墨汁溜走。' },
+  { key: 'sheep', tier: 4, mat: 4, matT: 20, mcost: 20, name: '失眠羊', r: 12, maxE: 40, repE: 30, childE: 14, life: 150, mature: 20, speed: 30, meta: 0.3, diet: D_E, pow: 1.6, soc: SOC_HERD, al: AL_MOB, mv: MV_WALK, pair: true, cost: 20, col: '#e8e4ec', col2: '#a8a0b8', eye: '#c9a0ff', tr: ['wool'], desc: '数着自己睡不着的羊，黑眼圈很重。成群时掉更多魂晶。' },
+  { key: 'bear', tier: 5, mat: 25, matT: 16, mcost: 80, name: '缝合熊', r: 24, maxE: 120, repE: 96, childE: 40, life: 220, mature: 40, speed: 50, meta: 0.55, diet: D_O, prey: ['fox', 'snail', 'fish', 'bunny', 'slime', 'mush', 'sheep', 'hedgehog', 'frog', 'weasel'], pow: 6, soc: SOC_TERR, al: AL_TERR, mv: MV_WALK, pair: true, cost: 60, col: '#a8805a', col2: '#6a4a30', eye: '#ff3a3a', tr: [], desc: '全身都是缝线的旧玩偶熊，什么都吃，力气很大。' },
+  { key: 'weasel', tier: 5, mat: 6, matT: 18, mcost: 40, name: '黄大仙', r: 10, maxE: 40, repE: 22, childE: 11, life: 120, mature: 18, speed: 80, meta: 0.3, diet: D_M, prey: ['bunny', 'slime', 'mite', 'beetle', 'spore', 'hedgehog', 'frog', 'fish', 'sheep'], pow: 3.2, soc: SOC_SOLO, al: AL_BOLD, mv: MV_WALK, pair: true, dash: true, cost: 28, col: '#e8a84a', col2: '#a8641a', eye: '#ffe36a', tr: ['dash'], desc: '黑夜里拦路讨封的黄鼠狼，追猎时会突然冲刺。' },
+  { key: 'turtle', tier: 5, mat: 12, matT: 24, mcost: 60, name: '驮碑龟', r: 17, maxE: 90, repE: 70, childE: 30, life: 500, mature: 60, speed: 10, meta: 0.35, diet: D_E, pow: 2.5, shell: 5, soc: SOC_SOLO, al: AL_BOLD, mv: MV_SLOW, cost: 50, col: '#7a8a6a', col2: '#4a5a3a', eye: '#ffd36a', tr: ['shell', 'ancient'], desc: '背上驮着一块旧石碑，活得极久，硬壳几乎咬不动。' },
+  { key: 'whale', tier: 6, mat: 40, matT: 18, mcost: 150, name: '夜鲸', r: 50, maxE: 300, repE: 240, childE: 100, life: 360, mature: 70, speed: 22, meta: 1.8, diet: D_E, pow: 9, soc: SOC_HERD, al: AL_BOLD, mv: MV_FLOAT, cost: 150, col: '#3a4a78', col2: '#1a2448', eye: '#8adfff', tr: ['giant'], desc: '在黑暗上空游过的大鲸鱼，体型巨大，几乎没有天敌。' },
+  { key: 'ghost', tier: 6, mat: 10, matT: 18, mcost: 60, name: '阿飘', r: 10, maxE: 34, repE: 26, childE: 12, life: 140, mature: 20, speed: 30, meta: 0.22, diet: D_M, drain: true, pow: 1.5, soc: SOC_SOLO, al: AL_PASSIVE, mv: MV_FLOAT, cost: 30, col: '#f0f0f8', col2: '#b8b8d0', eye: '#6affd0', tr: ['drain'], desc: '披着白床单的小幽灵，贴近别的小怪就偷偷吸走它们的光。' },
+  { key: 'dragon', tier: 7, mat: 120, matT: 18, mcost: 400, name: '骨龙', r: 34, maxE: 240, repE: 200, childE: 80, life: 300, mature: 60, speed: 64, meta: 0.8, diet: D_M, prey: ['bear', 'bird', 'fox', 'whale', 'jelly', 'sheep', 'turtle', 'weasel', 'unicorn'], pow: 12, soc: SOC_TERR, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 140, col: '#e8e0d0', col2: '#a89880', eye: '#ff3a2a', tr: ['apex'], desc: '只剩骨头的龙。食物链的最顶端，谁都怕它。' },
+  { key: 'unicorn', tier: 7, mat: 50, matT: 18, mcost: 200, name: '独眼兽', r: 24, maxE: 150, repE: 120, childE: 50, life: 300, mature: 50, speed: 55, meta: 0.7, diet: D_E, pow: 5, soc: SOC_HERD, al: AL_BOLD, mv: MV_WALK, pair: true, cost: 90, col: '#f4d8ff', col2: '#b88ad8', eye: '#ff9aff', tr: ['bless'], desc: '额头只有一只大眼睛。被它看过的小怪，老得更慢。' },
+  { key: 'phoenix', tier: 8, mat: 150, matT: 18, mcost: 600, name: '纸鸢凤', r: 30, maxE: 260, repE: 210, childE: 90, life: 320, mature: 60, speed: 90, meta: 0.9, diet: D_M, prey: ['bird', 'fox', 'weasel', 'sheep', 'bear', 'jelly', 'frog', 'octo', 'unicorn', 'ghost'], pow: 13, soc: SOC_SOLO, al: AL_BOLD, mv: MV_FLY, pair: true, cost: 160, col: '#ff7a3a', col2: '#c4301a', eye: '#fff27a', tr: ['rebirth', 'fly'], desc: '纸扎的凤凰，老死时会烧起来，从灰里再飞一次。' },
 ];
 /* 特性（图标化展示 + 模拟里的真实效果） */
 const TRAITS = {
   split: { ic: '🫧', name: '分裂', d: '不需要伴侣，自己分裂繁殖' },
   fast: { ic: '💨', name: '敏捷', d: '跳得快，最擅长逃跑' },
-  carrier: { ic: '📦', name: '搬运', d: '把附近的物质结晶搬回方塔' },
-  reach: { ic: '🕸️', name: '菌丝', d: '远距离吸收能量' },
+  carrier: { ic: '📦', name: '搬运', d: '把附近的魂晶搬回长明灯' },
+  reach: { ic: '🕸️', name: '菌丝', d: '远距离吸收光' },
   fly: { ic: '🪽', name: '飞行', d: '在空中移动，无视拥挤' },
   thorn: { ic: '🌵', name: '尖刺', d: '攻击它的生物会被反伤' },
   spore: { ic: '💥', name: '孢子', d: '寿终时变成两只幼体' },
   shell: { ic: '🛡️', name: '硬壳', d: '被攻击时防御大幅提升' },
-  scav: { ic: '🦴', name: '拾荒', d: '只吃战斗/死亡爆出的新鲜能量' },
+  scav: { ic: '🦴', name: '拾荒', d: '只吃战斗/死亡爆出的新鲜光' },
   tongue: { ic: '👅', name: '长舌', d: '隔空 45 距离捕食' },
   sting: { ic: '⚡', name: '蛰刺', d: '碰到它的猎物会被蛰' },
   ink: { ic: '🌫️', name: '墨遁', d: '被咬时 60% 喷墨逃脱' },
-  wool: { ic: '🧶', name: '羊毛', d: '成群时物质产量 ×2' },
+  wool: { ic: '🧶', name: '羊毛', d: '成群时魂晶产量 ×2' },
   dash: { ic: '⚡', name: '冲刺', d: '追猎时 1.8 倍速爆发' },
   ancient: { ic: '⏳', name: '长寿', d: '寿命极长，种群稳定' },
   giant: { ic: '🐋', name: '巨型', d: '体型巨大，几乎无天敌' },
-  drain: { ic: '🩸', name: '汲取', d: '贴近其他生物持续吸取能量' },
+  drain: { ic: '🩸', name: '汲取', d: '贴近其他生物持续吸取光' },
   apex: { ic: '👑', name: '顶级', d: '食物链最顶端' },
   bless: { ic: '🌈', name: '祝福', d: '身边生物衰老减半' },
   rebirth: { ic: '🔥', name: '涅槃', d: '寿终时浴火重生一次' },
@@ -488,33 +518,33 @@ const S_ripeMax = Uint8Array.from(SPECIES, s => s.ripeMax !== undefined ? s.ripe
 const S_apex = Uint8Array.from(SPECIES, s => (s.diet !== D_E && s.pow >= 6) ? 1 : 0);
 let E_MASK = 0; SPECIES.forEach((s, i) => { if (s.diet === D_E) E_MASK |= 1 << i; });
 
-/* 观测者装置 —— v0.6：基础建造 60 秒；tier = 科研层级；pf = 导能场半径（导能类） */
+/* 观测者装置 —— v0.6：基础建造 60 秒；tier = 调查层级；pf = 导能场半径（导能类） */
 const DEVICES = [
-  { key: 'pylon', tier: 0, mc: 5, name: '导能塔', cost: 1, time: 60, r: PYLON_FIELD, pf: PYLON_FIELD, desc: '提供能量场，其它建筑只能建在能量场内。必须建在已有能量场里，一座接一座连成网络。' },
-  { key: 'lab', tier: 0, mc: 15, name: '科研站', cost: 2, time: 60, rs: 0.25, desc: '研究新物种与新建筑。研究速度由【观测潮汐】驱动：潮汐越高，研究越快。' },
-  { key: 'collector', tier: 1, mc: 12, name: '物质收集器', cost: 1, time: 60, r: 210, desc: '自动吸取范围内生物掉落的物质结晶（离线时也能收集）。' },
-  { key: 'wire', tier: 1, mc: 10, name: '绊线仪', cost: 2, time: 60, len: 220, desc: '两根桩之间的光线。每有生物穿过 +0.5 潮汐（同一只 4 秒内只算一次）。R 键旋转。' },
-  { key: 'catcher', tier: 1, mc: 20, name: '光灵捕集器', cost: 2, time: 75, r: 260, desc: '把范围内飘过的光灵吸进来，化作地面能量喂养生物。离线时也在工作——生态圈自动运转的关键。' },
-  { key: 'census', tier: 2, mc: 15, name: '普查环', cost: 2, time: 75, r: 160, desc: '范围内每只生物每秒 +0.01 潮汐。' },
-  { key: 'ripen', tier: 2, mc: 15, name: '凝能塔', cost: 2, time: 75, r: 150, desc: '范围内新释放的能量凝结速度 ×4，让食物更快可吃。' },
-  { key: 'well', tier: 3, mc: 20, name: '引力井', cost: 2, time: 90, r: 260, desc: '把范围内的能量缓缓吸向中心，制造“食堂”（也会吸引争抢）。' },
-  { key: 'prism', tier: 3, mc: 30, name: '多样性棱镜', cost: 3, time: 90, r: 180, desc: '范围内每有一个不同物种，每秒 +0.15 潮汐。' },
-  { key: 'arena', tier: 3, mc: 30, name: '角斗观测台', cost: 3, time: 90, r: 190, desc: '范围内每次战斗 +1 潮汐，每次捕杀 +2.5。冲突越多收益越高——但生态会更不稳定。' },
-  { key: 'bell', tier: 4, mc: 30, name: '共鸣钟', cost: 3, time: 90, r: 200, desc: '范围内每诞生一只生物 +1 潮汐。' },
-  { key: 'lure', tier: 4, mc: 20, name: '诱导信标', cost: 2, time: 75, r: 320, desc: '吸引范围内闲逛的食能生物靠近（配合绊线仪、普查环）。' },
-  { key: 'barrier', tier: 4, mc: 40, name: '屏障发生器', cost: 3, time: 90, len: 240, desc: '一道只拦截食肉/杂食动物的力场墙。R 键旋转。' },
-  { key: 'pylon2', tier: 4, mc: 40, name: '巨型导能塔', cost: 2, time: 90, r: 290, pf: 290, desc: '超大范围的能量场（半径 290），快速把电网铺向远方的遗迹。' },
-  { key: 'sanct', tier: 5, mc: 60, name: '安宁结界', cost: 4, time: 120, r: 140, desc: '范围内禁止一切战斗和捕猎，是猎物的避难所。' },
-  { key: 'stasis', tier: 5, mc: 60, name: '静滞场', cost: 4, time: 120, r: 150, desc: '范围内生物衰老速度 -50%，代谢 -30%。' },
-  { key: 'nursery', tier: 5, mc: 50, name: '繁育温室', cost: 3, time: 120, r: 170, desc: '范围内生物的繁殖冷却缩短 40%，幼崽成长更快。' },
-  { key: 'scare', tier: 5, mc: 50, name: '威慑塔', cost: 3, time: 120, r: 170, desc: '让捕食者（食肉/杂食）不敢进入范围内，把它们赶出去。' },
-  { key: 'chron', tier: 6, mc: 120, name: '长河记录仪', cost: 5, time: 150, desc: '全局：生物总数越稳定（近 60 秒波动越小），每次结算加成越高（最多 +14）。' },
-  { key: 'rlab', tier: 6, mc: 150, name: '量子研究所', cost: 4, time: 150, rs: 1.0, desc: '高级科研设施：研究速度是科研站的 4 倍。' },
-  { key: 'pool', tier: 6, mc: 100, name: '潮汐池', cost: 4, time: 150, r: 200, desc: '范围内每存在一个营养级（食能 / 捕食 / 顶级），每秒 +0.4 潮汐。' },
-  { key: 'sun', tier: 7, mc: 220, name: '星光汇聚塔', cost: 4, time: 180, r: 220, desc: '从星空中牵引光灵降落在周围（约每 1.5 秒一只）。配合光灵捕集器，形成稳定的能量来源。' },
-  { key: 'lens', tier: 7, mc: 150, name: '潮汐透镜', cost: 6, time: 180, r: 260, desc: '范围内其它建筑产出的潮汐 ×1.3（可叠加）。' },
-  { key: 'elder', tier: 8, mc: 120, name: '回响尖塔', cost: 5, time: 150, r: 220, desc: '范围内每只年迈生物（寿命过 60%）每秒 +0.04 潮汐。' },
-  { key: 'ark', tier: 9, mc: 200, name: '方舟碑', cost: 6, time: 180, r: 220, desc: '范围内存活物种 ≥6 时，每秒 +0.6 潮汐。' },
+  { key: 'pylon', tier: 0, mc: 5, name: '路灯', cost: 1, time: 60, r: PYLON_FIELD, pf: PYLON_FIELD, desc: '照亮一片地方。其它建筑只能建在灯光里；路灯要接着亮处一盏一盏往外建。' },
+  { key: 'lab', tier: 0, mc: 15, name: '调查站', cost: 2, time: 60, rs: 0.25, desc: '加快调查黑暗里的新小怪和新建筑（不建也会慢慢调查）。光域越高，调查越快。' },
+  { key: 'collector', tier: 1, mc: 12, name: '收魂瓶', cost: 1, time: 60, r: 210, desc: '自动收走附近小怪掉落的魂晶（离开游戏时也在收）。' },
+  { key: 'wire', tier: 1, mc: 10, name: '红线', cost: 2, time: 60, len: 220, desc: '两根桩之间拉一根红线。每有小怪穿过 +0.5 光域（同一只 4 秒内只算一次）。' },
+  { key: 'catcher', tier: 1, mc: 20, name: '捕光网', cost: 2, time: 75, r: 260, desc: '把飘过的流光网住，洒成地上的光喂小怪。离开游戏时也在工作。' },
+  { key: 'census', tier: 2, mc: 15, name: '监控探头', cost: 2, time: 75, r: 160, desc: '范围内每只小怪每秒 +0.01 光域。' },
+  { key: 'ripen', tier: 2, mc: 15, name: '暖光灯', cost: 2, time: 75, r: 150, desc: '范围内新洒下的光更快变成可以吃的光斑。' },
+  { key: 'well', tier: 3, mc: 20, name: '古井', cost: 2, time: 90, r: 260, desc: '把附近地上的光慢慢吸到井边，形成“食堂”（也会引来抢食）。' },
+  { key: 'prism', tier: 3, mc: 30, name: '走马灯', cost: 3, time: 90, r: 180, desc: '范围内每有一种不同的小怪，每秒 +0.15 光域。' },
+  { key: 'arena', tier: 3, mc: 30, name: '斗笼', cost: 3, time: 90, r: 190, desc: '范围内每次打架 +1 光域，每次捕杀 +2.5。越乱越赚——但生态更不稳。' },
+  { key: 'bell', tier: 4, mc: 30, name: '招魂铃', cost: 3, time: 90, r: 200, desc: '范围内每出生一只小怪 +1 光域。' },
+  { key: 'lure', tier: 4, mc: 20, name: '诱饵灯', cost: 2, time: 75, r: 320, desc: '把附近闲逛的吃光小怪引过来。' },
+  { key: 'barrier', tier: 4, mc: 40, name: '黄符结界', cost: 3, time: 90, len: 240, desc: '一道只拦吃肉小怪的符咒墙。' },
+  { key: 'pylon2', tier: 4, mc: 40, name: '高杆路灯', cost: 2, time: 90, r: 290, pf: 290, desc: '照得特别远的路灯（半径 290），快速把光铺到远处。' },
+  { key: 'sanct', tier: 5, mc: 60, name: '小神龛', cost: 4, time: 120, r: 140, desc: '范围内禁止打架和捕猎，是弱小小怪的避难所。' },
+  { key: 'stasis', tier: 5, mc: 60, name: '冷柜', cost: 4, time: 120, r: 150, desc: '范围内小怪老得慢一半，吃得少三成。' },
+  { key: 'nursery', tier: 5, mc: 50, name: '摇篮', cost: 3, time: 120, r: 170, desc: '范围内小怪繁殖更快，幼崽长得更快。' },
+  { key: 'scare', tier: 5, mc: 50, name: '稻草人', cost: 3, time: 120, r: 170, desc: '吃肉的小怪不敢靠近，会被吓跑。' },
+  { key: 'chron', tier: 6, mc: 120, name: '老座钟', cost: 5, time: 150, desc: '全局：小怪总数越稳定，每次结算加成越高（最多 +14）。' },
+  { key: 'rlab', tier: 6, mc: 150, name: '档案馆', cost: 4, time: 150, rs: 1.0, desc: '高级调查设施：调查速度是调查站的 4 倍。' },
+  { key: 'pool', tier: 6, mc: 100, name: '月光池', cost: 4, time: 150, r: 200, desc: '范围内每有一层食物链（吃光 / 吃肉 / 顶级），每秒 +0.4 光域。' },
+  { key: 'sun', tier: 7, mc: 220, name: '人造月亮', cost: 4, time: 180, r: 220, desc: '把流光从夜空里拽下来，落在周围（约每 1.5 秒一团）。配合捕光网更好。' },
+  { key: 'lens', tier: 7, mc: 150, name: '探照灯', cost: 6, time: 180, r: 260, desc: '范围内其它建筑产出的光域 ×1.3（可叠加）。' },
+  { key: 'elder', tier: 8, mc: 120, name: '老槐树', cost: 5, time: 150, r: 220, desc: '范围内每只老年小怪（寿命过 60%）每秒 +0.04 光域。' },
+  { key: 'ark', tier: 9, mc: 200, name: '日出钟', cost: 6, time: 180, r: 220, desc: '范围内存活 ≥6 种小怪时，每秒 +0.6 光域。' },
 ];
 const ND = DEVICES.length;
 const DV_IDX = {}; DEVICES.forEach((d, i) => { d.id = i; DV_IDX[d.key] = i; });
@@ -524,25 +554,25 @@ function buildCap(lv) { return 4 + 3 * lv; }
 function wallHP(d) { return 4 + 3 * Math.pow(Math.max(0, d - START_R + 60) / 300, 1.7); }
 function wallE(d) { return 1 + Math.floor(d / 350); }
 
-/* ---------- v0.6 经济：白球不再自动回充，能量来自环境中的【光灵】 ---------- */
-function tankMax(lv) { return 80 + 40 * lv; }           // 白球能量槽上限
+/* ---------- v0.6 经济：小灯不再自动回充，光来自环境中的【流光】 ---------- */
+function tankMax(lv) { return 80 + 40 * lv; }           // 小灯光槽上限
 function tankRegen(lv) { return 2 + 0.6 * lv; }         // 仅作生态位容量估算的下限（不再真的回充）
-const MAXW = 900, WISP_LIFE = 150, WISP_MAG = 120;        // 光灵：上限 / 寿命 / 白球吸取半径
-/* 科研：tier 1..9 的研究点数 */
+const MAXW = 900, WISP_LIFE = 150, WISP_MAG = 120;        // 流光：上限 / 寿命 / 小灯吸取半径
+/* 调查：tier 1..9 的调查点数 */
 const RES_COST = [0, 30, 60, 110, 200, 380, 700, 1300, 2400, 4400];
-function resGate(tier) { return Math.max(0, tier - 1); } // 需要的潮汐历史最高等级
+function resGate(tier) { return Math.max(0, tier - 1); } // 需要的光域历史最高等级
 const AD_BUILD_CUT = 60;                                // 看广告：建造 -60 秒
-const SPRAY_RATE = 26;                                  // 按住喷洒：每秒喷出能量
-const MAT_LIFE = 240;                                   // 物质结晶掉在地上 240 秒后消散
+const SPRAY_RATE = 26;                                  // 按住喷洒：每秒喷出光
+const MAT_LIFE = 240;                                   // 魂晶掉在地上 240 秒后消散
 const MAXM = 6000;
 /* 特殊地点（遗迹）：藏在黑墙里 */
 const POI = [
-  { key: 'cave', name: '能量洞', icon: '✦', col: '#9ff4ff', desc: '封存着一大团能量的洞穴。挖通后能量会被生物找到。' },
-  { key: 'reactor', name: '远古反应堆', icon: '☢', col: '#7dffb0', desc: '用导能塔把它接入能量网络后，每秒生成 4 点能量。' },
-  { key: 'crystal', name: '物质晶簇', icon: '◆', col: '#ffd36b', desc: '白球触碰即可采集一大笔物质（一次性）。' },
-  { key: 'obelisk', name: '观测古碑', icon: '▲', col: '#c9a8ff', desc: '接入能量网络后：每秒 +0.4 潮汐，建造额度 +2。' },
-  { key: 'pod', name: '休眠孵化舱', icon: '⬭', col: '#ff9fd0', desc: '白球触碰唤醒：放出一群生物，并永久解锁该物种。' },
-  { key: 'relay', name: '远古中继塔', icon: '⌬', col: '#8fd8ff', desc: '接入能量网络后，提供半径 320 的超大能量场。' },
+  { key: 'cave', name: '光之洞', icon: '✦', col: '#9ff4ff', desc: '封着一大团光的洞。挖通后光会洒出来。' },
+  { key: 'reactor', name: '古灯台', icon: '☢', col: '#7dffb0', desc: '用路灯接上后，每秒产生 4 点光。' },
+  { key: 'crystal', name: '魂晶矿', icon: '◆', col: '#ffd36b', desc: '小灯碰一下就能收走一大笔魂晶（一次性）。' },
+  { key: 'obelisk', name: '无字碑', icon: '▲', col: '#c9a8ff', desc: '用路灯接上后：每秒 +0.4 光域，建筑上限 +2。' },
+  { key: 'pod', name: '封印的蛋', icon: '⬭', col: '#ff9fd0', desc: '小灯碰一下就会孵化：放出一群小怪，并永久解锁这种小怪。' },
+  { key: 'relay', name: '旧路灯', icon: '⌬', col: '#8fd8ff', desc: '用路灯接上后重新亮起，照亮半径 320 的超大范围。' },
 ];
 const POI_IDX = {}; POI.forEach((p, i) => POI_IDX[p.key] = i);
 
@@ -550,14 +580,14 @@ const POI_IDX = {}; POI.forEach((p, i) => POI_IDX[p.key] = i);
 const rnd = Math.random;
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-/* ---------- 能量粒子 SoA：pr = 凝结度 0..255（255 才能被吃） ---------- */
+/* ---------- 光粒子 SoA：pr = 凝结度 0..255（255 才能被吃） ---------- */
 const px = new Float32Array(MAXP), py = new Float32Array(MAXP), pvx = new Float32Array(MAXP), pvy = new Float32Array(MAXP);
 const pr = new Uint8Array(MAXP), pv = new Uint16Array(MAXP);
 let pN = 0;
 // 空间网格按“是否已凝结”分两个桶：桶 1 = 可吃
 const pStart = new Int32Array(2 * SNC + 1), pItems = new Int32Array(MAXP), pCur = new Int32Array(2 * SNC), pKey = new Int32Array(MAXP);
 
-/* ---------- 生物 SoA ---------- */
+/* ---------- 小怪 SoA ---------- */
 const cx = new Float32Array(MAXC), cy = new Float32Array(MAXC), cvx = new Float32Array(MAXC), cvy = new Float32Array(MAXC);
 const cpx = new Float32Array(MAXC), cpy = new Float32Array(MAXC);
 const ce = new Int32Array(MAXC), csp = new Uint8Array(MAXC), cage = new Float32Array(MAXC), cmeta = new Float32Array(MAXC);
@@ -567,10 +597,10 @@ const cph = new Float32Array(MAXC), ctim = new Float32Array(MAXC), cwire = new F
 const chop = new Float32Array(MAXC), cdead = new Uint8Array(MAXC), cgen = new Uint16Array(MAXC), cmood = new Float32Array(MAXC);
 const cg = new Float32Array(MAXC), ckin = new Uint8Array(MAXC), cfc = new Float32Array(MAXC), cang = new Float32Array(MAXC), cmt = new Float32Array(MAXC);
 const cflag = new Uint8Array(MAXC), cdr = new Float32Array(MAXC); // cflag bit0 = 已涅槃；cdr = 汲取/祝福计时
-/* ---------- 光灵（环境中的白色能量球）SoA ---------- */
+/* ---------- 流光（环境中的白色光球）SoA ---------- */
 const wx = new Float32Array(MAXW), wy = new Float32Array(MAXW), wvx = new Float32Array(MAXW), wvy = new Float32Array(MAXW), wval = new Uint8Array(MAXW), wage = new Float32Array(MAXW), wph = new Float32Array(MAXW), wtg = new Int16Array(MAXW);
 let wN = 0;
-/* ---------- 物质结晶 SoA ---------- */
+/* ---------- 魂晶 SoA ---------- */
 const mx = new Float32Array(MAXM), my = new Float32Array(MAXM), mvx = new Float32Array(MAXM), mvy = new Float32Array(MAXM), mval = new Uint16Array(MAXM), mage = new Float32Array(MAXM);
 let mN = 0;
 let cN = 0;
@@ -609,7 +639,7 @@ function unstick(x, y) {
 }
 function dist2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
 
-/* ===================== 世界生成 ===================== */
+/* ===================== 夜晚生成 ===================== */
 function genWorld(seed) {
   G.seed = seed; const R = mulberry32(seed);
   for (let gy = 0; gy < GN; gy++) for (let gx = 0; gx < GN; gx++) {
@@ -619,8 +649,8 @@ function genWorld(seed) {
     else if (d < START_R + wob) { whp[i] = 0; wMax[i] = 0; wE[i] = 0; }
     else { const h = wallHP(d) * (0.85 + R() * 0.3); whp[i] = h; wMax[i] = h; wE[i] = wallE(d); }
   }
-  for (let i = 0; i < GN * GN; i++) wE[i] = 0; // v0.5：墙里没有能量（能量不可再生）
-  // 特殊地点：藏在黑墙里的遗迹 / 能量洞（彼此保持距离）
+  for (let i = 0; i < GN * GN; i++) wE[i] = 0; // v0.5：墙里没有光（光不可再生）
+  // 特殊地点：藏在黑墙里的遗迹 / 光洞（彼此保持距离）
   const pois = [], plan = [['cave', 11, 800, 3800], ['crystal', 6, 700, 2400], ['pod', 5, 800, 2600], ['reactor', 4, 1000, 3200], ['relay', 4, 900, 3000], ['obelisk', 3, 1500, 3700]];
   for (const [key, n, d0, d1] of plan) for (let k = 0; k < n; k++) {
     for (let tries = 0; tries < 40; tries++) {
@@ -643,7 +673,7 @@ function genWorld(seed) {
   seen.fill(0); revealFlood(gIdx(0, 0));
   G.total0 = ledger().total; computeOpen();
 }
-/* ---------- 迷雾：只看得见与中心连通的区域 + 白球附近 ---------- */
+/* ---------- 迷雾：只看得见与中心连通的区域 + 小灯附近 ---------- */
 function markSeen(i) { if (!seen[i]) { seen[i] = 1; SEEN_DIRTY.push(i); const x = (i % GN + 0.5) * CELL - HALF, y = ((i / GN | 0) + 0.5) * CELL - HALF, d = Math.hypot(x, y); if (d > G.expR && whp[i] <= 0) G.expR = d; } }
 const SEEN_DIRTY = [];
 function revealFlood(i0) {
@@ -682,7 +712,7 @@ function addP(x, y, v, vx, vy, ripe) {
   while (v > 60000) { addP(x, y, 60000, vx, vy, ripe); v -= 60000; }
   px[pN] = x; py[pN] = y; pvx[pN] = vx; pvy[pN] = vy; pr[pN] = ripe || 0; pv[pN] = v; pN++;
 }
-// 把 e 点能量溅射成若干未凝结粒子
+// 把 e 点光溅射成若干未凝结粒子
 function burst(x, y, e, spread) {
   if (e <= 0) return;
   const n = Math.min(12, e), base = Math.floor(e / n); let rem = e - base * n;
@@ -698,7 +728,7 @@ function buildPGrid() {
 function cellDensity(c) { return pStart[c + 1] - pStart[c] + pStart[SNC + c + 1] - pStart[SNC + c]; }
 function compactP() { let j = 0; for (let i = 0; i < pN; i++) { if (pv[i] > 0) { if (i !== j) { px[j] = px[i]; py[j] = py[i]; pvx[j] = pvx[i]; pvy[j] = pvy[i]; pr[j] = pr[i]; pv[j] = pv[i]; } j++; } } pN = j; }
 
-// 环形搜索最近的【已凝结】能量
+// 环形搜索最近的【已凝结】光
 function findP(x, y, R, rmin, rmax) {
   const b0 = rmin < 255 ? 0 : 1, b1 = rmax < 255 ? 0 : 1;
   const gx0 = ((x + HALF) / SC) | 0, gy0 = ((y + HALF) / SC) | 0; const rings = Math.min(6, Math.ceil(R / SC));
@@ -743,7 +773,7 @@ function buildCGrid() {
   for (let i = 0; i < cN; i++) cItems[cCur[cKey[i]]++] = i;
 }
 
-/* ===================== 生物属性（基因影响） ===================== */
+/* ===================== 小怪属性（基因影响） ===================== */
 function capE(i) { const g = cg[i]; return Math.max(3, (S_maxE[csp[i]] * g * g + 0.5) | 0); }
 function repEi(i) { const g = cg[i]; return SPECIES[csp[i]].repE * g * g; }
 function radius(i) { return S_r[csp[i]] * cg[i]; }
@@ -765,14 +795,14 @@ let CAN_FX = true;
 function inR(list, x, y, R) { for (const d of list) if (dist2(x, y, d.x, d.y) < R * R) return true; return false; }
 function special(i, s, r) {
   const sp = SPECIES[s];
-  if (sp.drain) { // 汲取：贴近其他物种，慢慢吸走能量
+  if (sp.drain) { // 汲取：贴近其他物种，慢慢吸走光
     const cap = capE(i); if (ce[i] >= cap - 1) return;
     const j = findC(cx[i], cy[i], r + 30, ~(1 << s), i, null); if (j < 0) { if (cst[i] === ST_WANDER && rnd() < 0.5) { const k = findC(cx[i], cy[i], 200, ~(1 << s), i, null); if (k >= 0) { ctx_[i] = cx[k]; cty[i] = cy[k]; } } return; }
     if (G.sancts.length && inSanct(cx[j], cy[j])) return;
     const take = Math.min(ce[j], 2, cap - ce[i]); ce[j] -= take; ce[i] += take; ctx_[i] = cx[j]; cty[i] = cy[j];
     if (CAN_FX && rnd() < 0.5) emit('drain', cx[j], cy[j], cx[i], cy[i]);
     if (ce[j] <= 0) { killC(j, false); G.deaths++; emit('death', cx[j], cy[j], csp[j]); }
-  } else { // 祝福：身边生物衰老减半
+  } else { // 祝福：身边小怪衰老减半
     countInR(cx[i], cy[i], 90, j => { if (cstas[j] < 0.6) cstas[j] = 0.6; });
   }
 }
@@ -902,7 +932,7 @@ function think(i) {
       if (j >= 0) { cst[i] = ST_HUNT; ctg[i] = j; ctgId[i] = cid[j]; ctim[i] = 7; return; }
     }
   }
-  // 5. 吃能量（食能 / 杂食）
+  // 5. 吃光（食能 / 杂食）
   if (S_eats[s] && e < cap - 1) {
     const j = findP(x, y, sense, S_ripeMin[s], S_ripeMax[s]);
     if (j >= 0) {
@@ -943,7 +973,7 @@ function eatNear(i, R) {
   return ate;
 }
 
-/* ---------- 战斗（守恒：受伤掉的能量洒回地图） ---------- */
+/* ---------- 战斗（守恒：受伤掉的光洒回地图） ---------- */
 function hurt(i, frac) {
   const dmg = Math.min(ce[i], Math.max(1, Math.ceil(capE(i) * frac)));
   ce[i] -= dmg; burst(cx[i], cy[i], dmg, 40);
@@ -982,12 +1012,12 @@ function fight(a, d, lethal) {
 const S_crowd = new Float32Array(NS).fill(1);
 // 种内竞争（同种之间争夺空间/配偶，比种间竞争更强 → 多物种共存）。容量随开拓面积增长 → 探索黑墙有意义
 function inRate() { return Math.max(tankRegen(G.lv), G.inRate || 0); }
-// 能量金字塔：捕食者只能拿到下一级能量的一小部分 → 容量约为食能者的 30%
+// 光金字塔：捕食者只能拿到下一级光的一小部分 → 容量约为食能者的 30%
 function nicheK(s) { return Math.max(3, (S_diet[s] === D_E ? 0.35 : 0.11) * inRate() / (S_meta[s] * META_MUL)) * Math.sqrt(G.kMul || 1); }
 const META_MUL = 0.7;
 const S_K = new Float32Array(NS);
 function updateCrowd() { for (let s = 0; s < NS; s++) { const K = S_K[s] = nicheK(s); S_crowd[s] = 1 + 0.5 * G.spCount[s] / K; } }
-// 密度依赖的繁殖：接近容量时繁殖意愿下降，超过就不繁殖（给其他物种留能量）
+// 密度依赖的繁殖：接近容量时繁殖意愿下降，超过就不繁殖（给其他物种留光）
 function breedRoom(s) { const q = G.spCount[s] / S_K[s]; return q < 0.6 || rnd() < (1 - q) / 0.4; }
 function stepC(dt) {
   updateCrowd();
@@ -1001,13 +1031,13 @@ function stepC(dt) {
     cage[i] += dt * ageMul;
     const life = S_life[s];
     if (cage[i] > life) { killC(i, true, true); G.oldDeaths++; emit('death', cx[i], cy[i], s); continue; }
-    // 代谢：能量以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
+    // 代谢：光以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
     cmeta[i] += S_meta[s] * META_MUL * g * Math.sqrt(g) * dt * metaMul * (1 + 0.1 * ckin[i]) * S_crowd[s]; // 同类拥挤 + 生态位饱和 → 代谢升高
     if (cmeta[i] >= 1) {
       let k = Math.floor(cmeta[i]); if (k > ce[i]) k = ce[i]; cmeta[i] -= Math.floor(cmeta[i]);
-      if (k > 0) { ce[i] -= k; G.flow.burn += k; G.flowWin.burn += k; } // v0.5：代谢让能量消失（不可再生）
+      if (k > 0) { ce[i] -= k; G.flow.burn += k; G.flowWin.burn += k; } // v0.5：代谢让光消失（不可再生）
     }
-    // 代谢物 → 物质结晶（吃饱的成年个体才会产出；高级生物产量高得多）
+    // 代谢物 → 魂晶（吃饱的成年个体才会产出；高级小怪产量高得多）
     cmt[i] -= dt;
     if (cmt[i] <= 0) { cmt[i] = sp.matT * (0.8 + rnd() * 0.4); if (cage[i] >= sp.mature && ce[i] > capE(i) * 0.4) dropMatter(cx[i], cy[i] + r * 0.5, sp.mat * (WOOL[s] && ckin[i] >= 2 ? 2 : 1)); }
     if (SPECIAL[s]) { cdr[i] -= dt; if (cdr[i] <= 0) { cdr[i] = 0.5; special(i, s, r); if (cdead[i]) continue; } }
@@ -1060,7 +1090,7 @@ function stepC(dt) {
       const dvx = (dx + wx) * spd * arrive, dvy = (dy + wy) * spd * arrive;
       const k = Math.min(1, 3.5 * dt); cvx[i] += (dvx - cvx[i]) * k; cvy[i] += (dvy - cvy[i]) * k;
     }
-    // 白球推挤
+    // 小灯推挤
     const ox = cx[i] - orb.x, oy = cy[i] - orb.y, od2 = ox * ox + oy * oy, orr = r + 16;
     if (od2 < orr * orr && od2 > 0.01 && !orb.dead) { const od = Math.sqrt(od2); cvx[i] += ox / od * 140; cvy[i] += oy / od * 140; }
     cpx[i] = cx[i]; cpy[i] = cy[i];
@@ -1120,7 +1150,7 @@ function stepP(dt) {
   }
 }
 
-/* ===================== 墙体与白球 ===================== */
+/* ===================== 墙体与小灯 ===================== */
 function breakCell(i) {
   if (whp[i] <= 0 || whp[i] === Infinity) return;
   whp[i] = 0; const gx = i % GN, gy = (i / GN) | 0, x = (gx + 0.5) * CELL - HALF, y = (gy + 0.5) * CELL - HALF;
@@ -1149,7 +1179,7 @@ function stepOrb(dt) {
     if (d2 < (R + 4) * (R + 4) && whp[i] !== Infinity && (o.ix || o.iy)) { whp[i] -= dps * dt; touching++; if (whp[i] <= 0) breakCell(i); else if ((G.frame & 3) === 0) WALL_DIRTY.push(i); }
     if (whp[i] > 0 && d2 < R * R) { const d = Math.sqrt(d2) || 0.01; const push = R - d; if (d2 > 1e-6) { nx += dx / d * push; ny += dy / d * push; } else { nx -= o.vx * dt; ny -= o.vy * dt; } }
   }
-  // 能量槽：按住喷洒 / 松开回充
+  // 光槽：按住喷洒 / 松开回充
   const TM = tankMax(G.lv);
   if (o.spray && o.tank >= 1) {
     o.sprAcc += SPRAY_RATE * dt; let n = Math.min(Math.floor(o.sprAcc), Math.floor(o.tank)); o.sprAcc -= Math.floor(o.sprAcc);
@@ -1173,7 +1203,7 @@ function teleportOrb(tx, ty) {
   o.x = lx; o.y = ly; o.vx = dx / d * 60; o.vy = dy / d * 60; emit('tp', x, y); return true;
 }
 
-/* ===================== 光灵：环境中的白色能量球（v0.6 唯一的“天然”能量来源） ===================== */
+/* ===================== 流光：环境中的白色光球（v0.6 唯一的“天然”光来源） ===================== */
 function addW(x, y, v) { if (wN >= MAXW) return -1; const k = wN++; wx[k] = x; wy[k] = y; const a = rnd() * 6.2832; wvx[k] = Math.cos(a) * 8; wvy[k] = Math.sin(a) * 8; wval[k] = v; wage[k] = 0; wph[k] = rnd() * 6.28; wtg[k] = -1; return k; }
 function wispTarget() { return Math.min(260, 26 + G.open / 140); }
 function spawnWisp() {
@@ -1182,15 +1212,15 @@ function spawnWisp() {
     const a = rnd() * 6.2832, d = Math.sqrt(rnd()) * R, x = Math.cos(a) * d, y = Math.sin(a) * d, i = gIdx(x, y);
     if (i < 0 || !seen[i] || whp[i] > 0 || d < 110) continue;
     if (isWall(x + 14, y) || isWall(x - 14, y) || isWall(x, y + 14) || isWall(x, y - 14)) continue;
-    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
+    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的流光越亮（光越多）
   }
   return false;
 }
 function stepW(dt) {
-  // 生成：已探索区域越大，光灵越多
+  // 生成：已探索区域越大，流光越多
   G.wAcc += dt * (0.6 + G.open / 8000);
   while (G.wAcc >= 1) { G.wAcc -= 1; if (wN < wispTarget()) spawnWisp(); }
-  // 星光汇聚塔：在周围降下光灵
+  // 人造月亮：在周围降下流光
   if (G.lv >= 1) for (const d of G.suns) { d.acc2 = (d.acc2 || 0) + dt / 1.5; while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 40 + rnd() * 160, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r; if (!isWall(x, y)) { const k = addW(x, y, 5); if (k >= 0) emit('wdrop', x, y); } } }
   const o = G.orb, TM = tankMax(G.lv), canAbs = !o.dead && !G.offline && o.tank < TM - 0.5, cat = G.lv >= 1 ? G.catchers : [];
   let got = 0;
@@ -1215,11 +1245,11 @@ function stepW(dt) {
   if (!wval[0] || (G.frame & 15) === 0) { let j = 0; for (let k = 0; k < wN; k++) if (wval[k]) { if (k !== j) { wx[j] = wx[k]; wy[j] = wy[k]; wvx[j] = wvx[k]; wvy[j] = wvy[k]; wval[j] = wval[k]; wage[j] = wage[k]; wph[j] = wph[k]; } j++; } wN = j; }
   return got;
 }
-/* ===================== 科研（研究速度由潮汐驱动） ===================== */
+/* ===================== 调查（调查速度由光域驱动） ===================== */
 function resKey(kind, idx) { return kind === 's' ? SPECIES[idx].key : 'd' + DEVICES[idx].key; }
 function resItem(key) { if (key[0] === 'd' && DV_IDX[key.slice(1)] !== undefined) { const d = DEVICES[DV_IDX[key.slice(1)]]; return { kind: 'd', idx: d.id, def: d, tier: d.tier, cost: RES_COST[d.tier] || 0 }; } const i = SP_IDX[key]; if (i === undefined) return null; const sp = SPECIES[i]; return { kind: 's', idx: i, def: sp, tier: sp.tier, cost: RES_COST[sp.tier] || 0 }; }
-function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要潮汐 Lv' + resGate(it.tier); return ''; }
-/* v0.7 极简：科研全自动，按固定顺序解锁（每阶 生物/建筑 交替） */
+function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要光域 Lv' + resGate(it.tier); return ''; }
+/* v0.7 极简：调查全自动，按固定顺序解锁（每阶 小怪/建筑 交替） */
 let RES_ORDER = null;
 function resOrder() {
   if (RES_ORDER) return RES_ORDER; RES_ORDER = [];
@@ -1227,7 +1257,7 @@ function resOrder() {
   return RES_ORDER;
 }
 function nextRes() { for (const k of resOrder()) if (!G.unlocked.includes(k)) return k; return ''; }
-function researchRate() { // 每秒研究点数（基础 0.15 + 科研设施）
+function researchRate() { // 每秒调查点数（基础 0.15 + 调查设施）
   let base = 0.15; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
   return base * (1 + Math.max(0, G.lastScore) / WINDOW);
 }
@@ -1270,7 +1300,7 @@ function stepPOIs(dt) {
   }
 }
 function poiBonusCap() { let n = 0; for (const q of G.pois) if (q.on && POI[q.type].key === 'obelisk') n += 2; return n; }
-/* ===================== 物质结晶 ===================== */
+/* ===================== 魂晶 ===================== */
 function dropMatter(x, y, v) {
   if (v <= 0) return;
   if (mN >= MAXM) { const j = (rnd() * mN) | 0; mval[j] = Math.min(60000, mval[j] + v); return; }
@@ -1286,7 +1316,7 @@ function stepM(dt) {
     if (!mval[j]) continue;
     mage[j] += dt; if (mage[j] > MAT_LIFE) { mval[j] = 0; continue; }
     let vx = mvx[j], vy = mvy[j];
-    // 白球吸取
+    // 小灯吸取
     if (!o.dead && !G.offline) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
     if (car.length) { let hit = -1; for (const i of car) { const dx = cx[i] - mx[j], dy = cy[i] - my[j]; if (dx * dx + dy * dy < 26 * 26) { hit = i; break; } } if (hit >= 0) { const v = collectM(j); if (CAN_FX) emit('carry', cx[hit], cy[hit], v); continue; } }
     for (const c of cols) { const dx = c.x - mx[j], dy = c.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 18 * 18) { collectM(j); c.n = (c.n || 0) + 1; break; } if (d2 < 210 * 210) { const d = Math.sqrt(d2); vx += dx / d * 260 * dt; vy += dy / d * 260 * dt; } }
@@ -1305,7 +1335,7 @@ function recomputePower() {
   const pylons = G.devs.filter(d => DEVICES[d.type].pf);
   for (const p of pylons) { p.conn = false; p.fr = DEVICES[p.type].pf; }
   const q = [];
-  // 远古中继塔：找到后也算一个导能节点（能量场半径 320）
+  // 远古中继塔：找到后也算一个导能节点（灯光范围半径 320）
   for (const r of G.pois) if (POI[r.type].key === 'relay') { r.conn = false; r.bt = r.found ? 0 : 1; r.fr = 320; if (r.found) pylons.push(r); }
   const fr = p => p.fr || PYLON_FIELD;
   for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD + (p.fr > PYLON_FIELD ? p.fr - PYLON_FIELD : 0)) { p.conn = true; q.push(p); }
@@ -1332,12 +1362,12 @@ function capUsed() { let s = 0; for (const d of G.devs) s += DEVICES[d.type].cos
 function devUnlocked(type) { return DEVICES[type].tier === 0 || G.unlocked.includes('d' + DEVICES[type].key); }
 function canPlace(type, x, y) {
   const def = DEVICES[type];
-  if (!devUnlocked(type)) return '需要先在科研站研究';
-  if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升潮汐等级可增加）';
-  if (G.matter < def.mc) return '物质不足（需要 ' + def.mc + '）';
-  if (x * x + y * y < 80 * 80) return '离方塔太近';
+  if (!devUnlocked(type)) return '需要先在调查站调查';
+  if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升光域等级可增加）';
+  if (G.matter < def.mc) return '魂晶不足（需要 ' + def.mc + '）';
+  if (x * x + y * y < 80 * 80) return '离长明灯太近';
   for (const q of G.pois) if (dist2(q.x, q.y, x, y) < 50 * 50) return '离遗迹太近';
-  if (!inField(x, y, null)) return '必须建在能量场内（先铺设导能塔）';
+  if (!inField(x, y, null)) return '必须建在灯光范围内（先铺设路灯）';
   if (isWall(x, y)) return '这里被黑墙挡住了';
   for (let a = 0; a < 6.28; a += 1.05) if (isWall(x + Math.cos(a) * 14, y + Math.sin(a) * 14)) return '这里被黑墙挡住了';
   for (const d of G.devs) if (dist2(d.x, d.y, x, y) < 40 * 40) return '离其他装置太近';
@@ -1380,7 +1410,7 @@ function stepDevs(dt) {
   for (const d of G.devs) if (d.bt > 0) { d.bt -= dt; if (d.bt <= 0) { d.bt = 0; emit('built', d.x, d.y, d.type); dirty = true; } }
   if (dirty) recomputePower();
   stepResearch(dt);
-  if (G.lv < 1) return; // 潮汐归零：所有装置停机（遗迹）
+  if (G.lv < 1) return; // 光域归零：所有装置停机（遗迹）
   for (const d of G.devs) {
     if (!devActive(d)) continue;
     const def = DEVICES[d.type], key = def.key; d.tt += dt;
@@ -1417,7 +1447,7 @@ function chronBonus() {
   return Math.max(0, 14 * (1 - (mx - mn) / mx / 0.2));
 }
 
-/* ===================== 潮汐结算（多样性 × 营养级） ===================== */
+/* ===================== 光域结算（多样性 × 营养级） ===================== */
 function trophic() {
   let e = 0, m = 0, a = 0;
   for (let s = 0; s < NS; s++) if (G.spCount[s] > 0) { if (S_apex[s]) a = 1; else if (S_diet[s] !== D_E) m = 1; else e = 1; }
@@ -1446,12 +1476,12 @@ function settle() {
   emit('settle', score, G.lv, prevLv);
   if (G.lv >= MAXLV && !G.won) { G.won = true; emit('win'); }
 }
-function unlockUpTo() { // v0.6：只有 tier 0 自带，其它全部靠科研
+function unlockUpTo() { // v0.6：只有 tier 0 自带，其它全部靠调查
   for (const s of SPECIES) if (s.tier === 0 && !G.unlocked.includes(s.key)) G.unlocked.push(s.key);
   for (const d of DEVICES) if (d.tier === 0 && !G.unlocked.includes('d' + d.key)) G.unlocked.push('d' + d.key);
 }
 
-/* ===================== 召唤（消耗方塔/孵化巢附近的能量，守恒） ===================== */
+/* ===================== 召唤（消耗长明灯/孵化巢附近的光，守恒） ===================== */
 function gatherLight(x, y, R, need, dry) {
   let got = 0; const list = [];
   for (let b = 1; b >= 0; b--) forPInR(x, y, R, b, j => { if (!dry && got >= need) return; got += pv[j]; list.push(j); });
@@ -1462,12 +1492,12 @@ function gatherLight(x, y, R, need, dry) {
 function summonErr(s) {
   const sp = SPECIES[s];
   if (!G.unlocked.includes(sp.key)) return '尚未解锁';
-  if (cN >= MAXC) return '生物数量已达上限';
-  if (G.orb.tank < sp.cost) return '白球能量不足（需要 ' + sp.cost + '）';
-  if (G.matter < sp.mcost) return '物质不足（需要 ' + sp.mcost + '）';
+  if (cN >= MAXC) return '小怪数量已达上限';
+  if (G.orb.tank < sp.cost) return '小灯光不足（需要 ' + sp.cost + '）';
+  if (G.matter < sp.mcost) return '魂晶不足（需要 ' + sp.mcost + '）';
   return '';
 }
-// 召唤：白球能量槽里的能量凝聚成生物（+ 高级生物需要物质）
+// 召唤：小灯光槽里的光凝聚成小怪（+ 高级小怪需要魂晶）
 function summon(s, at) {
   const sp = SPECIES[s], err = summonErr(s); if (err) return err;
   const x0 = at ? at.x : 0, y0 = at ? at.y : 0;
@@ -1479,7 +1509,7 @@ function summon(s, at) {
   return '';
 }
 
-/* ===================== 能量账本 ===================== */
+/* ===================== 光账本 ===================== */
 function ledger() {
   let ripe = 0, raw = 0, c = 0;
   for (let i = 0; i < pN; i++) { if (pr[i] === 255) ripe += pv[i]; else raw += pv[i]; }
@@ -1863,7 +1893,7 @@ function buildNebula() {
     let h = 0; amp = 0.5; fr = 1 / 40; for (let o = 0; o < 3; o++) { h += amp * n2(x * fr + 50, y * fr + 20); amp *= 0.5; fr *= 2.1; }
     const k = Math.pow(Math.max(0, f - 0.38) * 1.7, 1.4), fall = Math.max(0.3, 1 - dist * 0.6) * 0.78;
     // 深海蓝 → 青绿 / 紫罗兰 两种星云按 h 混合
-    const m = Math.min(1, Math.max(0, (h - 0.42) * 5)); let r = 8 + k * (18 + 70 * m), gg = 12 + k * (80 - 50 * m), b = 30 + k * (75 + 20 * m);
+    const m = Math.min(1, Math.max(0, (h - 0.42) * 5)); let r = 16 + k * (34 + 46 * m), gg = 14 + k * (44 - 20 * m), b = 20 + k * (30 + 36 * m);
     const i = (y * N + x) * 4; d[i] = r * fall; d[i + 1] = gg * fall; d[i + 2] = b * fall; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
@@ -1912,7 +1942,7 @@ function rebuildRim() {
   // 墙体（遮罩反相）→ 阴影模糊 → 只保留落在地面上的部分 = 贴着墙边的青色辉光
   invG.globalCompositeOperation = 'source-over'; invG.clearRect(0, 0, RW, RW); invG.fillStyle = '#fff'; invG.fillRect(0, 0, RW, RW);
   invG.globalCompositeOperation = 'destination-out'; invG.drawImage(maskC, 0, 0, RW, RW); invG.globalCompositeOperation = 'source-over';
-  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(70,200,255,0.9)'; rimG.shadowBlur = 5; rimG.shadowOffsetX = RW * 2;
+  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(150,70,210,0.9)'; rimG.shadowBlur = 5; rimG.shadowOffsetX = RW * 2;
   rimG.drawImage(invC, -RW * 2, 0); rimG.restore();
   rimG.globalCompositeOperation = 'destination-in'; rimG.drawImage(maskC, 0, 0, RW, RW); rimG.globalCompositeOperation = 'source-over';
 }
@@ -2004,9 +2034,12 @@ function render(realDt, ui) {
   worldT();
   drawMatter(x0, y0, x1, y1);
   drawCreatures(x0, y0, x1, y1, ui);
-  drawWisps(x0, y0, x1, y1);
   for (const d of G.devs) if (d.x > x0 - 300 && d.x < x1 + 300 && d.y > y0 - 300 && d.y < y1 + 300) drawDevice(d, true);
   drawTower();
+  drawDarkness(x0, y0, x1, y1);
+  particlesOverDark();
+  drawWisps(x0, y0, x1, y1);
+  drawEyes(x0, y0, x1, y1);
   drawOrb(ui);
   if (ui.build >= 0 && ui.ghost) drawGhost(ui);
   drawSignals(x0, y0, x1, y1);
@@ -2059,7 +2092,7 @@ function drawParticles(x0, y0, x1, y1) {
     const l = accR[i], e = accU[i];
     if ((l | e) === 0) { pb32[i] = 0; continue; }
     const lf = l > 48 ? 48 : l, ef = e > 40 ? 40 : e;
-    let r = (lf * 9 + ef * 4.5) * dim, g = (lf * 24 + ef * 2.2) * dim, b = (lf * 30 + ef * 7) * dim;
+    let r = (lf * 32 + ef * 6) * dim, g = (lf * 21 + ef * 2.4) * dim, b = (lf * 8 + ef * 7.5) * dim;
     if (lf > 20) { const w2 = (lf - 20) * 6; r += w2; g += w2; b += w2; } // 高密度发白
     if (r > 255) r = 255; if (g > 255) g = 255; if (b > 255) b = 255;
     pb32[i] = 0xff000000 | (b << 16) | (g << 8) | r;
@@ -2082,6 +2115,7 @@ function drawParticles(x0, y0, x1, y1) {
   }
   ctx.globalCompositeOperation = 'source-over';
 }
+function particlesOverDark() { const D = CAM.dpr, bw = pbW, bh = pbH; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = darkness() * 0.75; ctx.drawImage(pbC, 0, 0, bw, bh, 0, 0, bw * 2 * D, bh * 2 * D); ctx.globalAlpha = darkness() * 0.6; ctx.drawImage(bloomC, 0, 0, bloomC.width, bloomC.height, 0, 0, bw * 2 * D, bh * 2 * D); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; worldT(); }
 
 /* ---------- 生物 ---------- */
 let dbC = null, dbG = null, dbImg = null, db32 = null, dbDirty = false;
@@ -2357,24 +2391,21 @@ function drawOrb(ui) {
   const o = G.orb; if (o.dead > 0) { const p = o.dead / 2.5; ctx.globalAlpha = p * 0.6; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(o.x, o.y, 14 + (1 - p) * 30, 0, 7); ctx.fill(); ctx.globalAlpha = 1; return; }
   const t = G.t;
   ctx.globalCompositeOperation = 'lighter';
-  ctx.globalAlpha = 0.55; ctx.drawImage(glowSpr, o.x - 50, o.y - 50, 100, 100); ctx.globalAlpha = 0.9; ctx.drawImage(glowSpr, o.x - 22, o.y - 22, 44, 44);
-  // 环绕的小卫星
-  for (let k = 0; k < 3; k++) { const a = t * 2.2 + k * 2.094; ctx.globalAlpha = 0.8; ctx.fillStyle = '#cff8ff'; ctx.beginPath(); ctx.arc(o.x + Math.cos(a) * 19, o.y + Math.sin(a) * 7 - 2, 1.8, 0, 7); ctx.fill(); }
+  
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-  const g = ctx.createRadialGradient(o.x - 3, o.y - 4, 1, o.x, o.y, 12); g.addColorStop(0, '#ffffff'); g.addColorStop(0.7, '#eafcff'); g.addColorStop(1, '#a8e8ff');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, 11 + Math.sin(t * 4) * 0.8, 0, 7); ctx.fill();
+  drawLantern(o, t);
   // 能量槽环（白球身上的“电量”）
   const tf = o.tank / tankMax(G.lv); ctx.lineCap = 'round';
-  ctx.strokeStyle = 'rgba(0,10,20,0.5)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(o.x, o.y, 16, 0, 7); ctx.stroke();
-  ctx.strokeStyle = tf > 0.2 ? '#7ff4ff' : '#ff9a8a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, 16, -Math.PI / 2, -Math.PI / 2 + tf * 6.283); ctx.stroke();
+  ctx.strokeStyle = 'rgba(30,10,0,0.45)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(o.x, o.y + 1, 19, 0, 7); ctx.stroke();
+  ctx.strokeStyle = tf > 0.2 ? '#ffcf7a' : '#ff9a8a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y + 1, 19, -Math.PI / 2, -Math.PI / 2 + tf * 6.283); ctx.stroke();
   if (o.spray && o.tank >= 1) { // v0.6 播撒动画：旋涡光弧 + 冲击波 + 彗星拖尾
     ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-    for (let k = 0; k < 3; k++) { const a0 = t * 7 + k * 2.094, R = 24 + Math.sin(t * 9 + k) * 2; ctx.globalAlpha = 0.85; ctx.strokeStyle = k === 1 ? '#ffffff' : '#9ff4ff'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0, a0 + 1.3); ctx.stroke(); ctx.globalAlpha = 0.35; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0 + 0.2, a0 + 1.1); ctx.stroke(); }
-    for (let k = 0; k < 2; k++) { const p = (t * 1.8 + k / 2) % 1, R = 20 + p * 70; const rg = ctx.createRadialGradient(o.x, o.y, R * 0.75, o.x, o.y, R); rg.addColorStop(0, 'rgba(160,240,255,0)'); rg.addColorStop(0.8, `rgba(190,248,255,${(1 - p) * 0.35})`); rg.addColorStop(1, 'rgba(190,248,255,0)'); ctx.globalAlpha = 1; ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(o.x, o.y, R, 0, 7); ctx.fill(); }
+    for (let k = 0; k < 3; k++) { const a0 = t * 7 + k * 2.094, R = 24 + Math.sin(t * 9 + k) * 2; ctx.globalAlpha = 0.85; ctx.strokeStyle = k === 1 ? '#ffffff' : '#ffc26a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0, a0 + 1.3); ctx.stroke(); ctx.globalAlpha = 0.35; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0 + 0.2, a0 + 1.1); ctx.stroke(); }
+    for (let k = 0; k < 2; k++) { const p = (t * 1.8 + k / 2) % 1, R = 20 + p * 70; const rg = ctx.createRadialGradient(o.x, o.y, R * 0.75, o.x, o.y, R); rg.addColorStop(0, 'rgba(255,200,120,0)'); rg.addColorStop(0.8, `rgba(190,248,255,${(1 - p) * 0.35})`); rg.addColorStop(1, 'rgba(190,248,255,0)'); ctx.globalAlpha = 1; ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(o.x, o.y, R, 0, 7); ctx.fill(); }
     ctx.globalAlpha = 0.9; ctx.drawImage(glowSpr, o.x - 40, o.y - 40, 80, 80);
     ui._cAcc = (ui._cAcc || 0) + 1; if (ui._cAcc % 2 === 0) for (let q = 0; q < 2; q++) { const a = t * 5 + q * 3.14 + Math.random() * 0.8, d = 36 + Math.random() * 60; addFX('comet', o.x + Math.cos(a) * 10, o.y + Math.sin(a) * 10, { tx: o.x + Math.cos(a + 0.5) * d, ty: o.y + Math.sin(a + 0.5) * d, c: 0.35, life: 0.5 + Math.random() * 0.2, w: 2.2, color: Math.random() < 0.3 ? '#ffffff' : '#8ff0ff' }); }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
-  if (o.hp < 100) { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.stroke(); ctx.strokeStyle = o.hp > 40 ? '#bff' : '#ff8a8a'; ctx.beginPath(); ctx.arc(o.x, o.y, 20, -Math.PI / 2, -Math.PI / 2 + o.hp / 100 * 6.283); ctx.stroke(); }
+  if (o.hp < 100) { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.stroke(); ctx.strokeStyle = o.hp > 40 ? '#ffe0a0' : '#ff8a8a'; ctx.beginPath(); ctx.arc(o.x, o.y, 20, -Math.PI / 2, -Math.PI / 2 + o.hp / 100 * 6.283); ctx.stroke(); }
   if (o.drill) { ctx.globalCompositeOperation = 'lighter'; for (let k = 0; k < 5; k++) { const a = rnd() * 6.28, d = 14 + rnd() * 8; ctx.fillStyle = rnd() < 0.5 ? '#fff' : '#ff9ad0'; ctx.fillRect(o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, 2, 2); } ctx.globalCompositeOperation = 'source-over'; }
 }
 function drawGhost(ui) {
@@ -2425,8 +2456,8 @@ function drawScreenFX(dt) {
 
 /* ===================== 世界细节 v0.5：异星植被 / 物质结晶 / 遗迹 / 信号 / 环境光 ===================== */
 let PROPS = null, MATSPR = null, SIGSPR = null;
-const PROP_GLOW = [1, 1, 1, 1, 1, 0, 0, 1, 1, 0]; // 哪些植被会发光
-const PROP_GCOL = ['#7ff4ff', '#c79bff', '#6fffd8', '#ff9fd8', '#b8ff8a', '', '', '#7fd8ff', '#ff9fb8', ''];
+const PROP_GLOW = [0, 1, 1, 1, 0, 0, 0, 1, 0, 1]; // 哪些植被会发光
+const PROP_GCOL = ['#ffb347', '#ffb347', '#b8ff6a', '#c07aff', '#8a5aff', '#8a5aff', '#8a5aff', '#ff7a3a', '#8a5aff', '#ff3a4a'];
 function hash2(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 function propCanvas(fn) { const S = 96, c = mkC(S), g = c.getContext('2d'); g.translate(S / 2, S * 0.78); fn(g); return c; }
 function shard(g, x, y, w, h, a, c1, c2) {
@@ -2440,56 +2471,67 @@ function shard(g, x, y, w, h, a, c1, c2) {
 function buildProps() {
   if (PROPS) return;
   const P = [];
-  const crystal = (c1, c2) => propCanvas(g => { g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 26, 7, 0, 0, 7); g.fill(); shard(g, -14, 0, 7, 26, -0.35, c1, c2); shard(g, 12, 0, 6, 22, 0.4, c1, c2); shard(g, 0, 2, 9, 42, 0.02, c1, c2); shard(g, 5, 2, 4, 14, 0.9, c1, c2); });
-  P.push(crystal('#e6ffff', '#2bb8e8'));
-  P.push(crystal('#f6e8ff', '#7a4ad8'));
-  const mush = (cap, stem) => propCanvas(g => {
-    g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(0, 0, 24, 6, 0, 0, 7); g.fill();
-    for (const [x, h, r] of [[-11, 20, 11], [9, 30, 14], [20, 12, 7]]) {
-      g.fillStyle = stem; g.beginPath(); g.moveTo(x - 3, 0); g.quadraticCurveTo(x - 2, -h * 0.6, x - 2, -h); g.lineTo(x + 2, -h); g.quadraticCurveTo(x + 2, -h * 0.6, x + 3, 0); g.fill();
-      const gr = g.createRadialGradient(x - r * 0.3, -h - r * 0.4, 1, x, -h, r * 1.2); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.35, cap); gr.addColorStop(1, 'rgba(0,0,0,0.2)');
+  const sh = (g, w) => { g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(0, 0, w, w * 0.26, 0, 0, 7); g.fill(); };
+  P.push(propCanvas(g => { // 0 小墓碑（歪的）
+    sh(g, 22); g.rotate(-0.12); const gr = g.createLinearGradient(-12, -34, 12, 0); gr.addColorStop(0, '#8a8698'); gr.addColorStop(1, '#3a3746'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(-13, 0); g.lineTo(-13, -22); g.arc(0, -22, 13, Math.PI, 0); g.lineTo(13, 0); g.closePath(); g.fill(); g.strokeStyle = '#25222e'; g.lineWidth = 2; g.stroke();
+    g.strokeStyle = '#2a2733'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(0, -30); g.lineTo(0, -14); g.moveTo(-6, -24); g.lineTo(6, -24); g.stroke();
+    g.fillStyle = '#4f8a5a'; g.beginPath(); g.ellipse(-8, -1, 9, 3.5, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,0.15)'; g.fillRect(-10, -30, 3, 24);
+  }));
+  P.push(propCanvas(g => { // 1 蜡烛丛
+    sh(g, 20); for (const [x, h, w] of [[-10, 16, 5], [2, 26, 6], [12, 11, 4.5]]) {
+      g.fillStyle = '#efe6d2'; g.fillRect(x - w / 2, -h, w, h); g.fillStyle = '#d6cbb2'; g.fillRect(x + w / 2 - 1.6, -h, 1.6, h); g.fillStyle = '#fff8e6'; g.beginPath(); g.ellipse(x, -h, w / 2, 1.4, 0, 0, 7); g.fill();
+      g.fillStyle = '#efe6d2'; g.beginPath(); g.ellipse(x + 1, -h + 5, 1.2, 3, 0, 0, 7); g.fill();
+      const fg = g.createRadialGradient(x, -h - 5, 0, x, -h - 5, 6); fg.addColorStop(0, '#fffbe0'); fg.addColorStop(0.5, '#ffc04a'); fg.addColorStop(1, 'rgba(255,120,40,0)'); g.fillStyle = fg; g.beginPath(); g.ellipse(x, -h - 5, 3, 6, 0, 0, 7); g.fill(); }
+  }));
+  P.push(propCanvas(g => { // 2 眼球花
+    sh(g, 18); g.lineCap = 'round'; for (const [x, h, r, a] of [[-8, 26, 6, -0.2], [7, 18, 5, 0.25], [14, 30, 4, 0.1]]) {
+      g.strokeStyle = '#3f7a4a'; g.lineWidth = 2.2; g.beginPath(); g.moveTo(x * 0.3, 0); g.quadraticCurveTo(x, -h * 0.5, x + a * 10, -h); g.stroke();
+      const ex = x + a * 10, ey = -h; g.fillStyle = '#6a3a5a'; for (let q = 0; q < 6; q++) { const aa = q * 1.047; g.beginPath(); g.ellipse(ex + Math.cos(aa) * r * 0.9, ey + Math.sin(aa) * r * 0.9, r * 0.55, r * 0.35, aa, 0, 7); g.fill(); }
+      g.fillStyle = '#f4f0e8'; g.beginPath(); g.arc(ex, ey, r * 0.72, 0, 7); g.fill(); g.fillStyle = '#9dff5a'; g.beginPath(); g.arc(ex + a * 3, ey, r * 0.38, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(ex + a * 3, ey, r * 0.18, 0, 7); g.fill(); }
+  }));
+  P.push(propCanvas(g => { // 3 毒蘑菇（紫）
+    sh(g, 22); for (const [x, h, r] of [[-10, 18, 10], [8, 28, 13], [19, 10, 6]]) {
+      g.fillStyle = '#e8dcc8'; g.beginPath(); g.moveTo(x - 3, 0); g.quadraticCurveTo(x - 2, -h * 0.6, x - 2, -h); g.lineTo(x + 2, -h); g.quadraticCurveTo(x + 2, -h * 0.6, x + 3, 0); g.fill();
+      const gr = g.createRadialGradient(x - r * 0.3, -h - r * 0.4, 1, x, -h, r * 1.2); gr.addColorStop(0, '#f2d8ff'); gr.addColorStop(0.4, '#a45ad8'); gr.addColorStop(1, '#3a1a5a');
       g.fillStyle = gr; g.beginPath(); g.ellipse(x, -h, r, r * 0.62, 0, Math.PI, 0); g.quadraticCurveTo(x, -h + r * 0.25, x - r, -h); g.fill();
-      g.fillStyle = 'rgba(255,255,255,0.8)'; for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(x - r * 0.4 + k * r * 0.4, -h - r * 0.3 + (k % 2) * 2, r * 0.1, 0, 7); g.fill(); }
-    }
-  });
-  P.push(mush('#5ff0d0', '#d8fff4'));
-  P.push(mush('#ff8fcf', '#fff0f8'));
-  P.push(propCanvas(g => { // 卷曲蕨类 + 发光芽尖
-    g.lineCap = 'round';
-    for (let k = 0; k < 6; k++) { const a = -1.2 + k * 0.48, L = 22 + (k % 3) * 8; g.strokeStyle = k % 2 ? '#3fa87a' : '#57c98f'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(0, 0); const ex = Math.sin(a) * L, ey = -Math.cos(a) * L; g.quadraticCurveTo(ex * 0.3, ey * 0.7, ex, ey); g.stroke();
-      g.fillStyle = '#d9ff9a'; g.beginPath(); g.arc(ex, ey, 3.2, 0, 7); g.fill(); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(ex - 1, ey - 1, 1.2, 0, 7); g.fill(); }
+      g.fillStyle = '#e6ff9a'; for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(x - r * 0.45 + k * r * 0.45, -h - r * 0.28 + (k % 2) * 2, r * 0.11, 0, 7); g.fill(); } }
   }));
-  P.push(propCanvas(g => { // 圆石 + 苔藓
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 28, 7, 0, 0, 7); g.fill();
-    const gr = g.createLinearGradient(-20, -30, 20, 0); gr.addColorStop(0, '#5a6a8a'); gr.addColorStop(1, '#1e2438'); g.fillStyle = gr;
+  P.push(propCanvas(g => { // 4 枯枝
+    g.lineCap = 'round'; g.strokeStyle = '#3a2e2a'; const br = (x, y, a, L, w, d) => { if (d > 3) return; const ex = x + Math.sin(a) * L, ey = y - Math.cos(a) * L; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(ex, ey); g.stroke(); br(ex, ey, a - 0.5, L * 0.68, w * 0.65, d + 1); br(ex, ey, a + 0.45, L * 0.62, w * 0.6, d + 1); };
+    br(0, 0, 0.1, 16, 4, 0);
+  }));
+  P.push(propCanvas(g => { // 5 圆石
+    sh(g, 28); const gr = g.createLinearGradient(-20, -30, 20, 0); gr.addColorStop(0, '#5e5866'); gr.addColorStop(1, '#221e28'); g.fillStyle = gr;
     g.beginPath(); g.moveTo(-24, 0); g.bezierCurveTo(-28, -18, -10, -32, 6, -28); g.bezierCurveTo(22, -26, 28, -10, 24, 0); g.closePath(); g.fill();
-    g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.ellipse(-6, -22, 10, 4, -0.3, 0, 7); g.fill();
-    g.fillStyle = '#4fbf8a'; g.beginPath(); g.moveTo(-24, -2); g.bezierCurveTo(-18, -12, -4, -8, 4, -4); g.bezierCurveTo(-2, 0, -14, 0, -24, -2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.12)'; g.beginPath(); g.ellipse(-6, -22, 10, 4, -0.3, 0, 7); g.fill(); g.fillStyle = '#3f6a48'; g.beginPath(); g.moveTo(-24, -2); g.bezierCurveTo(-18, -12, -4, -8, 4, -4); g.bezierCurveTo(-2, 0, -14, 0, -24, -2); g.fill();
   }));
-  P.push(propCanvas(g => { // 卵石
-    for (const [x, y, r, c] of [[-14, -3, 6, '#3a4666'], [2, -2, 8, '#46557a'], [15, -4, 5, '#2e3854'], [-3, -9, 4, '#52628a']]) { g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(x, y + r * 0.6, r * 1.1, r * 0.35, 0, 0, 7); g.fill(); g.fillStyle = c; g.beginPath(); g.ellipse(x, y, r, r * 0.75, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,0.2)'; g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.3, r * 0.4, r * 0.2, 0, 0, 7); g.fill(); }
+  P.push(propCanvas(g => { // 6 卵石 + 小骨头
+    for (const [x, y, r, c] of [[-14, -3, 6, '#46404e'], [2, -2, 8, '#524b5a'], [15, -4, 5, '#38333f']]) { g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(x, y + r * 0.6, r * 1.1, r * 0.4, 0, 0, 7); g.fill(); g.fillStyle = c; g.beginPath(); g.ellipse(x, y, r, r * 0.7, 0, 0, 7); g.fill(); }
+    g.fillStyle = '#e8e0cc'; g.save(); g.translate(-2, -12); g.rotate(0.4); g.fillRect(-7, -1.3, 14, 2.6); for (const s of [-1, 1]) { g.beginPath(); g.arc(s * 7, -1.4, 1.8, 0, 7); g.arc(s * 7, 1.4, 1.8, 0, 7); g.fill(); } g.restore();
   }));
-  P.push(propCanvas(g => { // 科技残骸：碎裂的六边形板 + 暗灯
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(0, 0, 28, 7, 0, 0, 7); g.fill();
-    g.save(); g.scale(1, 0.5); g.fillStyle = '#2a3446'; g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + 0.3; g.lineTo(Math.cos(a) * 24, Math.sin(a) * 24 - 8); } g.closePath(); g.fill();
-    g.strokeStyle = '#6f8bb0'; g.lineWidth = 2; g.stroke(); g.strokeStyle = 'rgba(0,0,0,0.6)'; g.beginPath(); g.moveTo(-10, -20); g.lineTo(2, -6); g.lineTo(-4, 10); g.stroke(); g.restore();
-    g.fillStyle = '#7fe8ff'; g.beginPath(); g.arc(8, -6, 2.2, 0, 7); g.fill(); g.fillStyle = '#ff9fb8'; g.beginPath(); g.arc(-12, -2, 1.6, 0, 7); g.fill();
-    g.fillStyle = '#3a4a64'; g.fillRect(12, -14, 4, 10); g.fillStyle = '#9fd8ff'; g.fillRect(12.5, -13, 3, 2);
+  P.push(propCanvas(g => { // 7 纸灯笼
+    sh(g, 12); g.strokeStyle = '#3a2a22'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -40); g.lineTo(8, -44); g.stroke();
+    const gr = g.createRadialGradient(8, -30, 1, 8, -30, 12); gr.addColorStop(0, '#fff0b0'); gr.addColorStop(0.5, '#ff7a3a'); gr.addColorStop(1, '#a8201a'); g.fillStyle = gr;
+    g.beginPath(); g.ellipse(8, -30, 9, 11, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(90,20,10,0.6)'; g.lineWidth = 1; for (const k of [-5, 0, 5]) { g.beginPath(); g.ellipse(8, -30, Math.abs(k) + 1, 11, 0, 0, 7); g.stroke(); }
+    g.fillStyle = '#2a1a14'; g.fillRect(4, -42, 8, 2.5); g.fillRect(4, -20, 8, 2.5); g.fillStyle = '#ffd36b'; g.fillRect(7.3, -18, 1.4, 6);
   }));
-  P.push(propCanvas(g => { // 珊瑚扇
-    g.lineCap = 'round';
-    const br = (x, y, a, L, w, d) => { if (d > 3) return; const ex = x + Math.sin(a) * L, ey = y - Math.cos(a) * L; g.strokeStyle = d < 2 ? '#ff7fa8' : '#ffb0c8'; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(ex, ey); g.stroke(); br(ex, ey, a - 0.45, L * 0.72, w * 0.7, d + 1); br(ex, ey, a + 0.45, L * 0.72, w * 0.7, d + 1); if (d === 3) { g.fillStyle = '#fff0f6'; g.beginPath(); g.arc(ex, ey, 1.6, 0, 7); g.fill(); } };
-    br(0, 0, 0, 14, 4, 0);
+  P.push(propCanvas(g => { // 8 树桩（有个洞，洞里有眼睛）
+    sh(g, 22); const gr = g.createLinearGradient(-16, 0, 16, 0); gr.addColorStop(0, '#2e241f'); gr.addColorStop(0.5, '#4a3a30'); gr.addColorStop(1, '#241c18'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(-17, 0); g.lineTo(-14, -26); g.lineTo(-6, -30); g.lineTo(2, -24); g.lineTo(9, -31); g.lineTo(15, -25); g.lineTo(17, 0); g.closePath(); g.fill();
+    g.fillStyle = '#0a0606'; g.beginPath(); g.ellipse(0, -13, 6, 8, 0, 0, 7); g.fill(); g.fillStyle = '#ffe36a'; g.beginPath(); g.arc(-2.3, -14, 1.4, 0, 7); g.arc(2.3, -14, 1.4, 0, 7); g.fill();
   }));
-  P.push(propCanvas(g => { // 小花丛
-    for (let k = 0; k < 7; k++) { const x = (k - 3) * 6 + (k % 2) * 2, h = 8 + (k * 7) % 12; g.strokeStyle = '#4aa878'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + (k % 3 - 1) * 2, -h); g.stroke();
-      const c = ['#fff27a', '#ffffff', '#9ff4ff', '#ffb3f2'][k % 4]; g.fillStyle = c; for (let q = 0; q < 5; q++) { const a = q * 1.2566; g.beginPath(); g.arc(x + (k % 3 - 1) * 2 + Math.cos(a) * 2.6, -h + Math.sin(a) * 2.6, 1.9, 0, 7); g.fill(); } g.fillStyle = '#ffcf5a'; g.beginPath(); g.arc(x + (k % 3 - 1) * 2, -h, 1.4, 0, 7); g.fill(); }
+  P.push(propCanvas(g => { // 9 彼岸花
+    g.lineCap = 'round'; for (const [x, h] of [[-9, 24], [3, 32], [13, 20]]) {
+      g.strokeStyle = '#3f7a3a'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(x * 0.4, 0); g.lineTo(x, -h); g.stroke();
+      g.strokeStyle = '#ff2a3a'; g.lineWidth = 1.5; for (let q = 0; q < 7; q++) { const a = -Math.PI / 2 + (q - 3) * 0.42, L = 8 + (q % 2) * 3; g.beginPath(); g.moveTo(x, -h); g.quadraticCurveTo(x + Math.cos(a) * L * 0.5, -h + Math.sin(a) * L * 0.9, x + Math.cos(a) * L, -h + Math.sin(a) * L * 0.4 + 2); g.stroke(); }
+      g.fillStyle = '#ff4a5a'; g.beginPath(); g.arc(x, -h, 3, 0, 7); g.fill(); }
   }));
   PROPS = P;
   // 物质结晶（金色六棱晶体）
-  MATSPR = mkC(48); { const g = MATSPR.getContext('2d'); g.translate(24, 26); const gl = g.createRadialGradient(0, 0, 0, 0, 0, 22); gl.addColorStop(0, 'rgba(255,220,120,0.55)'); gl.addColorStop(1, 'rgba(255,200,80,0)'); g.fillStyle = gl; g.fillRect(-24, -26, 48, 48);
-    const gr = g.createLinearGradient(-8, -12, 8, 10); gr.addColorStop(0, '#fff8d8'); gr.addColorStop(0.5, '#ffd36b'); gr.addColorStop(1, '#c47a16'); g.fillStyle = gr;
-    g.beginPath(); g.moveTo(0, -13); g.lineTo(8, -6); g.lineTo(8, 6); g.lineTo(0, 13); g.lineTo(-8, 6); g.lineTo(-8, -6); g.closePath(); g.fill(); g.strokeStyle = '#fff3c0'; g.lineWidth = 1.2; g.stroke();
+  MATSPR = mkC(48); { const g = MATSPR.getContext('2d'); g.translate(24, 26); const gl = g.createRadialGradient(0, 0, 0, 0, 0, 22); gl.addColorStop(0, 'rgba(200,150,255,0.6)'); gl.addColorStop(1, 'rgba(170,110,255,0)'); g.fillStyle = gl; g.fillRect(-24, -26, 48, 48);
+    const gr = g.createLinearGradient(-8, -12, 8, 10); gr.addColorStop(0, '#f6ecff'); gr.addColorStop(0.5, '#b98cff'); gr.addColorStop(1, '#5a2fb4'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(0, -13); g.lineTo(8, -6); g.lineTo(8, 6); g.lineTo(0, 13); g.lineTo(-8, 6); g.lineTo(-8, -6); g.closePath(); g.fill(); g.strokeStyle = '#efe0ff'; g.lineWidth = 1.2; g.stroke();
     g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.moveTo(0, -13); g.lineTo(-8, -6); g.lineTo(-3, -3); g.lineTo(0, -8); g.closePath(); g.fill(); }
   SIGSPR = mkC(64); { const g = SIGSPR.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.25, 'rgba(160,220,255,0.4)'); gr.addColorStop(1, 'rgba(120,180,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }
 }
@@ -2608,7 +2650,7 @@ function drawSignals(x0, y0, x1, y1) {
 let WISPSPR = null;
 function wispSprite() {
   if (WISPSPR) return WISPSPR; const S = 64, c = mkC(S), g = c.getContext('2d');
-  let gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.18, 'rgba(250,254,255,0.95)'); gr.addColorStop(0.32, 'rgba(200,240,255,0.45)'); gr.addColorStop(0.6, 'rgba(150,210,255,0.12)'); gr.addColorStop(1, 'rgba(120,190,255,0)');
+  let gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,245,1)'); gr.addColorStop(0.18, 'rgba(255,246,210,0.95)'); gr.addColorStop(0.32, 'rgba(255,214,150,0.45)'); gr.addColorStop(0.6, 'rgba(255,170,90,0.12)'); gr.addColorStop(1, 'rgba(255,150,80,0)');
   g.fillStyle = gr; g.fillRect(0, 0, S, S); return WISPSPR = c;
 }
 function drawWisps(x0, y0, x1, y1) {
@@ -2635,6 +2677,92 @@ function drawComet(f, p) {
   const [hx, hy] = pt(e), hr = (f.w || 2.4) * 3.2; ctx.globalAlpha = f.inw ? 1 : 1 - p * 0.5; ctx.drawImage(wispSprite(), hx - hr, hy - hr, hr * 2, hr * 2);
   if (!f.inw && p > 0.82) { ctx.globalAlpha = (1 - p) * 5 * 0.8; ctx.fillStyle = '#fff'; star4(f.tx, f.ty, 5 * (1 - p) * 5 + 1); }
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+
+/* ============ v0.7 微恐主题：黑暗 + 光照 + 黑暗中的眼睛 ============ */
+let LC = null, LG = null, LSPR = null, EYESPR = {};
+const LIGHT_SCALE = 3; // 光照图 = 屏幕 1/3 分辨率
+// 暗度随光域等级下降：Lv0 几乎漆黑，Lv9 天亮
+function darkness() { return Math.max(0.28, 0.93 - G.lv * 0.07); }
+function lightSprite() {
+  if (LSPR) return LSPR; const S = 128, c = mkC(S), g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.45, 'rgba(0,0,0,0.85)'); gr.addColorStop(0.75, 'rgba(0,0,0,0.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, S, S); return LSPR = c;
+}
+function eyeSprite(col) {
+  if (EYESPR[col]) return EYESPR[col]; const S = 32, c = mkC(S), g = c.getContext('2d');
+  const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.18, col); gr.addColorStop(0.45, col + '66'); gr.addColorStop(1, col + '00');
+  g.fillStyle = gr; g.fillRect(0, 0, S, S); return EYESPR[col] = c;
+}
+const GLOW_SP = { firefly: 55, phoenix: 90, jelly: 50, fish: 40, ghost: 45, unicorn: 60, mush: 30 };
+let _lights = [];
+function collectLights(x0, y0, x1, y1) {
+  const L = _lights; L.length = 0; const t = G.t, o = G.orb, pad = 320;
+  const inV = (x, y, r) => x > x0 - r && x < x1 + r && y > y0 - r && y < y1 + r;
+  if (!o.dead) { const tf = Math.max(0, Math.min(1, o.tank / tankMax(G.lv))); L.push([o.x, o.y, (150 + 110 * tf) * (1 + Math.sin(t * 7) * 0.025 + Math.sin(t * 13) * 0.015) * (o.spray ? 1.18 : 1)]); }
+  L.push([0, -30, 230 + G.lv * 14]);
+  for (const d of G.devs) { if (!inV(d.x, d.y, pad)) continue; const def = DEVICES[d.type]; if (d.bt > 0) { L.push([d.x, d.y, 40]); continue; } L.push([d.x, d.y - 10, def.pf ? def.pf * 0.72 : 70]); }
+  for (let k = 0; k < wN; k++) if (wval[k] && inV(wx[k], wy[k], 40)) L.push([wx[k], wy[k], 34]);
+  if (CAM.z > 0.3) for (let i = 0; i < cN; i++) { if (cdead[i]) continue; const r = GLOW_SP[SPECIES[csp[i]].key]; if (r && inV(cx[i], cy[i], r)) L.push([cx[i], cy[i], r * cg[i]]); }
+  return L;
+}
+function lightAt(x, y) { let m = 0; for (const l of _lights) { const dx = x - l[0], dy = y - l[1], r = l[2], d2 = dx * dx + dy * dy; if (d2 < r * r) { const f = 1 - Math.sqrt(d2) / r; const v = f < 0.45 ? f / 0.45 * 0.9 : 0.9 + (f - 0.45) * 0.18; if (v > m) m = v; } } return Math.min(1, m); }
+function drawDarkness(x0, y0, x1, y1) {
+  const W = CAM.W, H = CAM.H, lw = Math.ceil(W / LIGHT_SCALE), lh = Math.ceil(H / LIGHT_SCALE);
+  if (!LC || LC.width !== lw || LC.height !== lh) { LC = mkC(lw, lh); LG = LC.getContext('2d'); }
+  const D = darkness(), z = CAM.z / LIGHT_SCALE, spr = lightSprite();
+  collectLights(x0, y0, x1, y1);
+  LG.globalCompositeOperation = 'source-over'; LG.clearRect(0, 0, lw, lh);
+  LG.fillStyle = `rgba(6,3,14,${D})`; LG.fillRect(0, 0, lw, lh);
+  LG.globalCompositeOperation = 'destination-out';
+  for (const l of _lights) { const sx = (l[0] - CAM.x) * z + lw / 2, sy = (l[1] - CAM.y) * z + lh / 2, r = l[2] * z; if (sx < -r || sy < -r || sx > lw + r || sy > lh + r) continue; LG.drawImage(spr, sx - r, sy - r, r * 2, r * 2); }
+  // 暖色光晕（被照亮的地方偏暖橙）
+  LG.globalCompositeOperation = 'source-over';
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(LC, 0, 0, cvs.width, cvs.height);
+  worldT();
+  ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = 0.55;
+  for (const l of _lights) { if (l[2] < 100) continue; ctx.drawImage(glowTintW(), l[0] - l[2], l[1] - l[2], l[2] * 2, l[2] * 2); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+let _gtw = null;
+function glowTintW() { if (_gtw) return _gtw; const c = mkC(64), g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,190,110,1)'); gr.addColorStop(1, 'rgba(255,150,80,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return _gtw = c; }
+// 黑暗中的眼睛：离光越远越亮；偶尔眨眼
+function drawEyes(x0, y0, x1, y1) {
+  if (CAM.z < 0.22) return; const D = darkness(), t = G.t; let n = 0;
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < cN; i++) {
+    if (cdead[i]) continue; const x = cx[i], y = cy[i]; if (x < x0 || x > x1 || y < y0 || y > y1) continue;
+    { const gi = gIdx(x, y); if (gi >= 0 && !seen[gi]) continue; }
+    const a = D * (1 - lightAt(x, y)) * 1.15 - 0.12; if (a <= 0.05) continue;
+    const ph = (cid[i] * 0.618) % 1, bl = ((t * 0.27 + ph) % 1); if (bl < 0.035) continue; // 眨眼
+    const sp = SPECIES[csp[i]], r = S_r[csp[i]] * cg[i] * VIS, e = eyeSprite(sp.eye || '#ffd36b');
+    const ex = r * 0.36, ey = y - r * 0.08 + (sp.mv === MV_FLY ? -r * 0.2 : 0), es = Math.max(2.4, r * 0.34) * (1 + Math.sin(t * 3 + ph * 9) * 0.06);
+    ctx.globalAlpha = Math.min(1, a);
+    if (sp.key === 'unicorn') ctx.drawImage(e, x - es * 1.3, ey - es * 1.3, es * 2.6, es * 2.6); // 独眼
+    else { ctx.drawImage(e, x - ex - es, ey - es, es * 2, es * 2); ctx.drawImage(e, x + ex - es, ey - es, es * 2, es * 2); }
+    if (++n > 1500) break;
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+// 小灯（玩家）：一团会眨眼的暖色火苗
+function drawLantern(o, t) {
+  const x = o.x, y = o.y, fl = Math.sin(t * 9) * 0.6 + Math.sin(t * 14.3) * 0.4;
+  ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.drawImage(glowTintW(), x - 46, y - 50, 92, 92); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  // 火苗身体
+  const g = ctx.createRadialGradient(x - 2, y + 2, 1, x, y, 16);
+  g.addColorStop(0, '#fffbe8'); g.addColorStop(0.45, '#ffe08a'); g.addColorStop(0.8, '#ffab4a'); g.addColorStop(1, '#ff7a2a');
+  ctx.fillStyle = g; ctx.beginPath();
+  ctx.moveTo(x, y - 22 - fl * 2); ctx.bezierCurveTo(x + 6 + fl, y - 14, x + 13, y - 6, x + 12, y + 3);
+  ctx.bezierCurveTo(x + 11, y + 12, x - 11, y + 12, x - 12, y + 3); ctx.bezierCurveTo(x - 13, y - 6, x - 6 + fl, y - 14, x, y - 22 - fl * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.ellipse(x - 4, y - 4, 2.4, 4, -0.4, 0, 7); ctx.fill();
+  // 脸：会眨眼
+  const bl = (t % 3.7) < 0.12; ctx.fillStyle = '#4a2410';
+  if (bl) { ctx.fillRect(x - 6, y + 1, 4, 1.4); ctx.fillRect(x + 2, y + 1, 4, 1.4); }
+  else { ctx.beginPath(); ctx.ellipse(x - 4, y + 1.5, 1.7, 2.3, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(x + 4, y + 1.5, 1.7, 2.3, 0, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = '#4a2410'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(x, y + 5, 1.8, 0.2, Math.PI - 0.2); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,110,90,0.5)'; ctx.beginPath(); ctx.arc(x - 7.5, y + 5, 1.8, 0, 7); ctx.arc(x + 7.5, y + 5, 1.8, 0, 7); ctx.fill();
 }
 
 /* ===================== 音频：WebAudio 实时合成（音效 + 慢节奏氛围 BGM） ===================== */
@@ -2851,13 +2979,13 @@ function loadGame() {
 /* ---------- 离线推演 ---------- */
 let offCancel = false;
 function worldE() { const L = ledger(); return L.map + L.bio; }
-// 玩家能“看见”的能量：已探索区域的地面能量 + 生物体内（不含迷雾中封存的能量洞）
+// 玩家能“看见”的光：已探索区域的地面光 + 小怪体内（不含迷雾中封存的光洞）
 function visibleE() { let e = 0; for (let i = 0; i < pN; i++) { const g = gIdx(px[i], py[i]); if (g >= 0 && seen[g]) e += pv[i]; } for (let i = 0; i < cN; i++) if (!cdead[i]) e += ce[i]; return e; }
 function runOffline(sec, title, done) {
   sec = Math.min(sec, 12 * 3600);
   const before = { lv: G.lv, pop: cN, sp: Array.from(G.spCount), births: G.births, deaths: G.deaths, t: G.t, E: visibleE(), mat: G.matter };
   const ext = new Set(); let maxLvSeen = G.lv, minLvSeen = G.lv;
-  $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态圈仍在运转'; offCancel = false;
+  $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态缸仍在运转'; offCancel = false;
   const tStart = performance.now(); let simmed = 0, dt = 0.25; const budget = 9000; G.offline = true;
   const t0 = performance.now(); for (let k = 0; k < 8 && simmed < sec; k++) { simStep(dt); simmed += dt; G.events.length = 0; }
   const ms = Math.max(0.3, (performance.now() - t0) / 8); const steps = budget / ms; dt = Math.max(0.25, Math.min(4, (sec - simmed) / steps));
@@ -2882,17 +3010,17 @@ function fmtTime(s) { s = Math.round(s); if (s < 60) return s + ' 秒'; if (s < 
 function showReport(r) {
   const spLines = SPECIES.map((s, i) => (r.before.sp[i] || r.after.sp[i]) ? `<tr><td><img src="${speciesIcon(i, 40)}" style="width:28px;vertical-align:middle"> ${s.name}</td><td>${r.before.sp[i]}</td><td>→</td><td style="color:${r.after.sp[i] > r.before.sp[i] ? '#8f8' : r.after.sp[i] < r.before.sp[i] ? '#f99' : '#ccc'}">${r.after.sp[i]}${r.after.sp[i] === 0 ? ' 💀' : ''}</td></tr>` : '').join('');
   const collapsed = r.after.pop === 0 && r.before.pop > 0, dE = r.after.E - r.before.E, dM = r.after.mat - r.before.mat;
-  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:800">${collapsed ? '💀 生态圈崩溃了…' : r.after.lv > r.before.lv ? '🌊 潮汐上涨！' : r.after.lv < r.before.lv ? '🌘 潮汐退去了…' : '🎁 开盲盒时间'}</div>
+  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:800">${collapsed ? '💀 生态缸崩溃了…' : r.after.lv > r.before.lv ? '🌊 光域上涨！' : r.after.lv < r.before.lv ? '🌘 光域退去了…' : '🎁 开盲盒时间'}</div>
   <div style="opacity:.75">⏱ ${fmtTime(r.sec)}${r.sec < r.want - 1 ? `（离开 ${fmtTime(r.want)}，超出部分已省略）` : ''}</div>
   <div class="kv" style="margin:8px 0">
-    <div class="i">🌊</div><div>潮汐</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
-    <div class="i">🐾</div><div>生物</div><b>${r.before.pop} → ${r.after.pop}</b>
-    <div class="i" style="color:#9ff4ff">✦</div><div>世界能量</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
-    <div class="i cm">◆</div><div>物质</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
+    <div class="i">🌊</div><div>光域</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
+    <div class="i">🐾</div><div>小怪</div><b>${r.before.pop} → ${r.after.pop}</b>
+    <div class="i" style="color:#9ff4ff">✦</div><div>夜晚光</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
+    <div class="i cm">◆</div><div>魂晶</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
   </div>
   ${r.ext.length ? `<div style="color:#f99">💀 灭绝：${r.ext.map(s => SPECIES[s].name).join('、')}</div>` : ''}
   <table class="tb" style="margin-top:6px">${spLines}</table>
-  ${collapsed ? '<div class="note warn">能量耗尽，生物全部饿死了。播撒能量、开拓能量洞、建造发生器，然后重新召唤吧——解锁的物种不会丢失。</div>' : dE < 0 && r.after.pop > 0 ? '<div class="note">能量在减少：食肉动物能控制食草动物的数量，让能量用得更久。</div>' : ''}
+  ${collapsed ? '<div class="note warn">光耗尽，小怪全部饿死了。洒光光、开拓光洞、建造发生器，然后重新召唤吧——解锁的物种不会丢失。</div>' : dE < 0 && r.after.pop > 0 ? '<div class="note">光在减少：食肉动物能控制食草动物的数量，让光用得更久。</div>' : ''}
   <div style="text-align:center;margin-top:14px"><button class="btn pri" id="repOk">继续</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => { $('report').classList.remove('show'); AU.play('click'); if (G._winPending) { G._winPending = false; showWin(); } };
 }
@@ -2938,7 +3066,7 @@ function devIcon(t) {
   ctx = sv; G.lv = lv; CAM.z = z; return _devIcon[t] = c.toDataURL();
 }
 
-/* ---------- 底部坞站（v0.7 极简：只显示已解锁 + 「下一个」研究格） ---------- */
+/* ---------- 底部坞站（v0.7 极简：只显示已解锁 + 「下一个」调查格） ---------- */
 function spUnlocked(i) { return G.unlocked.includes(SPECIES[i].key); }
 function isNew(key) { return G.unlocked.includes(key) && !META.introSeen.includes(key); }
 function itemIcon(it) { return it.kind === 's' ? speciesIcon(it.idx, 96) : devIcon(it.idx); }
@@ -2975,11 +3103,11 @@ function updateDock() {
 function setDock() { UI.dockSig = ''; updateDock(); }
 function doSummon(i, el) {
   const s = SPECIES[i], o = G.orb, r = summon(i, isWall(o.x, o.y) ? null : { x: o.x, y: o.y });
-  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('能量') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
+  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('光') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
   else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#ffe3a0' }); }
   updateDock();
 }
-/* 自动选位：先在小灯附近找，再在方塔附近找；路灯优先放在光场边缘向小灯方向延伸 */
+/* 自动选位：先在小灯附近找，再在长明灯附近找；路灯优先放在光场边缘向小灯方向延伸 */
 function autoSpot(t) {
   const def = DEVICES[t], o = G.orb, cands = [];
   const tryAt = (x, y) => !canPlace(t, x, y);
@@ -3013,7 +3141,7 @@ function setupDockLongPress() { // 长按卡片 = 查看详情（代替图鉴）
 /* ---------- 介绍卡（极简：大图 + 名字 + 一句话；「详细」可展开） ---------- */
 function traitsOf(sp) {
   const L = [];
-  L.push(sp.diet === D_E ? { ic: '✦', name: '食能', d: '吃地上的能量星点' } : sp.diet === D_M ? (sp.drain ? { ic: '🩸', name: '寄生', d: '靠吸取其他生物为生' } : { ic: '🍖', name: '食肉', d: '只能靠捕食生物获得能量' }) : { ic: '🍽️', name: '杂食', d: '既吃能量也吃生物' });
+  L.push(sp.diet === D_E ? { ic: '✦', name: '食能', d: '吃地上的光星点' } : sp.diet === D_M ? (sp.drain ? { ic: '🩸', name: '寄生', d: '靠吸取其他小怪为生' } : { ic: '🍖', name: '食肉', d: '只能靠捕食小怪获得光' }) : { ic: '🍽️', name: '杂食', d: '既吃光也吃小怪' });
   L.push([{ ic: '👥', name: '群居', d: '同伴越多战力越高' }, { ic: '🚩', name: '领地', d: '会驱赶靠近的同类' }, { ic: '🐺', name: '猎团', d: '和同伴一起狩猎' }, { ic: '🚶', name: '独行', d: '独来独往' }][sp.soc]);
   L.push([{ ic: '😨', name: '胆小', d: '遇到强敌就逃' }, { ic: '✊', name: '抱团', d: '群体够强时会反击' }, { ic: '🍱', name: '护食', d: '赶走抢食者' }, { ic: '🦁', name: '无畏', d: '不怕比自己弱的对手' }, { ic: '🪼', name: '被动', d: '不追猎，等猎物上门' }][sp.al]);
   for (const t of sp.tr) if (TRAITS[t] && !(t === 'fly' && L.some(x => x.name === '飞行'))) L.push(TRAITS[t]);
@@ -3029,7 +3157,7 @@ function spStats(sp) {
     + statBar('⏳', '寿命', lg(sp.life, 20, 520), 'linear-gradient(90deg,#ffd88a,#fff4d0)', sp.life + ' 秒')
     + statBar('🐣', '繁殖', 1 - lg(sp.mature, 4, 70), 'linear-gradient(90deg,#ff9fd0,#ffe0f0)', sp.mature < 8 ? '极快' : sp.mature < 16 ? '快' : sp.mature < 35 ? '中等' : '慢')
     + statBar('🔥', '食量', lg(sp.meta, 0.07, 2), 'linear-gradient(90deg,#6fd8ff,#bff8ff)', sp.meta < 0.18 ? '很少' : sp.meta < 0.3 ? '少' : sp.meta < 0.6 ? '中' : '很大')
-    + statBar('◆', '物质', lg(sp.mat / sp.matT * 60, 1, 500), 'linear-gradient(90deg,#ffb84a,#ffe9a8)', '+' + (sp.mat / sp.matT * 60).toFixed(sp.mat / sp.matT * 60 < 10 ? 1 : 0) + '/分');
+    + statBar('◆', '魂晶', lg(sp.mat / sp.matT * 60, 1, 500), 'linear-gradient(90deg,#ffb84a,#ffe9a8)', '+' + (sp.mat / sp.matT * 60).toFixed(sp.mat / sp.matT * 60 < 10 ? 1 : 0) + '/分');
 }
 function webRow(label, arr, energy) {
   const ic = j => `<div class="wi ${spUnlocked(j) ? '' : 'unk'}" title="${SPECIES[j].name}"><img src="${speciesIcon(j, 64)}"></div>`;
@@ -3044,7 +3172,7 @@ function showIntro(kind, idx, detail) {
     h = `<div class="ih" style="--c:${sp.col}"><div class="ipic ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${speciesIcon(idx, 160)}" style="--sz:${[0.6, 0.75, 0.88, 1, 1.06][sizeClass(sp.r)]}"></div>
       <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm">${locked ? '？？？' : sp.name}</div>
       <div class="isub">${tr.slice(0, 4).map(t => `<span>${t.ic} ${t.name}</span>`).join('')}</div>
-      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : sp.desc}</div></div></div>`;
+      <div class="ids">${locked ? '还在黑暗里……调查完成后现身。' : sp.desc}</div></div></div>`;
     more = `<div class="icols"><div class="istats">${spStats(sp)}</div><div class="iside"><div class="ttl">特性</div><div class="traits">${tr.map(t => `<div class="trc"><span class="ti">${t.ic}</span><div><b>${t.name}</b><small>${t.d}</small></div></div>`).join('')}</div><div class="ttl">食物链</div>${webRow('吃', preyOf(idx), sp.diet !== D_M)}${webRow('天敌', predsOf(idx), false)}</div></div>`;
     if (un) act = `<button class="btn pri big2b" id="iAct">✨ 召唤 <small>⚡${sp.cost}${sp.mcost ? ' ◆' + sp.mcost : ''}</small></button>`;
   } else {
@@ -3052,7 +3180,7 @@ function showIntro(kind, idx, detail) {
     h = `<div class="ih" style="--c:${DEV_COL[idx]}"><div class="ipic dev ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${devIcon(idx)}"></div>
       <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm" style="color:${DEV_COL[idx]}">${locked ? '？？？' : d.name}</div>
       <div class="isub"><span>◆ ${d.mc}</span><span>⏱ ${d.time} 秒</span></div>
-      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : d.desc}</div></div></div>`;
+      <div class="ids">${locked ? '还在黑暗里……调查完成后现身。' : d.desc}</div></div></div>`;
     if (un) act = `<button class="btn pri big2b" id="iAct">🔨 建造 <small>◆${d.mc}</small></button>`;
   }
   if (locked) {
@@ -3087,7 +3215,7 @@ function updateHUD() {
   $('tName').textContent = LV_NAMES[lv]; $('tName').style.color = col;
   $('tNext').textContent = lv >= MAXLV ? '最高等级' : `${G.lastScore.toFixed(1)} / ${hi}`; $('tWin').firstChild.style.width = (G.wt / WINDOW * 100) + '%';
   if (UI.boostT > 0) { $('speedTag').style.display = 'block'; $('speedTag').textContent = '⏩×4 ' + Math.ceil(UI.boostT) + 's'; } else $('speedTag').style.display = 'none';
-  { const it = G.resT ? resItem(G.resT) : null; $('resN').textContent = it ? it.def.name : (G.labs.length ? '选择研究' : '科研'); $('resBar').style.width = it ? Math.min(100, G.rp / it.cost * 100) + '%' : '0%'; $('cRes').classList.toggle('idle', !it && G.labs.length > 0); }
+  { const it = G.resT ? resItem(G.resT) : null; $('resN').textContent = it ? it.def.name : (G.labs.length ? '选择调查' : '调查'); $('resBar').style.width = it ? Math.min(100, G.rp / it.cost * 100) + '%' : '0%'; $('cRes').classList.toggle('idle', !it && G.labs.length > 0); }
   updateDock(); updateCard(); updateHint();
   
 }
@@ -3099,7 +3227,7 @@ function predsOf(s) { const L = []; SPECIES.forEach((x, j) => { if (S_preyMask[j
 function webHTML(s) {
   const sp = SPECIES[s], eats = preyOf(s), pr = predsOf(s);
   const ic = j => `<img src="${speciesIcon(j, 40)}" title="${SPECIES[j].name}" style="${spUnlocked(j) ? '' : 'filter:brightness(0) opacity(.5)'}">`;
-  return `<div class="web"><span class="lb">吃</span>${sp.diet !== D_M ? '<span style="font-size:22px;color:#9ff4ff" title="能量">✦</span>' : ''}${eats.map(ic).join('')}</div>
+  return `<div class="web"><span class="lb">吃</span>${sp.diet !== D_M ? '<span style="font-size:22px;color:#9ff4ff" title="光">✦</span>' : ''}${eats.map(ic).join('')}</div>
   <div class="web"><span class="lb">天敌</span>${pr.length ? pr.map(ic).join('') : '<span style="opacity:.6">—</span>'}</div>`;
 }
 function stars(p) { const n = p < 1 ? 1 : p < 2.5 ? 2 : p < 5 ? 3 : p < 9 ? 4 : 5; return '★'.repeat(n) + '<span style="opacity:.25">' + '★'.repeat(5 - n) + '</span>'; }
@@ -3110,7 +3238,7 @@ function updateCard() {
   const c = $('card');
   if (UI.selId) {
     const i = findById(UI.selId, UI.sel); UI.sel = i;
-    if (i < 0) { c.innerHTML = '<div class="ch"><div class="nm" style="font-size:16px">🌫 它已经回归了能量…</div><button class="x" data-act="x">✕</button></div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev && !UI.selPOI && UI.selSp === -1) c.style.display = 'none'; }, 1800); return; }
+    if (i < 0) { c.innerHTML = '<div class="ch"><div class="nm" style="font-size:16px">🌫 它已经回归了光…</div><button class="x" data-act="x">✕</button></div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev && !UI.selPOI && UI.selSp === -1) c.style.display = 'none'; }, 1800); return; }
     const s = csp[i], sp = SPECIES[s], cap = capE(i), ageP = cage[i] / sp.life, eP = ce[i] / cap, pw = power(i, false);
     c.style.display = 'block';
     c.innerHTML = `<div class="ch"><img class="pt" src="${speciesIcon(s, 64)}"><div><div class="nm">${sp.name} ${MOOD[cst[i]] || ''}</div><div class="sub">第 ${cgen[i]} 代 · ${ST_NAME[cst[i]]}</div></div><button class="x" data-act="x">✕</button></div>
@@ -3130,8 +3258,8 @@ function updateCard() {
   } else if (UI.selDev) {
     const d = UI.selDev; if (!G.devs.includes(d)) { clearSel(); return; }
     const def = DEVICES[d.type], act = devActive(d);
-    const st = d.bt > 0 ? `<span style="color:#7fb8ff">🔨 建造中 ${Math.ceil(d.bt)}s</span>` : !d.powered ? '<span style="color:#ffb070">⚠ 不在能量场内</span>' : G.lv < 1 ? '<span style="color:#aaa">💤 停机（潮汐 Lv0）</span>' : '<span style="color:#8fffb0">● 运转中</span>';
-    const extra = d.bt <= 0 && act ? (def.key === 'collector' ? `已收集 ${d.n || 0} 颗` : def.out ? `+${(def.out * (1 + 0.1 * G.lv)).toFixed(1)} ⚡/s` : d.lastAcc ? `+${d.lastAcc.toFixed(2)} 潮汐/10s` : '') : '';
+    const st = d.bt > 0 ? `<span style="color:#7fb8ff">🔨 建造中 ${Math.ceil(d.bt)}s</span>` : !d.powered ? '<span style="color:#ffb070">⚠ 不在灯光范围内</span>' : G.lv < 1 ? '<span style="color:#aaa">💤 停机（光域 Lv0）</span>' : '<span style="color:#8fffb0">● 运转中</span>';
+    const extra = d.bt <= 0 && act ? (def.key === 'collector' ? `已收集 ${d.n || 0} 颗` : def.out ? `+${(def.out * (1 + 0.1 * G.lv)).toFixed(1)} ⚡/s` : d.lastAcc ? `+${d.lastAcc.toFixed(2)} 光域/10s` : '') : '';
     const key = d.id + '|' + (d.bt > 0) + '|' + act;
     if (c.dataset.k !== key || c.style.display === 'none') {
       c.dataset.k = key; c.style.display = 'block';
@@ -3142,7 +3270,7 @@ function updateCard() {
     $('cdSt').innerHTML = st; $('cdEx').innerHTML = extra ? `<span class="pl">${extra}</span>` : '';
   } else if (UI.selPOI) {
     const q = UI.selPOI, P = POI[q.type], key = P.key; c.style.display = 'block';
-    const st = key === 'crystal' || key === 'pod' ? (q.used ? '已用尽' : '靠近白球即可触发') : key === 'cave' ? '封存的能量' : q.on ? '<span style="color:#8fffb0">● 运转中</span>' : '<span style="color:#ffb070">⚠ 需要接入能量场（导能塔）且潮汐 ≥ Lv1</span>';
+    const st = key === 'crystal' || key === 'pod' ? (q.used ? '已用尽' : '靠近小灯即可触发') : key === 'cave' ? '封存的光' : q.on ? '<span style="color:#8fffb0">● 运转中</span>' : '<span style="color:#ffb070">⚠ 需要接入灯光范围（路灯）且光域 ≥ Lv1</span>';
     c.innerHTML = `<div class="ch"><div style="width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:32px;color:${P.col}">${P.icon}</div><div><div class="nm" style="color:${P.col}">${P.name}</div><div class="sub">${st}</div></div><button class="x" data-act="x">✕</button></div><div class="desc">${P.desc}</div>`;
   } else c.style.display = 'none';
 }
@@ -3186,45 +3314,45 @@ function closePanel() { $('panel').classList.remove('show'); document.body.class
 function refreshPanel() { if (UI.panel) UI.panel.renderFn(UI.tab); }
 function openTide() {
   AU.play('click');
-  openPanel('🌊 观测潮汐', ['潮汐', '能量账本'], k => {
+  openPanel('🌊 光域', ['光域', '光账本'], k => {
     const B = $('pBody'), b = G.lastBreak, lv = G.lv, col = LV_COLORS[lv];
     if (k === 0) {
       B.innerHTML = `<div class="big2"><div style="width:84px;height:84px;border-radius:50%;border:6px solid ${col};display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:${col}">${lv}</div><div><div style="font-size:22px;font-weight:800;color:${col}">${LV_NAMES[lv]}</div><div style="opacity:.75">最高 Lv${G.maxLv} · 下一级需要 ${lv < MAXLV ? THRESH[lv + 1] : '—'}</div></div></div>
-      ${b ? `<div class="kv"><div class="i">🗼</div><div>方塔观测（物种数 · 生物数）</div><b>${b.tower.toFixed(1)}</b><div class="i">🔧</div><div>建筑与遗迹</div><b>${b.dev.toFixed(1)}</b><div class="i">🌈</div><div>和谐倍率（有效物种 ${b.eff.toFixed(1)} · 营养级 ${b.tr ? b.tr.n : '?'}/3）</div><b>×${b.harm.toFixed(2)}</b><div class="i">🌊</div><div><b>本轮潮汐</b></div><b style="color:${col}">${b.score.toFixed(1)}</b></div>` : '<div style="opacity:.7">还没有结算记录</div>'}
-      <div style="margin:12px 0 4px;opacity:.8">近期潮汐</div><canvas class="spark" id="spark" width="700" height="96"></canvas>
-      <div class="note">潮汐每 10 秒结算一次：<b>物种越多越均衡、食物链越完整，潮汐越高</b>。它决定你能建造哪些建筑、建造多少（▣ 额度）。下降时每次最多降 1 级；归零时建筑停机。</div>`;
+      ${b ? `<div class="kv"><div class="i">🗼</div><div>长明灯观测（物种数 · 小怪数）</div><b>${b.tower.toFixed(1)}</b><div class="i">🔧</div><div>建筑与遗迹</div><b>${b.dev.toFixed(1)}</b><div class="i">🌈</div><div>和谐倍率（有效物种 ${b.eff.toFixed(1)} · 营养级 ${b.tr ? b.tr.n : '?'}/3）</div><b>×${b.harm.toFixed(2)}</b><div class="i">🌊</div><div><b>本轮光域</b></div><b style="color:${col}">${b.score.toFixed(1)}</b></div>` : '<div style="opacity:.7">还没有结算记录</div>'}
+      <div style="margin:12px 0 4px;opacity:.8">近期光域</div><canvas class="spark" id="spark" width="700" height="96"></canvas>
+      <div class="note">光域每 10 秒结算一次：<b>物种越多越均衡、食物链越完整，光域越高</b>。它决定你能建造哪些建筑、建造多少（▣ 额度）。下降时每次最多降 1 级；归零时建筑停机。</div>`;
       const cv = $('spark'); if (cv) { const g = cv.getContext('2d'), h = G.hist.slice(-70); const mx = Math.max(10, ...h.map(x => x.s)); g.clearRect(0, 0, 700, 96); for (let q = 1; q <= MAXLV; q++) { const y = 94 - THRESH[q] / mx * 90; if (y < 0) break; g.strokeStyle = LV_COLORS[q] + '55'; g.beginPath(); g.moveTo(0, y); g.lineTo(700, y); g.stroke(); } g.strokeStyle = '#9ff'; g.lineWidth = 2.5; g.beginPath(); h.forEach((x, q) => { const X = q * 10, Y = 94 - x.s / mx * 90; if (q) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke(); }
     } else {
       const L = ledger(), f = G.lastFlow, net = (f.inE || 0) - (f.burn || 0), E = L.map + L.bio;
       const eta = net < 0 ? visibleE() / (-net / 10) : 0;
       B.innerHTML = `<div class="kv">
-      <div class="i" style="color:#9ff4ff">✦</div><div>地面能量（已探索）</div><b>${fmtN(visibleE() - L.bio)}</b>
-      <div class="i">🐾</div><div>生物体内</div><b>${fmtN(L.bio)}</b>
-      <div class="i">⚡</div><div>白球能量槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
-      <div class="i">➕</div><div>近 10 秒新增（播撒 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
+      <div class="i" style="color:#9ff4ff">✦</div><div>地面光（已探索）</div><b>${fmtN(visibleE() - L.bio)}</b>
+      <div class="i">🐾</div><div>小怪体内</div><b>${fmtN(L.bio)}</b>
+      <div class="i">⚡</div><div>小灯光槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
+      <div class="i">➕</div><div>近 10 秒新增（洒光 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
       <div class="i">🔥</div><div>近 10 秒代谢消耗</div><b class="dn">-${f.burn || 0}</b>
-      <div class="i cm">◆</div><div>近 10 秒物质产出</div><b class="cm">+${f.mat || 0}</b></div>
-      <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `能量正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：播撒能量 · 开拓能量洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '能量收支平衡或增长中。生态圈很健康！'}</div>
-      <div class="note">🔬 生态学：能量沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光能量再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），能量就能细水长流。</div>`;
+      <div class="i cm">◆</div><div>近 10 秒魂晶产出</div><b class="cm">+${f.mat || 0}</b></div>
+      <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `光正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：洒光光 · 开拓光洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '光收支平衡或增长中。生态缸很健康！'}</div>
+      <div class="note">🔬 生态学：光沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光光再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），光就能细水长流。</div>`;
     }
   });
 }
 function openDex() {
   AU.play('click');
-  openPanel('📖 图鉴', ['生物', '建筑', '遗迹', '玩法'], k => {
+  openPanel('📖 图鉴', ['小怪', '建筑', '遗迹', '玩法'], k => {
     const B = $('pBody');
     if (k === 0) B.innerHTML = '<div class="grid">' + SPECIES.map((s, i) => { const un = spUnlocked(i); return `<div class="cardx ${un ? '' : 'lock'}"><div class="hd"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div><div class="nm">${un ? s.name : '？？？'}</div><div style="font-size:13px;opacity:.7">${DIET_NAME[s.diet]} · ${SIZE_NAME[sizeClass(s.r)]}</div></div></div><div><span class="tag" style="color:#ffd07a">⚔ ${stars(s.pow)}</span><span class="tag">⏳${s.life}s</span><span class="tag ce">⚡${s.cost}</span>${s.mcost ? `<span class="tag cm">◆${s.mcost}</span>` : ''}<span class="tag cm">产◆${s.mat}/${s.matT}s</span></div>${un ? `<div class="ds">${s.desc}</div>` : ''}${webHTML(i)}</div>`; }).join('') + '</div>';
     else if (k === 1) B.innerHTML = '<div class="grid">' + DEVICES.map((d, i) => `<div class="cardx ${devUnlocked(i) ? '' : 'lock'}"><div class="hd"><img src="${devIcon(i)}"><div><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div style="font-size:13px;opacity:.7">第 ${d.tier} 阶 · ${d.time}s</div></div></div><div><span class="tag cm">◆${d.mc}</span><span class="tag cc">▣${d.cost}</span>${d.r ? `<span class="tag">◎${d.r}</span>` : ''}</div><div class="ds">${d.desc}</div></div>`).join('') + '</div>';
     else if (k === 2) B.innerHTML = '<div class="grid">' + POI.map(p => `<div class="cardx"><div class="hd"><div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:30px;color:${p.col}">${p.icon}</div><div><div class="nm" style="color:${p.col}">${p.name}</div><div style="font-size:13px;opacity:.7">已发现 ${G.pois.filter(q => q.type === POI_IDX[p.key] && q.found).length} / ${G.pois.filter(q => q.type === POI_IDX[p.key]).length}</div></div></div><div class="ds">${p.desc}</div></div>`).join('') + '</div>';
     else B.innerHTML = `<div class="help">
-      <div class="i" style="color:#9ff4ff">✦</div><div><b>能量是有限的。</b>白球的能量槽会慢慢回充，按住【播撒】把能量喷到地上，生物才有东西吃。生物的代谢会让能量消失。</div>
-      <div class="i">🐾</div><div><b>召唤生物</b>会消耗白球的能量（⚡），高级生物还需要物质（◆）。</div>
-      <div class="i cm">◆</div><div><b>物质</b>是生物的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造物质收集器。</div>
-      <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光能量然后集体饿死。加入捕食者，食物链越完整，能量消耗越慢、物质越多、潮汐越高。</div>
-      <div class="i">🌊</div><div><b>观测潮汐</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
-      <div class="i">🏗️</div><div><b>建筑</b>必须建在能量场内：先铺导能塔。高潮汐解锁能量发生器、恒星炉。</div>
-      <div class="i">❓</div><div><b>黑墙外是迷雾。</b>撞墙可以消融它（会掉血）。? 信号下藏着能量洞、物质晶簇、孵化舱、反应堆、中继塔与古碑——用导能塔把遗迹接入能量网络即可激活。</div>
-      <div class="i">🌙</div><div><b>离线</b>时生态圈继续运转（最多 12 小时），回来像开盲盒。</div></div>`;
+      <div class="i" style="color:#9ff4ff">✦</div><div><b>光是有限的。</b>小灯的光槽会慢慢回充，按住【洒光】把光喷到地上，小怪才有东西吃。小怪的代谢会让光消失。</div>
+      <div class="i">🐾</div><div><b>召唤小怪</b>会消耗小灯的光（⚡），高级小怪还需要魂晶（◆）。</div>
+      <div class="i cm">◆</div><div><b>魂晶</b>是小怪的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造魂晶收集器。</div>
+      <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光光然后集体饿死。加入捕食者，食物链越完整，光消耗越慢、魂晶越多、光域越高。</div>
+      <div class="i">🌊</div><div><b>光域</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
+      <div class="i">🏗️</div><div><b>建筑</b>必须建在灯光范围内：先铺路灯。高光域解锁光发生器、恒星炉。</div>
+      <div class="i">❓</div><div><b>黑墙外是迷雾。</b>撞墙可以消融它（会掉血）。? 信号下藏着光洞、魂晶晶簇、孵化舱、反应堆、中继塔与古碑——用路灯把遗迹接入光网络即可激活。</div>
+      <div class="i">🌙</div><div><b>离线</b>时生态缸继续运转（最多 12 小时），回来像开盲盒。</div></div>`;
   });
 }
 function openSpeed() {
@@ -3233,13 +3361,13 @@ function openSpeed() {
     const nb = G.devs.filter(d => d.bt > 0).length;
     $('pBody').innerHTML = `<div class="grid">
     <div class="cardx" id="spA" style="cursor:pointer"><div class="nm">📺 时间 ×4</div><div class="ds">接下来 3 分钟时间流速 ×4${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
-    <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的世界</div></div>
+    <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的夜晚</div></div>
     <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 施工加速</div><div class="ds">建造中的 ${nb} 个建筑各缩短 60 秒</div></div>
-    <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满能量槽</div><div class="ds">白球能量槽立即充满</div></div></div>`;
+    <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满光槽</div><div class="ds">小灯光槽立即充满</div></div></div>`;
     $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间 ×4！'); closePanel(); }, m => toast(m));
     $('spB').onclick = () => Ads.rewarded(() => { closePanel(); runOffline(600, '⏩ 快进 10 分钟…'); }, m => toast(m));
     $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast('⚡ 所有施工缩短 60 秒'); closePanel(); }, m => toast(m)); };
-    $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 能量槽已充满'); closePanel(); }, m => toast(m));
+    $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 光槽已充满'); closePanel(); }, m => toast(m));
   });
 }
 function openMenu() {
@@ -3253,19 +3381,19 @@ function openMenu() {
     <button class="btn" id="mMus">${AU.musOn ? '🎵 音乐：开' : '🎵 音乐：关'}</button>
     <button class="btn" id="mTut">🕯️ 重看新手守则</button>
     <button class="btn" id="mTitle">🏠 回到标题</button>
-    <button class="btn red" id="mNew">🌱 新的世界（保留已解锁物种）</button>
+    <button class="btn red" id="mNew">🌱 新的夜晚（保留已解锁物种）</button>
     <div style="opacity:.55;font-size:13px">v${VERSION} · 广告：${Ads.platform} · 每 20 秒自动保存</div></div>`;
     $('mSave').onclick = () => saveGame(false); $('mSpd').onclick = () => { closePanel(); openSpeed(); }; $('mDex').onclick = () => { closePanel(); openDex(); };
     $('mSnd').onclick = () => { AU.setOn(!AU.on); META.sound = AU.on; saveMeta(); refreshPanel(); };
     $('mMus').onclick = () => { AU.setMus(!AU.musOn); META.music = AU.musOn; saveMeta(); refreshPanel(); };
     $('mTut').onclick = () => { META.ft = 0; saveMeta(); closePanel(); updateHint(); };
     $('mTitle').onclick = () => { saveGame(true); closePanel(); showTitle(); };
-    $('mNew').onclick = () => { if (!confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
+    $('mNew').onclick = () => { if (!confirm('确定开始新的夜晚吗？当前夜晚会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
   });
 }
 function showWin() {
   Ads.happytime(); AU.play('win');
-  $('repBox').innerHTML = `<div style="font-size:26px;font-weight:800;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:10px 0">观测潮汐达到最高等级 Lv10！<br>你的生态圈稳定、和谐而多样。<br>⏱ ${fmtClock(G.t)}</div><div style="text-align:center;margin-top:12px"><button class="btn pri" id="repOk">继续经营</button></div>`;
+  $('repBox').innerHTML = `<div style="font-size:26px;font-weight:800;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:10px 0">光域达到最高等级 Lv10！<br>你的生态缸稳定、和谐而多样。<br>⏱ ${fmtClock(G.t)}</div><div style="text-align:center;margin-top:12px"><button class="btn pri" id="repOk">继续经营</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => $('report').classList.remove('show');
   META.wins = (META.wins || 0) + 1; saveMeta();
 }
@@ -3303,13 +3431,13 @@ function processEvents() {
       case 'poi': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1, r: 60, color: P.col }); CAM.shake = 0.6; AU.play('built'); if (P.key === 'crystal') toast(`<span class="cm">◆</span> 采集晶簇 <b class="cm">+${e.d !== undefined ? e.d : ''}</b>`, P.col); else if (P.key === 'pod') toast('🥚 孵化舱苏醒了！', P.col); break; }
       case 'wallbreak': G.wallBroken = (G.wallBroken || 0) + 1; if (inView(e.a, e.b)) { addFX('ring', e.a, e.b, { life: 0.5, r: 20, color: '#ff9ad0' }); AU.play('wall'); } break;
       case 'tp': addFX('ring', e.a, e.b, { life: 0.4, r: 30 }); AU.play('tp'); break;
-      case 'orbdie': toast('💫 白球被黑墙消融了，稍后在方塔重生'); AU.play('lvdown'); break;
+      case 'orbdie': toast('💫 小灯被黑墙消融了，稍后在长明灯重生'); AU.play('lvdown'); break;
       case 'built': addFX('ring', e.a, e.b, { life: 0.8, r: 50, color: DEV_COL[e.c] }); AU.play('built'); toast(`✅ ${DEVICES[e.c].name} 完成`); break;
       case 'summon': addFX('ring', e.a, e.b, { life: 0.8, r: 30, color: SPECIES[e.c].col }); break;
       case 'settle': G._pulse = 1; AU.play('settle', G.lv); break;
-      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 潮汐 <b style="color:${LV_COLORS[e.a]}">Lv${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐降到 Lv${e.a}${e.a === 0 ? ' · 建筑停机' : ''}`, '#f99'); } refreshPanel(); break;
+      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 光域 <b style="color:${LV_COLORS[e.a]}">Lv${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 光域降到 Lv${e.a}${e.a === 0 ? ' · 建筑停机' : ''}`, '#f99'); } refreshPanel(); break;
       case 'unlock': { const nm = e.a === 's' ? SPECIES[e.b].name : DEVICES[e.b].name, ic = e.a === 's' ? speciesIcon(e.b, 64) : devIcon(e.b), col = e.a === 's' ? SPECIES[e.b].col : DEV_COL[e.b];
-        bigNotice(ic, '🔬 研究完成', nm, col, e.a === 's' ? '在底部【生物】栏召唤它' : '在底部【建筑】栏建造它'); AU.play('research'); saveMeta(); UI.dockSig = ''; refreshPanel(); break; }
+        bigNotice(ic, '🔬 调查完成', nm, col, e.a === 's' ? '在底部【小怪】栏召唤它' : '在底部【建筑】栏建造它'); AU.play('research'); saveMeta(); UI.dockSig = ''; refreshPanel(); break; }
       case 'wabs': if (inView(e.a, e.b)) { addFX('comet', e.a, e.b, { tx: G.orb.x, ty: G.orb.y, follow: 1, inw: 1, c: 0.25, life: 0.35, w: 3, color: '#ffffff' }); addFX('ring', G.orb.x, G.orb.y, { life: 0.4, r: 16, r0: 12, color: '#dffcff' }); } AU.play('wisp'); break;
       case 'wcat': if (inView(e.a, e.b)) addFX('ring', e.a, e.b - 24, { life: 0.6, r: 26, color: '#ffffff' }); break;
       case 'wdrop': if (inView(e.a, e.b) && CAM.z > 0.35) addFX('comet', e.a + 40, e.b - 160, { tx: e.a, ty: e.b, c: 0.05, life: 0.7, w: 2, color: '#fff6c8' }); break;
@@ -3385,7 +3513,7 @@ function setupInput() {
   joy.addEventListener('pointermove', mv);
   const jup = e => { if (UI.joy.id !== e.pointerId) return; UI.joy.id = null; UI.joy.x = UI.joy.y = 0; K.style.transform = ''; };
   joy.addEventListener('pointerup', jup); joy.addEventListener('pointercancel', jup);
-  // 播撒按钮（按住）
+  // 洒光按钮（按住）
   const sp = $('spray');
   sp.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); AU.init(); UI.sprayTouch = true; sp.setPointerCapture(e.pointerId); });
   const sup = () => { UI.sprayTouch = false; }; sp.addEventListener('pointerup', sup); sp.addEventListener('pointercancel', sup); sp.addEventListener('lostpointercapture', sup);
@@ -3393,7 +3521,7 @@ function setupInput() {
   $('dList').addEventListener('click', onDockClick);
   $('card').addEventListener('click', onCardClick);
   setupDockLongPress(); $('bDex').onclick = openDex; $('bRes').onclick = openResearch; $('cRes').onclick = openResearch; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
-  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 观测潮汐', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast('🕯️ 按住屏幕不动，就能把光洒在地上');
+  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 光域', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast('🕯️ 按住屏幕不动，就能把光洒在地上');
   $('mm').onclick = () => { CAM.tz = CAM.tz > 0.45 ? 0.3 : 1; };
   $('pClose').onclick = () => { AU.play('click'); closePanel(); };
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
@@ -3448,14 +3576,14 @@ function showTitle() {
   const has = !!localStorage.getItem(SAVE_KEY);
   $('bStart').textContent = has ? '继续游戏' : '开始游戏'; $('bNew').style.display = has ? '' : 'none';
   $('startIcons').innerHTML = SPECIES.map((s, i) => `<img src="${speciesIcon(i, 64)}" style="animation-delay:${i * 0.15}s;${G.unlocked.includes(s.key) || i < 2 ? '' : 'filter:brightness(0) opacity(.4)'}">`).join('');
-  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高潮汐 Lv' + META.bestLv : '');
+  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高光域 Lv' + META.bestLv : '');
 }
 function beginPlay() { $('start').style.display = 'none'; document.body.classList.add('playing'); UI.state = 'play'; last = performance.now(); Ads.gameplayStart(); AU.init(); AU.setOn(META.sound !== false); AU.setMus(META.music !== false); UI.dockSig = ''; updateHUD(); drawMinimap(); }
 function startNew() {
   const keep = G.unlocked.slice();
   newGame(); G.unlocked = Array.from(new Set(keep.concat(G.unlocked)));
   clearSel(); exitBuild(); CAM.tz = CAM.z = 1;
-  rebuildFloor(); beginPlay(); saveGame(true); toast('🌱 新的世界诞生了');
+  rebuildFloor(); beginPlay(); saveGame(true); toast('🌱 新的夜晚诞生了');
 }
 function continueGame() {
   const s = loadGame(); if (!s) { startNew(); return; }
@@ -3466,13 +3594,13 @@ function boot() {
   loadMeta();
   AU.on = META.sound !== false; AU.musOn = META.music !== false;
   initRender($('c')); buildSprites();
-  newGame(1); // 标题背景世界
+  newGame(1); // 标题背景夜晚
   G.unlocked = Array.from(new Set(G.unlocked.concat(META.unlocked || [])));
   for (let k = 0; k < 14; k++) { const s = k % 2, a = k * 0.45, r = 90 + (k % 5) * 30; const i = newC(s, Math.cos(a) * r, Math.sin(a) * r, 12, 0); if (i >= 0) cage[i] = 10; }
   rebuildFloor();
   setupInput(); Ads.init().then(() => Ads.loadingDone());
   $('bStart').onclick = () => { AU.init(); AU.play('click'); if (localStorage.getItem(SAVE_KEY)) continueGame(); else startNew(); };
-  $('bNew').onclick = () => { if (confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) { AU.init(); startNew(); } };
+  $('bNew').onclick = () => { if (confirm('确定开始新的夜晚吗？当前夜晚会被覆盖（解锁的物种保留）。')) { AU.init(); startNew(); } };
   showTitle(); requestAnimationFrame(frame);
 }
 window.addEventListener('load', boot);

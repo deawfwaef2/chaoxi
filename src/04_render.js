@@ -53,7 +53,7 @@ function buildNebula() {
     let h = 0; amp = 0.5; fr = 1 / 40; for (let o = 0; o < 3; o++) { h += amp * n2(x * fr + 50, y * fr + 20); amp *= 0.5; fr *= 2.1; }
     const k = Math.pow(Math.max(0, f - 0.38) * 1.7, 1.4), fall = Math.max(0.3, 1 - dist * 0.6) * 0.78;
     // 深海蓝 → 青绿 / 紫罗兰 两种星云按 h 混合
-    const m = Math.min(1, Math.max(0, (h - 0.42) * 5)); let r = 8 + k * (18 + 70 * m), gg = 12 + k * (80 - 50 * m), b = 30 + k * (75 + 20 * m);
+    const m = Math.min(1, Math.max(0, (h - 0.42) * 5)); let r = 16 + k * (34 + 46 * m), gg = 14 + k * (44 - 20 * m), b = 20 + k * (30 + 36 * m);
     const i = (y * N + x) * 4; d[i] = r * fall; d[i + 1] = gg * fall; d[i + 2] = b * fall; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
@@ -102,7 +102,7 @@ function rebuildRim() {
   // 墙体（遮罩反相）→ 阴影模糊 → 只保留落在地面上的部分 = 贴着墙边的青色辉光
   invG.globalCompositeOperation = 'source-over'; invG.clearRect(0, 0, RW, RW); invG.fillStyle = '#fff'; invG.fillRect(0, 0, RW, RW);
   invG.globalCompositeOperation = 'destination-out'; invG.drawImage(maskC, 0, 0, RW, RW); invG.globalCompositeOperation = 'source-over';
-  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(70,200,255,0.9)'; rimG.shadowBlur = 5; rimG.shadowOffsetX = RW * 2;
+  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(150,70,210,0.9)'; rimG.shadowBlur = 5; rimG.shadowOffsetX = RW * 2;
   rimG.drawImage(invC, -RW * 2, 0); rimG.restore();
   rimG.globalCompositeOperation = 'destination-in'; rimG.drawImage(maskC, 0, 0, RW, RW); rimG.globalCompositeOperation = 'source-over';
 }
@@ -194,9 +194,12 @@ function render(realDt, ui) {
   worldT();
   drawMatter(x0, y0, x1, y1);
   drawCreatures(x0, y0, x1, y1, ui);
-  drawWisps(x0, y0, x1, y1);
   for (const d of G.devs) if (d.x > x0 - 300 && d.x < x1 + 300 && d.y > y0 - 300 && d.y < y1 + 300) drawDevice(d, true);
   drawTower();
+  drawDarkness(x0, y0, x1, y1);
+  particlesOverDark();
+  drawWisps(x0, y0, x1, y1);
+  drawEyes(x0, y0, x1, y1);
   drawOrb(ui);
   if (ui.build >= 0 && ui.ghost) drawGhost(ui);
   drawSignals(x0, y0, x1, y1);
@@ -249,7 +252,7 @@ function drawParticles(x0, y0, x1, y1) {
     const l = accR[i], e = accU[i];
     if ((l | e) === 0) { pb32[i] = 0; continue; }
     const lf = l > 48 ? 48 : l, ef = e > 40 ? 40 : e;
-    let r = (lf * 9 + ef * 4.5) * dim, g = (lf * 24 + ef * 2.2) * dim, b = (lf * 30 + ef * 7) * dim;
+    let r = (lf * 32 + ef * 6) * dim, g = (lf * 21 + ef * 2.4) * dim, b = (lf * 8 + ef * 7.5) * dim;
     if (lf > 20) { const w2 = (lf - 20) * 6; r += w2; g += w2; b += w2; } // 高密度发白
     if (r > 255) r = 255; if (g > 255) g = 255; if (b > 255) b = 255;
     pb32[i] = 0xff000000 | (b << 16) | (g << 8) | r;
@@ -272,6 +275,7 @@ function drawParticles(x0, y0, x1, y1) {
   }
   ctx.globalCompositeOperation = 'source-over';
 }
+function particlesOverDark() { const D = CAM.dpr, bw = pbW, bh = pbH; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = darkness() * 0.75; ctx.drawImage(pbC, 0, 0, bw, bh, 0, 0, bw * 2 * D, bh * 2 * D); ctx.globalAlpha = darkness() * 0.6; ctx.drawImage(bloomC, 0, 0, bloomC.width, bloomC.height, 0, 0, bw * 2 * D, bh * 2 * D); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; worldT(); }
 
 /* ---------- 生物 ---------- */
 let dbC = null, dbG = null, dbImg = null, db32 = null, dbDirty = false;
@@ -547,24 +551,21 @@ function drawOrb(ui) {
   const o = G.orb; if (o.dead > 0) { const p = o.dead / 2.5; ctx.globalAlpha = p * 0.6; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(o.x, o.y, 14 + (1 - p) * 30, 0, 7); ctx.fill(); ctx.globalAlpha = 1; return; }
   const t = G.t;
   ctx.globalCompositeOperation = 'lighter';
-  ctx.globalAlpha = 0.55; ctx.drawImage(glowSpr, o.x - 50, o.y - 50, 100, 100); ctx.globalAlpha = 0.9; ctx.drawImage(glowSpr, o.x - 22, o.y - 22, 44, 44);
-  // 环绕的小卫星
-  for (let k = 0; k < 3; k++) { const a = t * 2.2 + k * 2.094; ctx.globalAlpha = 0.8; ctx.fillStyle = '#cff8ff'; ctx.beginPath(); ctx.arc(o.x + Math.cos(a) * 19, o.y + Math.sin(a) * 7 - 2, 1.8, 0, 7); ctx.fill(); }
+  
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-  const g = ctx.createRadialGradient(o.x - 3, o.y - 4, 1, o.x, o.y, 12); g.addColorStop(0, '#ffffff'); g.addColorStop(0.7, '#eafcff'); g.addColorStop(1, '#a8e8ff');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, 11 + Math.sin(t * 4) * 0.8, 0, 7); ctx.fill();
+  drawLantern(o, t);
   // 能量槽环（白球身上的“电量”）
   const tf = o.tank / tankMax(G.lv); ctx.lineCap = 'round';
-  ctx.strokeStyle = 'rgba(0,10,20,0.5)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(o.x, o.y, 16, 0, 7); ctx.stroke();
-  ctx.strokeStyle = tf > 0.2 ? '#7ff4ff' : '#ff9a8a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, 16, -Math.PI / 2, -Math.PI / 2 + tf * 6.283); ctx.stroke();
+  ctx.strokeStyle = 'rgba(30,10,0,0.45)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(o.x, o.y + 1, 19, 0, 7); ctx.stroke();
+  ctx.strokeStyle = tf > 0.2 ? '#ffcf7a' : '#ff9a8a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y + 1, 19, -Math.PI / 2, -Math.PI / 2 + tf * 6.283); ctx.stroke();
   if (o.spray && o.tank >= 1) { // v0.6 播撒动画：旋涡光弧 + 冲击波 + 彗星拖尾
     ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-    for (let k = 0; k < 3; k++) { const a0 = t * 7 + k * 2.094, R = 24 + Math.sin(t * 9 + k) * 2; ctx.globalAlpha = 0.85; ctx.strokeStyle = k === 1 ? '#ffffff' : '#9ff4ff'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0, a0 + 1.3); ctx.stroke(); ctx.globalAlpha = 0.35; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0 + 0.2, a0 + 1.1); ctx.stroke(); }
-    for (let k = 0; k < 2; k++) { const p = (t * 1.8 + k / 2) % 1, R = 20 + p * 70; const rg = ctx.createRadialGradient(o.x, o.y, R * 0.75, o.x, o.y, R); rg.addColorStop(0, 'rgba(160,240,255,0)'); rg.addColorStop(0.8, `rgba(190,248,255,${(1 - p) * 0.35})`); rg.addColorStop(1, 'rgba(190,248,255,0)'); ctx.globalAlpha = 1; ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(o.x, o.y, R, 0, 7); ctx.fill(); }
+    for (let k = 0; k < 3; k++) { const a0 = t * 7 + k * 2.094, R = 24 + Math.sin(t * 9 + k) * 2; ctx.globalAlpha = 0.85; ctx.strokeStyle = k === 1 ? '#ffffff' : '#ffc26a'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0, a0 + 1.3); ctx.stroke(); ctx.globalAlpha = 0.35; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(o.x, o.y, R, a0 + 0.2, a0 + 1.1); ctx.stroke(); }
+    for (let k = 0; k < 2; k++) { const p = (t * 1.8 + k / 2) % 1, R = 20 + p * 70; const rg = ctx.createRadialGradient(o.x, o.y, R * 0.75, o.x, o.y, R); rg.addColorStop(0, 'rgba(255,200,120,0)'); rg.addColorStop(0.8, `rgba(190,248,255,${(1 - p) * 0.35})`); rg.addColorStop(1, 'rgba(190,248,255,0)'); ctx.globalAlpha = 1; ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(o.x, o.y, R, 0, 7); ctx.fill(); }
     ctx.globalAlpha = 0.9; ctx.drawImage(glowSpr, o.x - 40, o.y - 40, 80, 80);
     ui._cAcc = (ui._cAcc || 0) + 1; if (ui._cAcc % 2 === 0) for (let q = 0; q < 2; q++) { const a = t * 5 + q * 3.14 + Math.random() * 0.8, d = 36 + Math.random() * 60; addFX('comet', o.x + Math.cos(a) * 10, o.y + Math.sin(a) * 10, { tx: o.x + Math.cos(a + 0.5) * d, ty: o.y + Math.sin(a + 0.5) * d, c: 0.35, life: 0.5 + Math.random() * 0.2, w: 2.2, color: Math.random() < 0.3 ? '#ffffff' : '#8ff0ff' }); }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
-  if (o.hp < 100) { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.stroke(); ctx.strokeStyle = o.hp > 40 ? '#bff' : '#ff8a8a'; ctx.beginPath(); ctx.arc(o.x, o.y, 20, -Math.PI / 2, -Math.PI / 2 + o.hp / 100 * 6.283); ctx.stroke(); }
+  if (o.hp < 100) { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.stroke(); ctx.strokeStyle = o.hp > 40 ? '#ffe0a0' : '#ff8a8a'; ctx.beginPath(); ctx.arc(o.x, o.y, 20, -Math.PI / 2, -Math.PI / 2 + o.hp / 100 * 6.283); ctx.stroke(); }
   if (o.drill) { ctx.globalCompositeOperation = 'lighter'; for (let k = 0; k < 5; k++) { const a = rnd() * 6.28, d = 14 + rnd() * 8; ctx.fillStyle = rnd() < 0.5 ? '#fff' : '#ff9ad0'; ctx.fillRect(o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, 2, 2); } ctx.globalCompositeOperation = 'source-over'; }
 }
 function drawGhost(ui) {

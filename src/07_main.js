@@ -68,13 +68,13 @@ function loadGame() {
 /* ---------- 离线推演 ---------- */
 let offCancel = false;
 function worldE() { const L = ledger(); return L.map + L.bio; }
-// 玩家能“看见”的能量：已探索区域的地面能量 + 生物体内（不含迷雾中封存的能量洞）
+// 玩家能“看见”的光：已探索区域的地面光 + 小怪体内（不含迷雾中封存的光洞）
 function visibleE() { let e = 0; for (let i = 0; i < pN; i++) { const g = gIdx(px[i], py[i]); if (g >= 0 && seen[g]) e += pv[i]; } for (let i = 0; i < cN; i++) if (!cdead[i]) e += ce[i]; return e; }
 function runOffline(sec, title, done) {
   sec = Math.min(sec, 12 * 3600);
   const before = { lv: G.lv, pop: cN, sp: Array.from(G.spCount), births: G.births, deaths: G.deaths, t: G.t, E: visibleE(), mat: G.matter };
   const ext = new Set(); let maxLvSeen = G.lv, minLvSeen = G.lv;
-  $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态圈仍在运转'; offCancel = false;
+  $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态缸仍在运转'; offCancel = false;
   const tStart = performance.now(); let simmed = 0, dt = 0.25; const budget = 9000; G.offline = true;
   const t0 = performance.now(); for (let k = 0; k < 8 && simmed < sec; k++) { simStep(dt); simmed += dt; G.events.length = 0; }
   const ms = Math.max(0.3, (performance.now() - t0) / 8); const steps = budget / ms; dt = Math.max(0.25, Math.min(4, (sec - simmed) / steps));
@@ -99,17 +99,17 @@ function fmtTime(s) { s = Math.round(s); if (s < 60) return s + ' 秒'; if (s < 
 function showReport(r) {
   const spLines = SPECIES.map((s, i) => (r.before.sp[i] || r.after.sp[i]) ? `<tr><td><img src="${speciesIcon(i, 40)}" style="width:28px;vertical-align:middle"> ${s.name}</td><td>${r.before.sp[i]}</td><td>→</td><td style="color:${r.after.sp[i] > r.before.sp[i] ? '#8f8' : r.after.sp[i] < r.before.sp[i] ? '#f99' : '#ccc'}">${r.after.sp[i]}${r.after.sp[i] === 0 ? ' 💀' : ''}</td></tr>` : '').join('');
   const collapsed = r.after.pop === 0 && r.before.pop > 0, dE = r.after.E - r.before.E, dM = r.after.mat - r.before.mat;
-  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:800">${collapsed ? '💀 生态圈崩溃了…' : r.after.lv > r.before.lv ? '🌊 潮汐上涨！' : r.after.lv < r.before.lv ? '🌘 潮汐退去了…' : '🎁 开盲盒时间'}</div>
+  $('repBox').innerHTML = `<div style="font-size:22px;font-weight:800">${collapsed ? '💀 生态缸崩溃了…' : r.after.lv > r.before.lv ? '🌊 光域上涨！' : r.after.lv < r.before.lv ? '🌘 光域退去了…' : '🎁 开盲盒时间'}</div>
   <div style="opacity:.75">⏱ ${fmtTime(r.sec)}${r.sec < r.want - 1 ? `（离开 ${fmtTime(r.want)}，超出部分已省略）` : ''}</div>
   <div class="kv" style="margin:8px 0">
-    <div class="i">🌊</div><div>潮汐</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
-    <div class="i">🐾</div><div>生物</div><b>${r.before.pop} → ${r.after.pop}</b>
-    <div class="i" style="color:#9ff4ff">✦</div><div>世界能量</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
-    <div class="i cm">◆</div><div>物质</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
+    <div class="i">🌊</div><div>光域</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
+    <div class="i">🐾</div><div>小怪</div><b>${r.before.pop} → ${r.after.pop}</b>
+    <div class="i" style="color:#9ff4ff">✦</div><div>夜晚光</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
+    <div class="i cm">◆</div><div>魂晶</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
   </div>
   ${r.ext.length ? `<div style="color:#f99">💀 灭绝：${r.ext.map(s => SPECIES[s].name).join('、')}</div>` : ''}
   <table class="tb" style="margin-top:6px">${spLines}</table>
-  ${collapsed ? '<div class="note warn">能量耗尽，生物全部饿死了。播撒能量、开拓能量洞、建造发生器，然后重新召唤吧——解锁的物种不会丢失。</div>' : dE < 0 && r.after.pop > 0 ? '<div class="note">能量在减少：食肉动物能控制食草动物的数量，让能量用得更久。</div>' : ''}
+  ${collapsed ? '<div class="note warn">光耗尽，小怪全部饿死了。洒光光、开拓光洞、建造发生器，然后重新召唤吧——解锁的物种不会丢失。</div>' : dE < 0 && r.after.pop > 0 ? '<div class="note">光在减少：食肉动物能控制食草动物的数量，让光用得更久。</div>' : ''}
   <div style="text-align:center;margin-top:14px"><button class="btn pri" id="repOk">继续</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => { $('report').classList.remove('show'); AU.play('click'); if (G._winPending) { G._winPending = false; showWin(); } };
 }
@@ -155,7 +155,7 @@ function devIcon(t) {
   ctx = sv; G.lv = lv; CAM.z = z; return _devIcon[t] = c.toDataURL();
 }
 
-/* ---------- 底部坞站（v0.7 极简：只显示已解锁 + 「下一个」研究格） ---------- */
+/* ---------- 底部坞站（v0.7 极简：只显示已解锁 + 「下一个」调查格） ---------- */
 function spUnlocked(i) { return G.unlocked.includes(SPECIES[i].key); }
 function isNew(key) { return G.unlocked.includes(key) && !META.introSeen.includes(key); }
 function itemIcon(it) { return it.kind === 's' ? speciesIcon(it.idx, 96) : devIcon(it.idx); }
@@ -192,11 +192,11 @@ function updateDock() {
 function setDock() { UI.dockSig = ''; updateDock(); }
 function doSummon(i, el) {
   const s = SPECIES[i], o = G.orb, r = summon(i, isWall(o.x, o.y) ? null : { x: o.x, y: o.y });
-  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('能量') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
+  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('光') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
   else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#ffe3a0' }); }
   updateDock();
 }
-/* 自动选位：先在小灯附近找，再在方塔附近找；路灯优先放在光场边缘向小灯方向延伸 */
+/* 自动选位：先在小灯附近找，再在长明灯附近找；路灯优先放在光场边缘向小灯方向延伸 */
 function autoSpot(t) {
   const def = DEVICES[t], o = G.orb, cands = [];
   const tryAt = (x, y) => !canPlace(t, x, y);
@@ -230,7 +230,7 @@ function setupDockLongPress() { // 长按卡片 = 查看详情（代替图鉴）
 /* ---------- 介绍卡（极简：大图 + 名字 + 一句话；「详细」可展开） ---------- */
 function traitsOf(sp) {
   const L = [];
-  L.push(sp.diet === D_E ? { ic: '✦', name: '食能', d: '吃地上的能量星点' } : sp.diet === D_M ? (sp.drain ? { ic: '🩸', name: '寄生', d: '靠吸取其他生物为生' } : { ic: '🍖', name: '食肉', d: '只能靠捕食生物获得能量' }) : { ic: '🍽️', name: '杂食', d: '既吃能量也吃生物' });
+  L.push(sp.diet === D_E ? { ic: '✦', name: '食能', d: '吃地上的光星点' } : sp.diet === D_M ? (sp.drain ? { ic: '🩸', name: '寄生', d: '靠吸取其他小怪为生' } : { ic: '🍖', name: '食肉', d: '只能靠捕食小怪获得光' }) : { ic: '🍽️', name: '杂食', d: '既吃光也吃小怪' });
   L.push([{ ic: '👥', name: '群居', d: '同伴越多战力越高' }, { ic: '🚩', name: '领地', d: '会驱赶靠近的同类' }, { ic: '🐺', name: '猎团', d: '和同伴一起狩猎' }, { ic: '🚶', name: '独行', d: '独来独往' }][sp.soc]);
   L.push([{ ic: '😨', name: '胆小', d: '遇到强敌就逃' }, { ic: '✊', name: '抱团', d: '群体够强时会反击' }, { ic: '🍱', name: '护食', d: '赶走抢食者' }, { ic: '🦁', name: '无畏', d: '不怕比自己弱的对手' }, { ic: '🪼', name: '被动', d: '不追猎，等猎物上门' }][sp.al]);
   for (const t of sp.tr) if (TRAITS[t] && !(t === 'fly' && L.some(x => x.name === '飞行'))) L.push(TRAITS[t]);
@@ -246,7 +246,7 @@ function spStats(sp) {
     + statBar('⏳', '寿命', lg(sp.life, 20, 520), 'linear-gradient(90deg,#ffd88a,#fff4d0)', sp.life + ' 秒')
     + statBar('🐣', '繁殖', 1 - lg(sp.mature, 4, 70), 'linear-gradient(90deg,#ff9fd0,#ffe0f0)', sp.mature < 8 ? '极快' : sp.mature < 16 ? '快' : sp.mature < 35 ? '中等' : '慢')
     + statBar('🔥', '食量', lg(sp.meta, 0.07, 2), 'linear-gradient(90deg,#6fd8ff,#bff8ff)', sp.meta < 0.18 ? '很少' : sp.meta < 0.3 ? '少' : sp.meta < 0.6 ? '中' : '很大')
-    + statBar('◆', '物质', lg(sp.mat / sp.matT * 60, 1, 500), 'linear-gradient(90deg,#ffb84a,#ffe9a8)', '+' + (sp.mat / sp.matT * 60).toFixed(sp.mat / sp.matT * 60 < 10 ? 1 : 0) + '/分');
+    + statBar('◆', '魂晶', lg(sp.mat / sp.matT * 60, 1, 500), 'linear-gradient(90deg,#ffb84a,#ffe9a8)', '+' + (sp.mat / sp.matT * 60).toFixed(sp.mat / sp.matT * 60 < 10 ? 1 : 0) + '/分');
 }
 function webRow(label, arr, energy) {
   const ic = j => `<div class="wi ${spUnlocked(j) ? '' : 'unk'}" title="${SPECIES[j].name}"><img src="${speciesIcon(j, 64)}"></div>`;
@@ -261,7 +261,7 @@ function showIntro(kind, idx, detail) {
     h = `<div class="ih" style="--c:${sp.col}"><div class="ipic ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${speciesIcon(idx, 160)}" style="--sz:${[0.6, 0.75, 0.88, 1, 1.06][sizeClass(sp.r)]}"></div>
       <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm">${locked ? '？？？' : sp.name}</div>
       <div class="isub">${tr.slice(0, 4).map(t => `<span>${t.ic} ${t.name}</span>`).join('')}</div>
-      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : sp.desc}</div></div></div>`;
+      <div class="ids">${locked ? '还在黑暗里……调查完成后现身。' : sp.desc}</div></div></div>`;
     more = `<div class="icols"><div class="istats">${spStats(sp)}</div><div class="iside"><div class="ttl">特性</div><div class="traits">${tr.map(t => `<div class="trc"><span class="ti">${t.ic}</span><div><b>${t.name}</b><small>${t.d}</small></div></div>`).join('')}</div><div class="ttl">食物链</div>${webRow('吃', preyOf(idx), sp.diet !== D_M)}${webRow('天敌', predsOf(idx), false)}</div></div>`;
     if (un) act = `<button class="btn pri big2b" id="iAct">✨ 召唤 <small>⚡${sp.cost}${sp.mcost ? ' ◆' + sp.mcost : ''}</small></button>`;
   } else {
@@ -269,7 +269,7 @@ function showIntro(kind, idx, detail) {
     h = `<div class="ih" style="--c:${DEV_COL[idx]}"><div class="ipic dev ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${devIcon(idx)}"></div>
       <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm" style="color:${DEV_COL[idx]}">${locked ? '？？？' : d.name}</div>
       <div class="isub"><span>◆ ${d.mc}</span><span>⏱ ${d.time} 秒</span></div>
-      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : d.desc}</div></div></div>`;
+      <div class="ids">${locked ? '还在黑暗里……调查完成后现身。' : d.desc}</div></div></div>`;
     if (un) act = `<button class="btn pri big2b" id="iAct">🔨 建造 <small>◆${d.mc}</small></button>`;
   }
   if (locked) {
@@ -304,7 +304,7 @@ function updateHUD() {
   $('tName').textContent = LV_NAMES[lv]; $('tName').style.color = col;
   $('tNext').textContent = lv >= MAXLV ? '最高等级' : `${G.lastScore.toFixed(1)} / ${hi}`; $('tWin').firstChild.style.width = (G.wt / WINDOW * 100) + '%';
   if (UI.boostT > 0) { $('speedTag').style.display = 'block'; $('speedTag').textContent = '⏩×4 ' + Math.ceil(UI.boostT) + 's'; } else $('speedTag').style.display = 'none';
-  { const it = G.resT ? resItem(G.resT) : null; $('resN').textContent = it ? it.def.name : (G.labs.length ? '选择研究' : '科研'); $('resBar').style.width = it ? Math.min(100, G.rp / it.cost * 100) + '%' : '0%'; $('cRes').classList.toggle('idle', !it && G.labs.length > 0); }
+  { const it = G.resT ? resItem(G.resT) : null; $('resN').textContent = it ? it.def.name : (G.labs.length ? '选择调查' : '调查'); $('resBar').style.width = it ? Math.min(100, G.rp / it.cost * 100) + '%' : '0%'; $('cRes').classList.toggle('idle', !it && G.labs.length > 0); }
   updateDock(); updateCard(); updateHint();
   
 }
@@ -316,7 +316,7 @@ function predsOf(s) { const L = []; SPECIES.forEach((x, j) => { if (S_preyMask[j
 function webHTML(s) {
   const sp = SPECIES[s], eats = preyOf(s), pr = predsOf(s);
   const ic = j => `<img src="${speciesIcon(j, 40)}" title="${SPECIES[j].name}" style="${spUnlocked(j) ? '' : 'filter:brightness(0) opacity(.5)'}">`;
-  return `<div class="web"><span class="lb">吃</span>${sp.diet !== D_M ? '<span style="font-size:22px;color:#9ff4ff" title="能量">✦</span>' : ''}${eats.map(ic).join('')}</div>
+  return `<div class="web"><span class="lb">吃</span>${sp.diet !== D_M ? '<span style="font-size:22px;color:#9ff4ff" title="光">✦</span>' : ''}${eats.map(ic).join('')}</div>
   <div class="web"><span class="lb">天敌</span>${pr.length ? pr.map(ic).join('') : '<span style="opacity:.6">—</span>'}</div>`;
 }
 function stars(p) { const n = p < 1 ? 1 : p < 2.5 ? 2 : p < 5 ? 3 : p < 9 ? 4 : 5; return '★'.repeat(n) + '<span style="opacity:.25">' + '★'.repeat(5 - n) + '</span>'; }
@@ -327,7 +327,7 @@ function updateCard() {
   const c = $('card');
   if (UI.selId) {
     const i = findById(UI.selId, UI.sel); UI.sel = i;
-    if (i < 0) { c.innerHTML = '<div class="ch"><div class="nm" style="font-size:16px">🌫 它已经回归了能量…</div><button class="x" data-act="x">✕</button></div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev && !UI.selPOI && UI.selSp === -1) c.style.display = 'none'; }, 1800); return; }
+    if (i < 0) { c.innerHTML = '<div class="ch"><div class="nm" style="font-size:16px">🌫 它已经回归了光…</div><button class="x" data-act="x">✕</button></div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev && !UI.selPOI && UI.selSp === -1) c.style.display = 'none'; }, 1800); return; }
     const s = csp[i], sp = SPECIES[s], cap = capE(i), ageP = cage[i] / sp.life, eP = ce[i] / cap, pw = power(i, false);
     c.style.display = 'block';
     c.innerHTML = `<div class="ch"><img class="pt" src="${speciesIcon(s, 64)}"><div><div class="nm">${sp.name} ${MOOD[cst[i]] || ''}</div><div class="sub">第 ${cgen[i]} 代 · ${ST_NAME[cst[i]]}</div></div><button class="x" data-act="x">✕</button></div>
@@ -347,8 +347,8 @@ function updateCard() {
   } else if (UI.selDev) {
     const d = UI.selDev; if (!G.devs.includes(d)) { clearSel(); return; }
     const def = DEVICES[d.type], act = devActive(d);
-    const st = d.bt > 0 ? `<span style="color:#7fb8ff">🔨 建造中 ${Math.ceil(d.bt)}s</span>` : !d.powered ? '<span style="color:#ffb070">⚠ 不在能量场内</span>' : G.lv < 1 ? '<span style="color:#aaa">💤 停机（潮汐 Lv0）</span>' : '<span style="color:#8fffb0">● 运转中</span>';
-    const extra = d.bt <= 0 && act ? (def.key === 'collector' ? `已收集 ${d.n || 0} 颗` : def.out ? `+${(def.out * (1 + 0.1 * G.lv)).toFixed(1)} ⚡/s` : d.lastAcc ? `+${d.lastAcc.toFixed(2)} 潮汐/10s` : '') : '';
+    const st = d.bt > 0 ? `<span style="color:#7fb8ff">🔨 建造中 ${Math.ceil(d.bt)}s</span>` : !d.powered ? '<span style="color:#ffb070">⚠ 不在灯光范围内</span>' : G.lv < 1 ? '<span style="color:#aaa">💤 停机（光域 Lv0）</span>' : '<span style="color:#8fffb0">● 运转中</span>';
+    const extra = d.bt <= 0 && act ? (def.key === 'collector' ? `已收集 ${d.n || 0} 颗` : def.out ? `+${(def.out * (1 + 0.1 * G.lv)).toFixed(1)} ⚡/s` : d.lastAcc ? `+${d.lastAcc.toFixed(2)} 光域/10s` : '') : '';
     const key = d.id + '|' + (d.bt > 0) + '|' + act;
     if (c.dataset.k !== key || c.style.display === 'none') {
       c.dataset.k = key; c.style.display = 'block';
@@ -359,7 +359,7 @@ function updateCard() {
     $('cdSt').innerHTML = st; $('cdEx').innerHTML = extra ? `<span class="pl">${extra}</span>` : '';
   } else if (UI.selPOI) {
     const q = UI.selPOI, P = POI[q.type], key = P.key; c.style.display = 'block';
-    const st = key === 'crystal' || key === 'pod' ? (q.used ? '已用尽' : '靠近白球即可触发') : key === 'cave' ? '封存的能量' : q.on ? '<span style="color:#8fffb0">● 运转中</span>' : '<span style="color:#ffb070">⚠ 需要接入能量场（导能塔）且潮汐 ≥ Lv1</span>';
+    const st = key === 'crystal' || key === 'pod' ? (q.used ? '已用尽' : '靠近小灯即可触发') : key === 'cave' ? '封存的光' : q.on ? '<span style="color:#8fffb0">● 运转中</span>' : '<span style="color:#ffb070">⚠ 需要接入灯光范围（路灯）且光域 ≥ Lv1</span>';
     c.innerHTML = `<div class="ch"><div style="width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:32px;color:${P.col}">${P.icon}</div><div><div class="nm" style="color:${P.col}">${P.name}</div><div class="sub">${st}</div></div><button class="x" data-act="x">✕</button></div><div class="desc">${P.desc}</div>`;
   } else c.style.display = 'none';
 }
@@ -403,45 +403,45 @@ function closePanel() { $('panel').classList.remove('show'); document.body.class
 function refreshPanel() { if (UI.panel) UI.panel.renderFn(UI.tab); }
 function openTide() {
   AU.play('click');
-  openPanel('🌊 观测潮汐', ['潮汐', '能量账本'], k => {
+  openPanel('🌊 光域', ['光域', '光账本'], k => {
     const B = $('pBody'), b = G.lastBreak, lv = G.lv, col = LV_COLORS[lv];
     if (k === 0) {
       B.innerHTML = `<div class="big2"><div style="width:84px;height:84px;border-radius:50%;border:6px solid ${col};display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:${col}">${lv}</div><div><div style="font-size:22px;font-weight:800;color:${col}">${LV_NAMES[lv]}</div><div style="opacity:.75">最高 Lv${G.maxLv} · 下一级需要 ${lv < MAXLV ? THRESH[lv + 1] : '—'}</div></div></div>
-      ${b ? `<div class="kv"><div class="i">🗼</div><div>方塔观测（物种数 · 生物数）</div><b>${b.tower.toFixed(1)}</b><div class="i">🔧</div><div>建筑与遗迹</div><b>${b.dev.toFixed(1)}</b><div class="i">🌈</div><div>和谐倍率（有效物种 ${b.eff.toFixed(1)} · 营养级 ${b.tr ? b.tr.n : '?'}/3）</div><b>×${b.harm.toFixed(2)}</b><div class="i">🌊</div><div><b>本轮潮汐</b></div><b style="color:${col}">${b.score.toFixed(1)}</b></div>` : '<div style="opacity:.7">还没有结算记录</div>'}
-      <div style="margin:12px 0 4px;opacity:.8">近期潮汐</div><canvas class="spark" id="spark" width="700" height="96"></canvas>
-      <div class="note">潮汐每 10 秒结算一次：<b>物种越多越均衡、食物链越完整，潮汐越高</b>。它决定你能建造哪些建筑、建造多少（▣ 额度）。下降时每次最多降 1 级；归零时建筑停机。</div>`;
+      ${b ? `<div class="kv"><div class="i">🗼</div><div>长明灯观测（物种数 · 小怪数）</div><b>${b.tower.toFixed(1)}</b><div class="i">🔧</div><div>建筑与遗迹</div><b>${b.dev.toFixed(1)}</b><div class="i">🌈</div><div>和谐倍率（有效物种 ${b.eff.toFixed(1)} · 营养级 ${b.tr ? b.tr.n : '?'}/3）</div><b>×${b.harm.toFixed(2)}</b><div class="i">🌊</div><div><b>本轮光域</b></div><b style="color:${col}">${b.score.toFixed(1)}</b></div>` : '<div style="opacity:.7">还没有结算记录</div>'}
+      <div style="margin:12px 0 4px;opacity:.8">近期光域</div><canvas class="spark" id="spark" width="700" height="96"></canvas>
+      <div class="note">光域每 10 秒结算一次：<b>物种越多越均衡、食物链越完整，光域越高</b>。它决定你能建造哪些建筑、建造多少（▣ 额度）。下降时每次最多降 1 级；归零时建筑停机。</div>`;
       const cv = $('spark'); if (cv) { const g = cv.getContext('2d'), h = G.hist.slice(-70); const mx = Math.max(10, ...h.map(x => x.s)); g.clearRect(0, 0, 700, 96); for (let q = 1; q <= MAXLV; q++) { const y = 94 - THRESH[q] / mx * 90; if (y < 0) break; g.strokeStyle = LV_COLORS[q] + '55'; g.beginPath(); g.moveTo(0, y); g.lineTo(700, y); g.stroke(); } g.strokeStyle = '#9ff'; g.lineWidth = 2.5; g.beginPath(); h.forEach((x, q) => { const X = q * 10, Y = 94 - x.s / mx * 90; if (q) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke(); }
     } else {
       const L = ledger(), f = G.lastFlow, net = (f.inE || 0) - (f.burn || 0), E = L.map + L.bio;
       const eta = net < 0 ? visibleE() / (-net / 10) : 0;
       B.innerHTML = `<div class="kv">
-      <div class="i" style="color:#9ff4ff">✦</div><div>地面能量（已探索）</div><b>${fmtN(visibleE() - L.bio)}</b>
-      <div class="i">🐾</div><div>生物体内</div><b>${fmtN(L.bio)}</b>
-      <div class="i">⚡</div><div>白球能量槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
-      <div class="i">➕</div><div>近 10 秒新增（播撒 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
+      <div class="i" style="color:#9ff4ff">✦</div><div>地面光（已探索）</div><b>${fmtN(visibleE() - L.bio)}</b>
+      <div class="i">🐾</div><div>小怪体内</div><b>${fmtN(L.bio)}</b>
+      <div class="i">⚡</div><div>小灯光槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
+      <div class="i">➕</div><div>近 10 秒新增（洒光 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
       <div class="i">🔥</div><div>近 10 秒代谢消耗</div><b class="dn">-${f.burn || 0}</b>
-      <div class="i cm">◆</div><div>近 10 秒物质产出</div><b class="cm">+${f.mat || 0}</b></div>
-      <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `能量正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：播撒能量 · 开拓能量洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '能量收支平衡或增长中。生态圈很健康！'}</div>
-      <div class="note">🔬 生态学：能量沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光能量再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），能量就能细水长流。</div>`;
+      <div class="i cm">◆</div><div>近 10 秒魂晶产出</div><b class="cm">+${f.mat || 0}</b></div>
+      <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `光正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：洒光光 · 开拓光洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '光收支平衡或增长中。生态缸很健康！'}</div>
+      <div class="note">🔬 生态学：光沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光光再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），光就能细水长流。</div>`;
     }
   });
 }
 function openDex() {
   AU.play('click');
-  openPanel('📖 图鉴', ['生物', '建筑', '遗迹', '玩法'], k => {
+  openPanel('📖 图鉴', ['小怪', '建筑', '遗迹', '玩法'], k => {
     const B = $('pBody');
     if (k === 0) B.innerHTML = '<div class="grid">' + SPECIES.map((s, i) => { const un = spUnlocked(i); return `<div class="cardx ${un ? '' : 'lock'}"><div class="hd"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div><div class="nm">${un ? s.name : '？？？'}</div><div style="font-size:13px;opacity:.7">${DIET_NAME[s.diet]} · ${SIZE_NAME[sizeClass(s.r)]}</div></div></div><div><span class="tag" style="color:#ffd07a">⚔ ${stars(s.pow)}</span><span class="tag">⏳${s.life}s</span><span class="tag ce">⚡${s.cost}</span>${s.mcost ? `<span class="tag cm">◆${s.mcost}</span>` : ''}<span class="tag cm">产◆${s.mat}/${s.matT}s</span></div>${un ? `<div class="ds">${s.desc}</div>` : ''}${webHTML(i)}</div>`; }).join('') + '</div>';
     else if (k === 1) B.innerHTML = '<div class="grid">' + DEVICES.map((d, i) => `<div class="cardx ${devUnlocked(i) ? '' : 'lock'}"><div class="hd"><img src="${devIcon(i)}"><div><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div style="font-size:13px;opacity:.7">第 ${d.tier} 阶 · ${d.time}s</div></div></div><div><span class="tag cm">◆${d.mc}</span><span class="tag cc">▣${d.cost}</span>${d.r ? `<span class="tag">◎${d.r}</span>` : ''}</div><div class="ds">${d.desc}</div></div>`).join('') + '</div>';
     else if (k === 2) B.innerHTML = '<div class="grid">' + POI.map(p => `<div class="cardx"><div class="hd"><div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:30px;color:${p.col}">${p.icon}</div><div><div class="nm" style="color:${p.col}">${p.name}</div><div style="font-size:13px;opacity:.7">已发现 ${G.pois.filter(q => q.type === POI_IDX[p.key] && q.found).length} / ${G.pois.filter(q => q.type === POI_IDX[p.key]).length}</div></div></div><div class="ds">${p.desc}</div></div>`).join('') + '</div>';
     else B.innerHTML = `<div class="help">
-      <div class="i" style="color:#9ff4ff">✦</div><div><b>能量是有限的。</b>白球的能量槽会慢慢回充，按住【播撒】把能量喷到地上，生物才有东西吃。生物的代谢会让能量消失。</div>
-      <div class="i">🐾</div><div><b>召唤生物</b>会消耗白球的能量（⚡），高级生物还需要物质（◆）。</div>
-      <div class="i cm">◆</div><div><b>物质</b>是生物的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造物质收集器。</div>
-      <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光能量然后集体饿死。加入捕食者，食物链越完整，能量消耗越慢、物质越多、潮汐越高。</div>
-      <div class="i">🌊</div><div><b>观测潮汐</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
-      <div class="i">🏗️</div><div><b>建筑</b>必须建在能量场内：先铺导能塔。高潮汐解锁能量发生器、恒星炉。</div>
-      <div class="i">❓</div><div><b>黑墙外是迷雾。</b>撞墙可以消融它（会掉血）。? 信号下藏着能量洞、物质晶簇、孵化舱、反应堆、中继塔与古碑——用导能塔把遗迹接入能量网络即可激活。</div>
-      <div class="i">🌙</div><div><b>离线</b>时生态圈继续运转（最多 12 小时），回来像开盲盒。</div></div>`;
+      <div class="i" style="color:#9ff4ff">✦</div><div><b>光是有限的。</b>小灯的光槽会慢慢回充，按住【洒光】把光喷到地上，小怪才有东西吃。小怪的代谢会让光消失。</div>
+      <div class="i">🐾</div><div><b>召唤小怪</b>会消耗小灯的光（⚡），高级小怪还需要魂晶（◆）。</div>
+      <div class="i cm">◆</div><div><b>魂晶</b>是小怪的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造魂晶收集器。</div>
+      <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光光然后集体饿死。加入捕食者，食物链越完整，光消耗越慢、魂晶越多、光域越高。</div>
+      <div class="i">🌊</div><div><b>光域</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
+      <div class="i">🏗️</div><div><b>建筑</b>必须建在灯光范围内：先铺路灯。高光域解锁光发生器、恒星炉。</div>
+      <div class="i">❓</div><div><b>黑墙外是迷雾。</b>撞墙可以消融它（会掉血）。? 信号下藏着光洞、魂晶晶簇、孵化舱、反应堆、中继塔与古碑——用路灯把遗迹接入光网络即可激活。</div>
+      <div class="i">🌙</div><div><b>离线</b>时生态缸继续运转（最多 12 小时），回来像开盲盒。</div></div>`;
   });
 }
 function openSpeed() {
@@ -450,13 +450,13 @@ function openSpeed() {
     const nb = G.devs.filter(d => d.bt > 0).length;
     $('pBody').innerHTML = `<div class="grid">
     <div class="cardx" id="spA" style="cursor:pointer"><div class="nm">📺 时间 ×4</div><div class="ds">接下来 3 分钟时间流速 ×4${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
-    <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的世界</div></div>
+    <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的夜晚</div></div>
     <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 施工加速</div><div class="ds">建造中的 ${nb} 个建筑各缩短 60 秒</div></div>
-    <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满能量槽</div><div class="ds">白球能量槽立即充满</div></div></div>`;
+    <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满光槽</div><div class="ds">小灯光槽立即充满</div></div></div>`;
     $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间 ×4！'); closePanel(); }, m => toast(m));
     $('spB').onclick = () => Ads.rewarded(() => { closePanel(); runOffline(600, '⏩ 快进 10 分钟…'); }, m => toast(m));
     $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast('⚡ 所有施工缩短 60 秒'); closePanel(); }, m => toast(m)); };
-    $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 能量槽已充满'); closePanel(); }, m => toast(m));
+    $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 光槽已充满'); closePanel(); }, m => toast(m));
   });
 }
 function openMenu() {
@@ -470,19 +470,19 @@ function openMenu() {
     <button class="btn" id="mMus">${AU.musOn ? '🎵 音乐：开' : '🎵 音乐：关'}</button>
     <button class="btn" id="mTut">🕯️ 重看新手守则</button>
     <button class="btn" id="mTitle">🏠 回到标题</button>
-    <button class="btn red" id="mNew">🌱 新的世界（保留已解锁物种）</button>
+    <button class="btn red" id="mNew">🌱 新的夜晚（保留已解锁物种）</button>
     <div style="opacity:.55;font-size:13px">v${VERSION} · 广告：${Ads.platform} · 每 20 秒自动保存</div></div>`;
     $('mSave').onclick = () => saveGame(false); $('mSpd').onclick = () => { closePanel(); openSpeed(); }; $('mDex').onclick = () => { closePanel(); openDex(); };
     $('mSnd').onclick = () => { AU.setOn(!AU.on); META.sound = AU.on; saveMeta(); refreshPanel(); };
     $('mMus').onclick = () => { AU.setMus(!AU.musOn); META.music = AU.musOn; saveMeta(); refreshPanel(); };
     $('mTut').onclick = () => { META.ft = 0; saveMeta(); closePanel(); updateHint(); };
     $('mTitle').onclick = () => { saveGame(true); closePanel(); showTitle(); };
-    $('mNew').onclick = () => { if (!confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
+    $('mNew').onclick = () => { if (!confirm('确定开始新的夜晚吗？当前夜晚会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
   });
 }
 function showWin() {
   Ads.happytime(); AU.play('win');
-  $('repBox').innerHTML = `<div style="font-size:26px;font-weight:800;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:10px 0">观测潮汐达到最高等级 Lv10！<br>你的生态圈稳定、和谐而多样。<br>⏱ ${fmtClock(G.t)}</div><div style="text-align:center;margin-top:12px"><button class="btn pri" id="repOk">继续经营</button></div>`;
+  $('repBox').innerHTML = `<div style="font-size:26px;font-weight:800;text-align:center">🌟 永恒之潮 🌟</div><div style="text-align:center;opacity:.85;margin:10px 0">光域达到最高等级 Lv10！<br>你的生态缸稳定、和谐而多样。<br>⏱ ${fmtClock(G.t)}</div><div style="text-align:center;margin-top:12px"><button class="btn pri" id="repOk">继续经营</button></div>`;
   $('report').classList.add('show'); $('repOk').onclick = () => $('report').classList.remove('show');
   META.wins = (META.wins || 0) + 1; saveMeta();
 }
@@ -520,13 +520,13 @@ function processEvents() {
       case 'poi': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1, r: 60, color: P.col }); CAM.shake = 0.6; AU.play('built'); if (P.key === 'crystal') toast(`<span class="cm">◆</span> 采集晶簇 <b class="cm">+${e.d !== undefined ? e.d : ''}</b>`, P.col); else if (P.key === 'pod') toast('🥚 孵化舱苏醒了！', P.col); break; }
       case 'wallbreak': G.wallBroken = (G.wallBroken || 0) + 1; if (inView(e.a, e.b)) { addFX('ring', e.a, e.b, { life: 0.5, r: 20, color: '#ff9ad0' }); AU.play('wall'); } break;
       case 'tp': addFX('ring', e.a, e.b, { life: 0.4, r: 30 }); AU.play('tp'); break;
-      case 'orbdie': toast('💫 白球被黑墙消融了，稍后在方塔重生'); AU.play('lvdown'); break;
+      case 'orbdie': toast('💫 小灯被黑墙消融了，稍后在长明灯重生'); AU.play('lvdown'); break;
       case 'built': addFX('ring', e.a, e.b, { life: 0.8, r: 50, color: DEV_COL[e.c] }); AU.play('built'); toast(`✅ ${DEVICES[e.c].name} 完成`); break;
       case 'summon': addFX('ring', e.a, e.b, { life: 0.8, r: 30, color: SPECIES[e.c].col }); break;
       case 'settle': G._pulse = 1; AU.play('settle', G.lv); break;
-      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 潮汐 <b style="color:${LV_COLORS[e.a]}">Lv${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐降到 Lv${e.a}${e.a === 0 ? ' · 建筑停机' : ''}`, '#f99'); } refreshPanel(); break;
+      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 光域 <b style="color:${LV_COLORS[e.a]}">Lv${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 光域降到 Lv${e.a}${e.a === 0 ? ' · 建筑停机' : ''}`, '#f99'); } refreshPanel(); break;
       case 'unlock': { const nm = e.a === 's' ? SPECIES[e.b].name : DEVICES[e.b].name, ic = e.a === 's' ? speciesIcon(e.b, 64) : devIcon(e.b), col = e.a === 's' ? SPECIES[e.b].col : DEV_COL[e.b];
-        bigNotice(ic, '🔬 研究完成', nm, col, e.a === 's' ? '在底部【生物】栏召唤它' : '在底部【建筑】栏建造它'); AU.play('research'); saveMeta(); UI.dockSig = ''; refreshPanel(); break; }
+        bigNotice(ic, '🔬 调查完成', nm, col, e.a === 's' ? '在底部【小怪】栏召唤它' : '在底部【建筑】栏建造它'); AU.play('research'); saveMeta(); UI.dockSig = ''; refreshPanel(); break; }
       case 'wabs': if (inView(e.a, e.b)) { addFX('comet', e.a, e.b, { tx: G.orb.x, ty: G.orb.y, follow: 1, inw: 1, c: 0.25, life: 0.35, w: 3, color: '#ffffff' }); addFX('ring', G.orb.x, G.orb.y, { life: 0.4, r: 16, r0: 12, color: '#dffcff' }); } AU.play('wisp'); break;
       case 'wcat': if (inView(e.a, e.b)) addFX('ring', e.a, e.b - 24, { life: 0.6, r: 26, color: '#ffffff' }); break;
       case 'wdrop': if (inView(e.a, e.b) && CAM.z > 0.35) addFX('comet', e.a + 40, e.b - 160, { tx: e.a, ty: e.b, c: 0.05, life: 0.7, w: 2, color: '#fff6c8' }); break;
@@ -602,7 +602,7 @@ function setupInput() {
   joy.addEventListener('pointermove', mv);
   const jup = e => { if (UI.joy.id !== e.pointerId) return; UI.joy.id = null; UI.joy.x = UI.joy.y = 0; K.style.transform = ''; };
   joy.addEventListener('pointerup', jup); joy.addEventListener('pointercancel', jup);
-  // 播撒按钮（按住）
+  // 洒光按钮（按住）
   const sp = $('spray');
   sp.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); AU.init(); UI.sprayTouch = true; sp.setPointerCapture(e.pointerId); });
   const sup = () => { UI.sprayTouch = false; }; sp.addEventListener('pointerup', sup); sp.addEventListener('pointercancel', sup); sp.addEventListener('lostpointercapture', sup);
@@ -610,7 +610,7 @@ function setupInput() {
   $('dList').addEventListener('click', onDockClick);
   $('card').addEventListener('click', onCardClick);
   setupDockLongPress(); $('bDex').onclick = openDex; $('bRes').onclick = openResearch; $('cRes').onclick = openResearch; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
-  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 观测潮汐', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast('🕯️ 按住屏幕不动，就能把光洒在地上');
+  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 光域', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast('🕯️ 按住屏幕不动，就能把光洒在地上');
   $('mm').onclick = () => { CAM.tz = CAM.tz > 0.45 ? 0.3 : 1; };
   $('pClose').onclick = () => { AU.play('click'); closePanel(); };
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
@@ -665,14 +665,14 @@ function showTitle() {
   const has = !!localStorage.getItem(SAVE_KEY);
   $('bStart').textContent = has ? '继续游戏' : '开始游戏'; $('bNew').style.display = has ? '' : 'none';
   $('startIcons').innerHTML = SPECIES.map((s, i) => `<img src="${speciesIcon(i, 64)}" style="animation-delay:${i * 0.15}s;${G.unlocked.includes(s.key) || i < 2 ? '' : 'filter:brightness(0) opacity(.4)'}">`).join('');
-  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高潮汐 Lv' + META.bestLv : '');
+  $('ver').textContent = 'v' + VERSION + (META.bestLv ? ' · 历史最高光域 Lv' + META.bestLv : '');
 }
 function beginPlay() { $('start').style.display = 'none'; document.body.classList.add('playing'); UI.state = 'play'; last = performance.now(); Ads.gameplayStart(); AU.init(); AU.setOn(META.sound !== false); AU.setMus(META.music !== false); UI.dockSig = ''; updateHUD(); drawMinimap(); }
 function startNew() {
   const keep = G.unlocked.slice();
   newGame(); G.unlocked = Array.from(new Set(keep.concat(G.unlocked)));
   clearSel(); exitBuild(); CAM.tz = CAM.z = 1;
-  rebuildFloor(); beginPlay(); saveGame(true); toast('🌱 新的世界诞生了');
+  rebuildFloor(); beginPlay(); saveGame(true); toast('🌱 新的夜晚诞生了');
 }
 function continueGame() {
   const s = loadGame(); if (!s) { startNew(); return; }
@@ -683,13 +683,13 @@ function boot() {
   loadMeta();
   AU.on = META.sound !== false; AU.musOn = META.music !== false;
   initRender($('c')); buildSprites();
-  newGame(1); // 标题背景世界
+  newGame(1); // 标题背景夜晚
   G.unlocked = Array.from(new Set(G.unlocked.concat(META.unlocked || [])));
   for (let k = 0; k < 14; k++) { const s = k % 2, a = k * 0.45, r = 90 + (k % 5) * 30; const i = newC(s, Math.cos(a) * r, Math.sin(a) * r, 12, 0); if (i >= 0) cage[i] = 10; }
   rebuildFloor();
   setupInput(); Ads.init().then(() => Ads.loadingDone());
   $('bStart').onclick = () => { AU.init(); AU.play('click'); if (localStorage.getItem(SAVE_KEY)) continueGame(); else startNew(); };
-  $('bNew').onclick = () => { if (confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) { AU.init(); startNew(); } };
+  $('bNew').onclick = () => { if (confirm('确定开始新的夜晚吗？当前夜晚会被覆盖（解锁的物种保留）。')) { AU.init(); startNew(); } };
   showTitle(); requestAnimationFrame(frame);
 }
 window.addEventListener('load', boot);

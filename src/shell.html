@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#050a14">
-<title>潮汐生态圈 · Chaoxi</title>
+<title>别关灯 · 黑暗生态缸</title>
 <!--
   ===== 平台广告 SDK（上传到对应平台时，取消注释其中一行即可，游戏会自动识别） =====
   CrazyGames:  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
@@ -347,13 +347,41 @@ body.touch #spray span{display:none}@media (pointer:coarse){#spray span{display:
 body.pOpen #tutF,body.pOpen #tutCap,body.pOpen #press{display:none!important}
 @media (max-width:760px){#tutCap span{font-size:16px}#tutCap{gap:8px;padding:10px 10px 10px 12px}.dc.nx{width:84px}.nxr{width:62px;height:62px}.nxr svg{width:62px;height:62px}.nxr img{left:10px;top:10px;width:42px;height:42px}}
 .dc{height:138px;flex:none}.dc>*{flex-shrink:0}.dc .nm{white-space:nowrap}@media (max-width:760px){.dc{height:124px}}
+
+/* ===== v0.7 微恐主题：暖灯 + 深黑 ===== */
+:root{--gl:rgba(20,12,14,.8);--bd:rgba(255,200,130,.2);--hi:#ffcf7a;--mat:#c9a0ff;--pn:linear-gradient(180deg,rgba(38,24,24,.92),rgba(12,8,12,.95));--pb:rgba(255,200,130,.22)}
+html,body{background:#050307}
+.glass{box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,190,.08),inset 0 0 24px rgba(255,160,80,.04)}
+#dock{background:linear-gradient(180deg,rgba(36,22,22,.94),rgba(8,5,8,.98));border-top:1px solid rgba(255,200,130,.28)}
+#dock::before{background:linear-gradient(90deg,transparent,rgba(255,200,120,.7),rgba(255,120,90,.6),transparent)}
+.dc{background:linear-gradient(180deg,rgba(255,230,200,.07),rgba(255,255,255,.015) 60%,rgba(0,0,0,.2));border-color:rgba(255,210,150,.16)}
+.dc:hover{background:linear-gradient(180deg,rgba(255,210,150,.16),rgba(255,210,150,.03) 60%,rgba(0,0,0,.1));border-color:rgba(255,215,150,.45)}
+.dc .cs .ce,.ce{color:#ffd98a!important}.cm{color:#d6b4ff!important}
+.btn{border-color:rgba(255,200,130,.35);background:rgba(44,26,22,.88);color:#fff0dc}.btn:hover{background:rgba(70,40,30,.95)}
+.btn.pri,.btn.big{background:linear-gradient(180deg,#ffb24a,#c4541a);border-color:#ffd88a;box-shadow:0 0 30px rgba(255,150,60,.35);color:#fff}
+#tLv{color:#ffcf7a}#tArc{stroke:#ffcf7a}
+#tankBar{background:linear-gradient(90deg,#ff8a3a,#ffd36b)!important}
+.toast{background:linear-gradient(180deg,rgba(40,24,22,.95),rgba(14,9,12,.95));border-color:rgba(255,200,130,.35)}
+.bign{background:linear-gradient(135deg,rgba(50,28,24,.96),rgba(14,9,14,.96))}
+.bign .bt{color:#ffd9a0}
+#panel #pBox,#introBox{background:linear-gradient(180deg,rgba(38,24,24,.96),rgba(12,8,12,.97))}
+.ipic{background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 26%,rgba(40,24,20,.9)),rgba(8,5,8,.96) 72%)}
+#start{background:radial-gradient(ellipse at 50% 38%,rgba(255,150,60,.16),rgba(5,3,7,.2) 38%,rgba(5,3,7,.92) 70%)}
+#start h1{font-size:64px;letter-spacing:14px;background:linear-gradient(180deg,#fff6de,#ffc26a 55%,#c4541a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(255,160,60,.45));animation:flick 4s infinite}
+@keyframes flick{0%,100%{opacity:1}91%{opacity:1}92%{opacity:.35}93%{opacity:1}95%{opacity:.6}96%{opacity:1}}
+#start .tag{font-size:15px;letter-spacing:6px;color:#d8b890;opacity:.8;margin-top:-6px}
+#start .sub b{color:#ffcf7a;font-size:18px}
+.lamp{width:70px;height:70px;position:relative;margin-bottom:-6px}.lamp i{position:absolute;left:17px;top:6px;width:36px;height:50px;border-radius:50% 50% 45% 45%/62% 62% 38% 38%;background:radial-gradient(circle at 50% 70%,#fffbe8,#ffd36b 45%,#ff7a2a 85%);box-shadow:0 0 40px 10px rgba(255,160,60,.5);animation:lampf .18s ease-in-out infinite alternate}
+@keyframes lampf{to{transform:scale(1.04,0.97) skewX(2deg)}}
+.newr,.nw,.dc.new::after{background:linear-gradient(90deg,#ff4a5a,#ffab4a)!important}
+.dc{height:126px}@media (max-width:760px){.dc{height:114px}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="res" class="hud">
-  <div class="chip glass" id="cTank" title="白球能量槽：按住播撒把能量喷到地上"><div class="ic"><svg width="26" height="26" viewBox="0 0 26 26"><defs><radialGradient id="og" cx=".4" cy=".35"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#cff8ff"/><stop offset="1" stop-color="#5fc8ff"/></radialGradient></defs><circle cx="13" cy="13" r="10" fill="url(#og)"/><circle cx="13" cy="13" r="12" fill="none" stroke="#7ff4ff" stroke-opacity=".5"/></svg></div><div class="meter"><i id="tankBar"></i></div><span id="tankV">80</span></div>
-  <div class="chip glass" id="cMat" title="物质：生物掉落的结晶，用于建造与召唤高级生物"><div class="ic"><svg width="24" height="26" viewBox="0 0 24 26"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff8d8"/><stop offset=".5" stop-color="#ffd36b"/><stop offset="1" stop-color="#c47a16"/></linearGradient></defs><path d="M12 1l10 6v12l-10 6-10-6V7z" fill="url(#mg)" stroke="#fff3c0" stroke-width="1"/><path d="M12 1L2 7l5 3 5-5z" fill="#fff" opacity=".6"/></svg></div><span id="matV">0</span><small id="matR"></small></div>
+  <div class="chip glass" id="cTank" title="小灯里的光：按住屏幕不动就能洒出去"><div class="ic"><svg width="24" height="28" viewBox="0 0 24 28"><defs><radialGradient id="og" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#fffbe8"/><stop offset=".5" stop-color="#ffd36b"/><stop offset="1" stop-color="#ff7a2a"/></radialGradient></defs><path d="M12 1C14 7 22 11 22 18a10 10 0 0 1-20 0C2 11 10 7 12 1z" fill="url(#og)"/><ellipse cx="9" cy="17" rx="1.6" ry="2.2" fill="#4a2410"/><ellipse cx="15" cy="17" rx="1.6" ry="2.2" fill="#4a2410"/></svg></div><div class="meter"><i id="tankBar"></i></div><span id="tankV">80</span></div>
+  <div class="chip glass" id="cMat" title="魂晶：小怪们掉落的结晶，用来建造"><div class="ic"><svg width="24" height="26" viewBox="0 0 24 26"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6ecff"/><stop offset=".5" stop-color="#b98cff"/><stop offset="1" stop-color="#5a2fb4"/></linearGradient></defs><path d="M12 1l10 6v12l-10 6-10-6V7z" fill="url(#mg)" stroke="#efe0ff" stroke-width="1"/><path d="M12 1L2 7l5 3 5-5z" fill="#fff" opacity=".6"/></svg></div><span id="matV">0</span><small id="matR"></small></div>
   <div class="chip glass" id="cEco" title="世界能量（地面 + 生物体内）与趋势"><div class="ic" style="font-size:22px;color:#9ff4ff">✦</div><span id="ecoV">0</span><small id="ecoR"></small><span style="opacity:.35;font-weight:400">|</span><span style="font-size:19px">🐾</span><span id="popV">0</span><small id="spV"></small></div>
   <div class="chip glass" id="cRes"><span class="ric">🔬</span><div class="rt"><b id="resN">科研</b><div class="rbar2"><i id="resBar"></i></div></div></div>
   <div id="tide" class="glass"><div id="tRing"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.12)" stroke-width="5"/><circle id="tArc" cx="26" cy="26" r="22" fill="none" stroke="#9ff4ff" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 200" transform="rotate(-90 26 26)"/></svg><div id="tLv">0</div></div><div><div id="tName">观测潮汐</div><div id="tSub"><span id="tNext"></span><div id="tWin"><i></i></div></div></div></div>
@@ -384,12 +412,14 @@ body.pOpen #tutF,body.pOpen #tutCap,body.pOpen #press{display:none!important}
 <div id="offline" class="overlay"><div class="glass"><div style="font-size:20px;font-weight:800">🌙 离线推演中…</div><div id="offTxt" style="opacity:.8">你离开期间，生态圈仍在运转</div><div id="offBar"><i></i></div><button class="btn" id="offSkip" style="margin-top:10px">跳过剩余推演</button></div></div>
 <div id="report" class="overlay" style="background:rgba(0,0,0,.6)"><div class="glass" id="repBox"></div></div>
 <div id="start" class="overlay">
-  <h1>潮汐生态圈</h1>
-  <div class="sub">能量有限，生命无限循环。<br>用白球播撒能量、召唤可爱的生物，搭建完整的食物链，<br>让生态圈在平衡中延续，把【观测潮汐】推向最高等级。</div>
+  <div class="lamp"><i></i></div>
+  <h1>别关灯</h1>
+  <div class="tag">黑 暗 生 态 缸</div>
+  <div class="sub"><b>守则第一条：别让灯灭。</b><br>吸收飘着的光，洒在地上，喂饱黑暗里的小怪们。<br>它们越热闹，黑暗退得越远——熬到天亮吧。</div>
   <div class="icons" id="startIcons"></div>
   <button class="btn big" id="bStart">开始游戏</button>
   <button class="btn" id="bNew" style="display:none">🌱 新的世界</button>
-  <div class="keys">电脑：WASD 移动 · 按住空格播撒能量 · 点击地面瞬移 · 滚轮缩放 · 撞黑墙探索 · Tab 切换生物/建筑<br>手机：左下摇杆移动 · 右下按住播撒 · 点地面瞬移 · 双指缩放</div>
+  <div class="keys">拖动 = 移动小灯 · 按住不动 = 洒光 · 轻点 = 查看 · 双指 / 滚轮 = 缩放</div>
   <div class="keys" id="ver"></div>
 </div>
 <script>
