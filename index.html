@@ -74,8 +74,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#e8f4ff;fon
  #panel{top:auto;left:6px;right:6px;bottom:6px;width:auto;height:44%;display:none}
  #panel.open{display:flex}
  #panelToggle{display:block}
- #topL{font-size:10px;min-width:0;padding:5px 7px;max-width:44vw}
- #tide{top:auto;bottom:auto;top:6px;min-width:150px;padding:4px 10px 6px;left:auto;right:64px;transform:none}
+ #topL{font-size:10px;min-width:0;padding:4px 7px;max-width:52vw;top:74px;line-height:1.4}
+ #tide{top:6px;left:6px;right:74px;min-width:0;padding:4px 10px 6px;transform:none}
+ #tideSub{font-size:10px}
+ body.pOpen #joy,body.pOpen #mbtns{display:none!important}
  #tideLv{font-size:16px}
  #info{left:6px;right:6px;width:auto;bottom:160px}
  #modeBar{bottom:165px;font-size:12px}
@@ -1019,7 +1021,9 @@ if(matchMedia('(pointer:coarse)').matches){joyEl.style.display='block';document.
 
 /* ------------------------- UI 面板 ------------------------- */
 const panel=document.getElementById('panel');
-document.getElementById('panelToggle').onclick=()=>panel.classList.toggle('open');
+document.getElementById('panelToggle').onclick=()=>{panel.classList.toggle('open');syncPanel();};
+function syncPanel(){document.body.classList.toggle('pOpen',panel.classList.contains('open'));}
+new MutationObserver(syncPanel).observe(panel,{attributes:true,attributeFilter:['class']});
 let curTab='bio';
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
 function setTab(t){curTab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));uiDirty=true;renderTab();}
@@ -1078,7 +1082,7 @@ function updateHUD(){
   const chk=$('eChk');if(e.sum===E0.sum){chk.textContent='✓守恒';chk.className='ok';}else{chk.textContent='⚠ 偏差 '+(e.sum-E0.sum);chk.className='bad';}
   let sa=0;for(let s=0;s<NS;s++)if(spCount[s]>0)sa++;
   $('pop').textContent=cCount;$('spc').textContent=sa;$('bw').textContent=bwUsed()+'/'+bwCap()+(efficiency()<1?' ⚠效率'+Math.round(efficiency()*100)+'%':'');
-  const L=tide.level;const lv=$('tideLv');lv.textContent='观测潮汐 Lv.'+L+(L===0?' · 遗迹':'');lv.style.color=LVCOL[L];
+  const L=tide.level;const lv=$('tideLv');lv.textContent='观测潮汐 Lv.'+L+(L===0?(tide.hist.length?' · 遗迹':' · 首次观测中'):'');lv.style.color=LVCOL[L];
   const nxt=L<10?THRESH[L+1]:THRESH[10];$('tideSub').textContent='上次结算 '+tide.last.toFixed(1)+' (多样性×'+(tide.div||1).toFixed(1)+')'+(L<10?' · 下一级需 '+nxt:' · 已满溢')+' · 本轮累计 '+tide.acc.toFixed(1);
   const lo=THRESH[L],f=L>=10?1:clamp((tide.last-lo)/(nxt-lo),0,1);const tb=document.querySelector('#tideBar i');tb.style.width=(f*100)+'%';tb.style.background=LVCOL[Math.min(10,L+1)];
   document.querySelector('#winBar i').style.width=(tide.winT/TIDE_T*100)+'%';
