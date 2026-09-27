@@ -310,6 +310,7 @@ body.pOpen #tutArrow{display:none!important}
   #cRes{display:none!important}
   .dc img{width:60px;height:60px}.dc{padding-bottom:6px}.dc .cs{margin-top:2px}
 }
+body.touch #spray span{display:none}@media (pointer:coarse){#spray span{display:none}}
 </style>
 </head>
 <body>
@@ -1145,13 +1146,13 @@ function spawnWisp() {
     const a = rnd() * 6.2832, d = Math.sqrt(rnd()) * R, x = Math.cos(a) * d, y = Math.sin(a) * d, i = gIdx(x, y);
     if (i < 0 || !seen[i] || whp[i] > 0 || d < 110) continue;
     if (isWall(x + 14, y) || isWall(x - 14, y) || isWall(x, y + 14) || isWall(x, y - 14)) continue;
-    addW(x, y, Math.min(9, 3 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
+    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
   }
   return false;
 }
 function stepW(dt) {
   // 生成：已探索区域越大，光灵越多
-  G.wAcc += dt * (0.45 + G.open / 9000);
+  G.wAcc += dt * (0.6 + G.open / 8000);
   while (G.wAcc >= 1) { G.wAcc -= 1; if (wN < wispTarget()) spawnWisp(); }
   // 星光汇聚塔：在周围降下光灵
   if (G.lv >= 1) for (const d of G.suns) { d.acc2 = (d.acc2 || 0) + dt / 1.5; while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 40 + rnd() * 160, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r; if (!isWall(x, y)) { const k = addW(x, y, 5); if (k >= 0) emit('wdrop', x, y); } } }
@@ -2355,6 +2356,8 @@ function drawFX(dt) {
       ctx.globalCompositeOperation = 'source-over';
       if (z > 0.7 && p < 0.8) { ctx.globalAlpha = 1 - p; ctx.font = (14 / z > 18 ? 18 : 14) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💢', f.x + 10, f.y - 12 - p * 10); }
     }
+    else if (f.type === 'ink') { ctx.globalAlpha = (1 - p) * 0.75; ctx.fillStyle = '#2a1f4a'; for (let q = 0; q < 9; q++) { const a = q * 0.7 + f.x * 0.3, r = (10 + q % 3 * 6) * (0.5 + p); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * r * 1.4, f.y + Math.sin(a) * r, r * 0.8, 0, 6.283); ctx.fill(); } }
+    else if (f.type === 'tongue') { const e = p < 0.5 ? p * 2 : 2 - p * 2, x2 = f.x + (f.tx - f.x) * e, y2 = f.y + (f.ty - f.y) * e; ctx.globalAlpha = 1; ctx.strokeStyle = '#ff7aa8'; ctx.lineCap = 'round'; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(x2, y2); ctx.stroke(); ctx.fillStyle = '#ff9cc0'; ctx.beginPath(); ctx.arc(x2, y2, 3.6, 0, 6.283); ctx.fill(); }
     else if (f.type === 'slash') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - p; ctx.strokeStyle = '#ffe0e0'; ctx.lineWidth = 3 * (1 - p) + 0.5; for (let q = -1; q <= 1; q++) { ctx.beginPath(); ctx.moveTo(f.x - 14 + q * 5, f.y - 14 - q * 2 + p * 4); ctx.lineTo(f.x + 14 + q * 5, f.y + 14 - q * 2 - p * 4); ctx.stroke(); } ctx.globalCompositeOperation = 'source-over'; }
   }
   ctx.globalAlpha = 1;
@@ -3134,7 +3137,7 @@ function updateCard() {
       c.dataset.k = key; c.style.display = 'block';
       c.innerHTML = `<div class="ch"><img class="pt" src="${devIcon(d.type)}"><div><div class="nm" style="color:${DEV_COL[d.type]}">${def.name}</div><div class="sub" id="cdSt"></div></div><button class="x" data-act="x">✕</button></div>
       <div class="desc">${def.desc}</div><div class="pills" id="cdEx"></div>
-      <div class="acts">${d.bt > 0 ? '<button class="btn ad" data-act="ad">📺 立即完成</button>' : ''}<button class="btn red" data-act="del">🗑 拆除 <span class="cm">+◆${Math.floor(def.mc * (d.bt > 0 ? 1 : 0.5))}</span></button></div>`;
+      <div class="acts">${d.bt > 0 ? '<button class="btn ad" data-act="ad">📺 施工 -60 秒</button>' : ''}<button class="btn red" data-act="del">🗑 拆除 <span class="cm">+◆${Math.floor(def.mc * (d.bt > 0 ? 1 : 0.5))}</span></button></div>`;
     }
     $('cdSt').innerHTML = st; $('cdEx').innerHTML = extra ? `<span class="pl">${extra}</span>` : '';
   } else if (UI.selPOI) {
@@ -3146,7 +3149,7 @@ function updateCard() {
 function onCardClick(e) {
   const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act; AU.play('click');
   if (a === 'x') clearSel();
-  else if (a === 'ad' && UI.selDev) { const d = UI.selDev; Ads.rewarded(() => { d.bt = 0.01; toast('⚡ 建造完成！'); }, m => toast(m)); }
+  else if (a === 'ad' && UI.selDev) { const d = UI.selDev; Ads.rewarded(() => { d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast(d.bt <= 0.01 ? '⚡ 建造完成！' : '⚡ 施工缩短 60 秒'); UI.cardSig = ''; }, m => toast(m)); }
   else if (a === 'del' && UI.selDev) { const def = DEVICES[UI.selDev.type]; removeDev(UI.selDev); clearSel(); toast('🗑 已拆除 ' + def.name); }
 }
 
@@ -3231,11 +3234,11 @@ function openSpeed() {
     $('pBody').innerHTML = `<div class="grid">
     <div class="cardx" id="spA" style="cursor:pointer"><div class="nm">📺 时间 ×4</div><div class="ds">接下来 3 分钟时间流速 ×4${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
     <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的世界</div></div>
-    <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 立即完成建造</div><div class="ds">建造中的 ${nb} 个建筑立即完成</div></div>
+    <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 施工加速</div><div class="ds">建造中的 ${nb} 个建筑各缩短 60 秒</div></div>
     <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满能量槽</div><div class="ds">白球能量槽立即充满</div></div></div>`;
     $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间 ×4！'); closePanel(); }, m => toast(m));
     $('spB').onclick = () => Ads.rewarded(() => { closePanel(); runOffline(600, '⏩ 快进 10 分钟…'); }, m => toast(m));
-    $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = 0.01; toast('⚡ 建造全部完成！'); closePanel(); }, m => toast(m)); };
+    $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast('⚡ 所有施工缩短 60 秒'); closePanel(); }, m => toast(m)); };
     $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 能量槽已充满'); closePanel(); }, m => toast(m));
   });
 }

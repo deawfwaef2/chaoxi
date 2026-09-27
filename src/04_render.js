@@ -593,6 +593,8 @@ function drawFX(dt) {
       ctx.globalCompositeOperation = 'source-over';
       if (z > 0.7 && p < 0.8) { ctx.globalAlpha = 1 - p; ctx.font = (14 / z > 18 ? 18 : 14) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💢', f.x + 10, f.y - 12 - p * 10); }
     }
+    else if (f.type === 'ink') { ctx.globalAlpha = (1 - p) * 0.75; ctx.fillStyle = '#2a1f4a'; for (let q = 0; q < 9; q++) { const a = q * 0.7 + f.x * 0.3, r = (10 + q % 3 * 6) * (0.5 + p); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * r * 1.4, f.y + Math.sin(a) * r, r * 0.8, 0, 6.283); ctx.fill(); } }
+    else if (f.type === 'tongue') { const e = p < 0.5 ? p * 2 : 2 - p * 2, x2 = f.x + (f.tx - f.x) * e, y2 = f.y + (f.ty - f.y) * e; ctx.globalAlpha = 1; ctx.strokeStyle = '#ff7aa8'; ctx.lineCap = 'round'; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(x2, y2); ctx.stroke(); ctx.fillStyle = '#ff9cc0'; ctx.beginPath(); ctx.arc(x2, y2, 3.6, 0, 6.283); ctx.fill(); }
     else if (f.type === 'slash') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - p; ctx.strokeStyle = '#ffe0e0'; ctx.lineWidth = 3 * (1 - p) + 0.5; for (let q = -1; q <= 1; q++) { ctx.beginPath(); ctx.moveTo(f.x - 14 + q * 5, f.y - 14 - q * 2 + p * 4); ctx.lineTo(f.x + 14 + q * 5, f.y + 14 - q * 2 - p * 4); ctx.stroke(); } ctx.globalCompositeOperation = 'source-over'; }
   }
   ctx.globalAlpha = 1;

@@ -634,13 +634,13 @@ function spawnWisp() {
     const a = rnd() * 6.2832, d = Math.sqrt(rnd()) * R, x = Math.cos(a) * d, y = Math.sin(a) * d, i = gIdx(x, y);
     if (i < 0 || !seen[i] || whp[i] > 0 || d < 110) continue;
     if (isWall(x + 14, y) || isWall(x - 14, y) || isWall(x, y + 14) || isWall(x, y - 14)) continue;
-    addW(x, y, Math.min(9, 3 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
+    addW(x, y, Math.min(10, 4 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
   }
   return false;
 }
 function stepW(dt) {
   // 生成：已探索区域越大，光灵越多
-  G.wAcc += dt * (0.45 + G.open / 9000);
+  G.wAcc += dt * (0.6 + G.open / 8000);
   while (G.wAcc >= 1) { G.wAcc -= 1; if (wN < wispTarget()) spawnWisp(); }
   // 星光汇聚塔：在周围降下光灵
   if (G.lv >= 1) for (const d of G.suns) { d.acc2 = (d.acc2 || 0) + dt / 1.5; while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 40 + rnd() * 160, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r; if (!isWall(x, y)) { const k = addW(x, y, 5); if (k >= 0) emit('wdrop', x, y); } } }

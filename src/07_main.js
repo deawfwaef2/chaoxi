@@ -401,7 +401,7 @@ function updateCard() {
       c.dataset.k = key; c.style.display = 'block';
       c.innerHTML = `<div class="ch"><img class="pt" src="${devIcon(d.type)}"><div><div class="nm" style="color:${DEV_COL[d.type]}">${def.name}</div><div class="sub" id="cdSt"></div></div><button class="x" data-act="x">✕</button></div>
       <div class="desc">${def.desc}</div><div class="pills" id="cdEx"></div>
-      <div class="acts">${d.bt > 0 ? '<button class="btn ad" data-act="ad">📺 立即完成</button>' : ''}<button class="btn red" data-act="del">🗑 拆除 <span class="cm">+◆${Math.floor(def.mc * (d.bt > 0 ? 1 : 0.5))}</span></button></div>`;
+      <div class="acts">${d.bt > 0 ? '<button class="btn ad" data-act="ad">📺 施工 -60 秒</button>' : ''}<button class="btn red" data-act="del">🗑 拆除 <span class="cm">+◆${Math.floor(def.mc * (d.bt > 0 ? 1 : 0.5))}</span></button></div>`;
     }
     $('cdSt').innerHTML = st; $('cdEx').innerHTML = extra ? `<span class="pl">${extra}</span>` : '';
   } else if (UI.selPOI) {
@@ -413,7 +413,7 @@ function updateCard() {
 function onCardClick(e) {
   const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act; AU.play('click');
   if (a === 'x') clearSel();
-  else if (a === 'ad' && UI.selDev) { const d = UI.selDev; Ads.rewarded(() => { d.bt = 0.01; toast('⚡ 建造完成！'); }, m => toast(m)); }
+  else if (a === 'ad' && UI.selDev) { const d = UI.selDev; Ads.rewarded(() => { d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast(d.bt <= 0.01 ? '⚡ 建造完成！' : '⚡ 施工缩短 60 秒'); UI.cardSig = ''; }, m => toast(m)); }
   else if (a === 'del' && UI.selDev) { const def = DEVICES[UI.selDev.type]; removeDev(UI.selDev); clearSel(); toast('🗑 已拆除 ' + def.name); }
 }
 
@@ -498,11 +498,11 @@ function openSpeed() {
     $('pBody').innerHTML = `<div class="grid">
     <div class="cardx" id="spA" style="cursor:pointer"><div class="nm">📺 时间 ×4</div><div class="ds">接下来 3 分钟时间流速 ×4${UI.boostT > 0 ? '<br>剩余 ' + Math.ceil(UI.boostT) + 's（可叠加）' : ''}</div></div>
     <div class="cardx" id="spB" style="cursor:pointer"><div class="nm">📺 快进 10 分钟</div><div class="ds">立即推演 10 分钟后的世界</div></div>
-    <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 立即完成建造</div><div class="ds">建造中的 ${nb} 个建筑立即完成</div></div>
+    <div class="cardx ${nb ? '' : 'lock'}" id="spC" style="cursor:pointer"><div class="nm">📺 施工加速</div><div class="ds">建造中的 ${nb} 个建筑各缩短 60 秒</div></div>
     <div class="cardx" id="spD" style="cursor:pointer"><div class="nm">📺 充满能量槽</div><div class="ds">白球能量槽立即充满</div></div></div>`;
     $('spA').onclick = () => Ads.rewarded(() => { UI.boostT += 180; toast('⏩ 时间 ×4！'); closePanel(); }, m => toast(m));
     $('spB').onclick = () => Ads.rewarded(() => { closePanel(); runOffline(600, '⏩ 快进 10 分钟…'); }, m => toast(m));
-    $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = 0.01; toast('⚡ 建造全部完成！'); closePanel(); }, m => toast(m)); };
+    $('spC').onclick = () => { if (!nb) return; Ads.rewarded(() => { for (const d of G.devs) if (d.bt > 0) d.bt = Math.max(0.01, d.bt - AD_BUILD_CUT); toast('⚡ 所有施工缩短 60 秒'); closePanel(); }, m => toast(m)); };
     $('spD').onclick = () => Ads.rewarded(() => { G.orb.tank = tankMax(G.lv); toast('⚡ 能量槽已充满'); closePanel(); }, m => toast(m));
   });
 }
