@@ -671,13 +671,24 @@ function stepW(dt) {
 function resKey(kind, idx) { return kind === 's' ? SPECIES[idx].key : 'd' + DEVICES[idx].key; }
 function resItem(key) { if (key[0] === 'd' && DV_IDX[key.slice(1)] !== undefined) { const d = DEVICES[DV_IDX[key.slice(1)]]; return { kind: 'd', idx: d.id, def: d, tier: d.tier, cost: RES_COST[d.tier] || 0 }; } const i = SP_IDX[key]; if (i === undefined) return null; const sp = SPECIES[i]; return { kind: 's', idx: i, def: sp, tier: sp.tier, cost: RES_COST[sp.tier] || 0 }; }
 function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要潮汐 Lv' + resGate(it.tier); return ''; }
-function researchRate() { // 每秒研究点数
-  let base = 0; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
+/* v0.7 极简：科研全自动，按固定顺序解锁（每阶 生物/建筑 交替） */
+let RES_ORDER = null;
+function resOrder() {
+  if (RES_ORDER) return RES_ORDER; RES_ORDER = [];
+  for (let t = 1; t <= 9; t++) { const a = SPECIES.filter(x => x.tier === t).map(x => x.key), b = DEVICES.filter(x => x.tier === t).map(x => 'd' + x.key); for (let k = 0; k < Math.max(a.length, b.length); k++) { if (a[k]) RES_ORDER.push(a[k]); if (b[k]) RES_ORDER.push(b[k]); } }
+  return RES_ORDER;
+}
+function nextRes() { for (const k of resOrder()) if (!G.unlocked.includes(k)) return k; return ''; }
+function researchRate() { // 每秒研究点数（基础 0.15 + 科研设施）
+  let base = 0.15; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
   return base * (1 + Math.max(0, G.lastScore) / WINDOW);
 }
 function stepResearch(dt) {
-  G.rpRate = G.lv >= 1 ? researchRate() : 0;
-  if (!G.resT) { if (G.rpRate > 0) G.rp = Math.min(G.rp + G.rpRate * dt, 99999); return; }
+  G.rpRate = researchRate();
+  if (!G.resT || G.unlocked.includes(G.resT)) G.resT = nextRes();
+  if (!G.resT) return;
+  const nx = resItem(G.resT);
+  if (nx && resErr(G.resT)) { G.rp = Math.min(G.rp + G.rpRate * dt, nx.cost); return; } // 等级不够：进度存满等待
   const it = resItem(G.resT); if (!it || G.unlocked.includes(G.resT)) { G.resT = ''; return; }
   G.rp += G.rpRate * dt;
   if (G.rp >= it.cost) { G.rp -= it.cost; finishResearch(G.resT); }

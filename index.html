@@ -311,6 +311,42 @@ body.pOpen #tutArrow{display:none!important}
   .dc img{width:60px;height:60px}.dc{padding-bottom:6px}.dc .cs{margin-top:2px}
 }
 body.touch #spray span{display:none}@media (pointer:coarse){#spray span{display:none}}
+
+/* ===== v0.7 极简 ===== */
+#cEco,#cRes,#mm,#bRes,#bDex,#bSpeed,#joy,#spray,#dTabs,#hint,#tutArrow,#buildBar,#bbTip{display:none!important}
+#dock{--dockH:150px}
+#dList{padding-left:6px}
+.dsep{flex:none;width:2px;margin:14px 4px;border-radius:2px;background:linear-gradient(180deg,transparent,rgba(255,220,150,.35),transparent)}
+.dc.nx{width:92px;background:linear-gradient(180deg,rgba(255,210,120,.08),rgba(0,0,0,.25));border-style:dashed;border-color:rgba(255,215,140,.35)}
+.nxr{position:relative;width:70px;height:70px;margin:2px auto auto}
+.nxr svg{position:absolute;inset:0;width:70px;height:70px}.nxr .bg{fill:rgba(0,0,0,.45);stroke:rgba(255,255,255,.1);stroke-width:3}.nxr .fg{fill:none;stroke:#ffcf7a;stroke-width:3.4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:20px 20px;filter:drop-shadow(0 0 3px #ffb347)}
+.nxr img{position:absolute;left:11px;top:11px;width:48px;height:48px;filter:brightness(0) drop-shadow(0 0 2px rgba(255,210,140,.6));opacity:.8;transform:none!important}
+.nxr b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;color:#ffe3a8;text-shadow:0 0 8px #ff9a3a}
+.dc.nx .nm{color:#ffe3a8}.dc .np{background:none!important;color:#ffd79a;font-weight:800}
+.imore{display:none}.imore.open{display:block}
+.ipic.unk img{filter:brightness(0) drop-shadow(0 0 3px rgba(255,210,140,.7))}
+#introBox{width:min(620px,94vw)}
+.big2b small{font-size:13px;opacity:.85;margin-left:4px}
+#press{position:fixed;z-index:9;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;pointer-events:none;display:none;
+  background:conic-gradient(rgba(255,214,140,.9) calc(var(--p,0)*360deg),rgba(255,255,255,.08) 0);-webkit-mask:radial-gradient(circle,transparent 34px,#000 35px,#000 40px,transparent 41px);mask:radial-gradient(circle,transparent 34px,#000 35px,#000 40px,transparent 41px);opacity:.75}
+#press.on{background:rgba(255,214,140,.95);animation:prs .5s ease-in-out infinite;opacity:1}
+@keyframes prs{50%{transform:scale(1.18)}}
+#tutF{position:fixed;left:0;top:0;z-index:31;width:64px;height:64px;pointer-events:none;display:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6)) drop-shadow(0 0 12px rgba(255,210,140,.6))}
+#tutF svg{width:64px;height:64px;transform:translate(-26px,-6px)}
+#tutF.drag{animation:fdrag 1.8s ease-in-out infinite}
+#tutF.press{transform:translate(var(--x0),var(--y0));animation:fpress 1.4s ease-in-out infinite}
+#tutF.tap{transform:translate(var(--x0),var(--y0));animation:ftap 1s ease-in-out infinite}
+@keyframes fdrag{0%{transform:translate(var(--x0),var(--y0)) scale(1);opacity:0}12%{opacity:1;transform:translate(var(--x0),var(--y0)) scale(.9)}75%{transform:translate(var(--x1),var(--y1)) scale(.9);opacity:1}100%{transform:translate(var(--x1),var(--y1)) scale(1);opacity:0}}
+@keyframes fpress{0%,100%{transform:translate(var(--x0),var(--y0)) scale(1)}30%,80%{transform:translate(var(--x0),var(--y0)) scale(.86)}}
+@keyframes ftap{0%,100%{transform:translate(var(--x0),var(--y0)) scale(1)}40%{transform:translate(var(--x0),var(--y0)) scale(.8)}}
+#tutCap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dockH) + var(--safeB) + 22px);z-index:30;display:none;align-items:center;gap:12px;padding:12px 14px 12px 18px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(40,24,18,.94),rgba(16,10,12,.95));border:1px solid rgba(255,205,130,.5);box-shadow:0 0 30px rgba(255,170,80,.25),0 10px 30px rgba(0,0,0,.5);white-space:nowrap;max-width:calc(100vw - 20px)}
+#tutCap b{font-size:13px;letter-spacing:2px;color:#ffcf7a;padding:3px 9px;border-radius:9px;background:rgba(255,190,100,.14)}
+#tutCap span{font-size:19px;font-weight:900;color:#fff3dc}
+#tutCap button{border:none;background:none;color:#e8d6c0;opacity:.55;font-size:13px;cursor:pointer;font-family:inherit}
+body.pOpen #tutF,body.pOpen #tutCap,body.pOpen #press{display:none!important}
+@media (max-width:760px){#tutCap span{font-size:16px}#tutCap{gap:8px;padding:10px 10px 10px 12px}.dc.nx{width:84px}.nxr{width:62px;height:62px}.nxr svg{width:62px;height:62px}.nxr img{left:10px;top:10px;width:42px;height:42px}}
+.dc{height:138px;flex:none}.dc>*{flex-shrink:0}.dc .nm{white-space:nowrap}@media (max-width:760px){.dc{height:124px}}
 </style>
 </head>
 <body>
@@ -333,7 +369,7 @@ body.touch #spray span{display:none}@media (pointer:coarse){#spray span{display:
 <div id="toasts" class="hud"></div>
 <div id="notices" class="hud"></div>
 <div id="intro"><div id="introBox" class="glass"></div></div>
-<div id="hint" class="hud glass"></div><div id="tutArrow" class="hud"><svg viewBox="0 0 40 52"><defs><linearGradient id="tag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#7ff0ff"/></linearGradient></defs><path d="M20 50 L4 30 H13 V4 H27 V30 H36 Z" fill="url(#tag)" stroke="#0a3050" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
+<div id="hint" class="hud glass"></div><div id="press"></div><div id="tutF"><svg viewBox="0 0 64 64"><path d="M26 6c3 0 5 2 5 5v17l2-1c3-1 5 0 6 2l1 1c2-1 5 0 6 2l1 1c3-1 6 1 6 4v12c0 8-6 14-14 14h-4c-5 0-9-2-12-6L12 41c-2-2-2-5 0-7 2-2 5-1 7 1l2 3V11c0-3 2-5 5-5z" fill="#fff" stroke="#1a1030" stroke-width="3" stroke-linejoin="round"/></svg></div><div id="tutCap"></div><div id="tutArrow" class="hud"><svg viewBox="0 0 40 52"><defs><linearGradient id="tag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#7ff0ff"/></linearGradient></defs><path d="M20 50 L4 30 H13 V4 H27 V30 H36 Z" fill="url(#tag)" stroke="#0a3050" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
 <div id="card" class="hud glass"></div>
 <div id="joy" class="hud"><div id="joyK"></div></div>
 <div id="spray" class="hud"><svg viewBox="0 0 102 102"><circle cx="51" cy="51" r="47" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="5"/><circle id="sprArc" cx="51" cy="51" r="47" fill="none" stroke="#7ff4ff" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 400" transform="rotate(-90 51 51)"/></svg><b>✦</b><span>播撒</span><kbd>空格</kbd></div>
@@ -1183,13 +1219,24 @@ function stepW(dt) {
 function resKey(kind, idx) { return kind === 's' ? SPECIES[idx].key : 'd' + DEVICES[idx].key; }
 function resItem(key) { if (key[0] === 'd' && DV_IDX[key.slice(1)] !== undefined) { const d = DEVICES[DV_IDX[key.slice(1)]]; return { kind: 'd', idx: d.id, def: d, tier: d.tier, cost: RES_COST[d.tier] || 0 }; } const i = SP_IDX[key]; if (i === undefined) return null; const sp = SPECIES[i]; return { kind: 's', idx: i, def: sp, tier: sp.tier, cost: RES_COST[sp.tier] || 0 }; }
 function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要潮汐 Lv' + resGate(it.tier); return ''; }
-function researchRate() { // 每秒研究点数
-  let base = 0; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
+/* v0.7 极简：科研全自动，按固定顺序解锁（每阶 生物/建筑 交替） */
+let RES_ORDER = null;
+function resOrder() {
+  if (RES_ORDER) return RES_ORDER; RES_ORDER = [];
+  for (let t = 1; t <= 9; t++) { const a = SPECIES.filter(x => x.tier === t).map(x => x.key), b = DEVICES.filter(x => x.tier === t).map(x => 'd' + x.key); for (let k = 0; k < Math.max(a.length, b.length); k++) { if (a[k]) RES_ORDER.push(a[k]); if (b[k]) RES_ORDER.push(b[k]); } }
+  return RES_ORDER;
+}
+function nextRes() { for (const k of resOrder()) if (!G.unlocked.includes(k)) return k; return ''; }
+function researchRate() { // 每秒研究点数（基础 0.15 + 科研设施）
+  let base = 0.15; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
   return base * (1 + Math.max(0, G.lastScore) / WINDOW);
 }
 function stepResearch(dt) {
-  G.rpRate = G.lv >= 1 ? researchRate() : 0;
-  if (!G.resT) { if (G.rpRate > 0) G.rp = Math.min(G.rp + G.rpRate * dt, 99999); return; }
+  G.rpRate = researchRate();
+  if (!G.resT || G.unlocked.includes(G.resT)) G.resT = nextRes();
+  if (!G.resT) return;
+  const nx = resItem(G.resT);
+  if (nx && resErr(G.resT)) { G.rp = Math.min(G.rp + G.rpRate * dt, nx.cost); return; } // 等级不够：进度存满等待
   const it = resItem(G.resT); if (!it || G.unlocked.includes(G.resT)) { G.resT = ''; return; }
   G.rp += G.rpRate * dt;
   if (G.rp >= it.cost) { G.rp -= it.cost; finishResearch(G.resT); }
@@ -2861,41 +2908,25 @@ function toast(msg, col) { const d = document.createElement('div'); d.className 
 const isTouch = () => UI.touch || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
 const hasDev = key => G.devs.some(d => DEVICES[d.type].key === key);
 function nearestWisp() { let bd = 1e18, bx = 0, by = 0; for (let k = 0; k < wN; k++) { if (wval[k] <= 0) continue; const d = dist2(wx[k], wy[k], G.orb.x, G.orb.y); if (d < bd) { bd = d; bx = wx[k]; by = wy[k]; } } return bd < 1e18 ? [bx, by] : null; }
-/* v0.6 新手引导：每步 = 图标/标题/说明/进度/高亮目标 */
+/* v0.7 新手引导：3 个手指动画，一句话 */
 const TUT = [
-  { i: '🌊', t: '欢迎来到潮汐生态圈', d: () => '你是一颗漂浮的<b>能量白球</b>。在这片黑暗星海里，孕育一个生生不息的生态圈吧！', btn: '开始引导', done: () => false },
-  { i: '✨', t: '吸收光灵', d: () => `白球<b>不会自己产生能量</b>。${isTouch() ? '用左下摇杆' : '用 WASD / 方向键'}移动白球，靠近飘浮的<b>白色光灵</b>，它们会被自动吸进来。`, prog: () => [G.orb.absorbed, 12], world: nearestWisp, done: () => G.orb.absorbed >= 12 },
-  { i: '💫', t: '播撒能量', d: () => `${isTouch() ? '按住右下角<b>【播撒】</b>' : '按住<b>【空格】</b>或右下角<b>【播撒】</b>'}，把白球储存的能量洒向大地——生物靠吃地上的能量存活。`, prog: () => [G.flow.spray, 30], el: () => $('spray'), done: () => G.flow.spray >= 30 },
-  { i: '🐾', t: '召唤第一批生物', d: () => '点底部的<b>生物卡片</b>召唤生物（第一次点会弹出介绍，按<b>【召唤】</b>即可）。成对的生物才能繁殖哦。', prog: () => [G.summons || 0, 2], el: () => document.querySelector('#dList .dc[data-s="0"]'), dock: 0, done: () => (G.summons || 0) >= 2 },
-  { i: '🐰', t: '丰富种群', d: () => '再召唤两只——试试<b>团子兔</b>。不同物种吃不同的东西，食物链越完整越稳定。', prog: () => [G.summons || 0, 4], el: () => document.querySelector('#dList .dc[data-s="1"]'), dock: 0, done: () => (G.summons || 0) >= 4 },
-  { i: '◆', t: '收集物质', d: () => '生物吃饱会掉落金色<b>◆ 物质结晶</b>，移动白球靠近即可收集。物质用来建造和召唤高级生物。', prog: () => [G.flow.mat, 8], done: () => G.flow.mat >= 8 },
-  { i: '🔬', t: '建造科研站', d: () => '切到底部<b>【建筑】</b>栏，建造<b>科研站</b>。建筑需要 60 秒施工，看广告可以缩短。', el: () => UI.dock === 1 ? document.querySelector('#dList .dc[data-k="lab"]') : document.querySelector('#dTabs .dt[data-t="1"]'), done: () => hasDev('lab') || hasDev('rlab') },
-  { i: '🧪', t: '选择研究项目', d: () => '点右侧<b>【科研】</b>，挑一个新物种或新建筑开始研究。研究很慢，<b>潮汐越高研究越快</b>。', el: () => $('bRes'), done: () => !!G.resT || G.unlocked.some(k => { const it = resItem(k); return it && it.def.tier > 0; }) },
-  { i: '🌊', t: '提升观测潮汐', d: () => '左上角的<b>潮汐</b>衡量生态的丰富度：物种越多、数量越稳，潮汐越高，解锁更多建造额度和研究阶层。', el: () => $('tide'), prog: () => [Math.max(0, G.lastScore || 0), 2], done: () => G.lv >= 1 },
-  { i: '🧱', t: '探索迷雾', d: () => '撞开边缘的<b>黑墙</b>扩大领地——闪烁的 ? 信号下藏着远古遗迹和光灵泉。引导完成，祝你玩得开心！', btn: '完成引导', done: () => G.pois.some(q => q.found) },
+  { cap: '拖动小灯，吸收漂浮的光', mode: 'drag', from: () => w2s(G.orb.x, G.orb.y), to: () => { const w = nearestWisp(); return w ? w2s(w[0], w[1]) : null; }, done: () => G.orb.absorbed >= 10 },
+  { cap: '按住不动，把光洒在地上', mode: 'press', at: () => w2s(G.orb.x, G.orb.y), done: () => G.flow.spray >= 30 },
+  { cap: '点卡片，召唤小怪', mode: 'tap', at: () => { const el = document.querySelector('#dList .dc[data-s]'); if (!el) return null; const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * 0.45]; }, done: () => (G.summons || 0) >= 2 },
 ];
-function tutNext() { META.tut++; saveMeta(); AU.play('gain'); updateHint(); }
+function tutNext() { META.ft = (META.ft || 0) + 1; saveMeta(); AU.play('gain'); if (META.ft >= TUT.length) { toast('🕯️ 守则已掌握——让这片黑暗亮起来吧'); } updateHint(); }
 function updateHint() {
-  const h = $('hint'), ar = $('tutArrow');
-  document.querySelectorAll('.tutHi').forEach(e => e.classList.remove('tutHi'));
-  if (META.tut >= TUT.length || UI.state !== 'play' || UI.panel || $('intro').classList.contains('show') || UI.build >= 0) { h.style.display = 'none'; ar.style.display = 'none'; return; }
-  const s = TUT[META.tut]; if (s.done()) return tutNext();
-  h.style.display = 'flex';
-  const key = META.tut + '|' + s.d();
-  if (h._k !== key) {
-    h._k = key;
-    h.innerHTML = `<div class="hi">${s.i}</div><div class="hb"><div class="hs">新手引导 · ${META.tut + 1} / ${TUT.length}</div><div class="ht">${s.t}</div><div class="hd">${s.d()}</div>${s.prog ? '<div class="hp"><i id="hpI"></i><span id="hpT"></span></div>' : ''}</div><div class="hbtns">${s.btn ? `<button class="btn pri" id="hNext">${s.btn}</button>` : ''}<button class="hk" id="hSkip">跳过引导</button></div>`;
-    const n = $('hNext'); if (n) n.onclick = e => { e.stopPropagation(); tutNext(); };
-    $('hSkip').onclick = e => { e.stopPropagation(); META.tut = TUT.length; saveMeta(); updateHint(); toast('已跳过新手引导，可在【菜单】里重新开始引导'); };
-    if (s.dock !== undefined && UI.dock !== s.dock) setDock(s.dock);
-  }
-  if (s.prog) { const [c, m] = s.prog(); $('hpI').style.width = Math.min(100, c / m * 100) + '%'; $('hpT').textContent = Math.floor(Math.min(c, m)) + ' / ' + m; }
-  let tx = null, ty = null;
-  const el = s.el && s.el();
-  if (el && el.offsetParent !== null) { el.classList.add('tutHi'); const r = el.getBoundingClientRect(); tx = r.left + r.width / 2; ty = r.top; }
-  else if (s.world) { const w = s.world(); if (w) { const [sx, sy] = w2s(w[0], w[1]); if (sx > 20 && sy > 60 && sx < innerWidth - 20 && sy < innerHeight - 180) { tx = sx; ty = sy - 18; } } }
-  if (tx === null) ar.style.display = 'none'; else { ar.style.display = 'block'; ar.style.left = tx + 'px'; ar.style.top = ty + 'px'; }
+  const f = $('tutF'), c = $('tutCap'), st = META.ft || 0;
+  if (st >= TUT.length || UI.state !== 'play' || UI.panel || $('intro').classList.contains('show')) { f.style.display = 'none'; c.style.display = 'none'; return; }
+  const s = TUT[st]; if (s.done()) return tutNext();
+  c.style.display = 'flex';
+  if (c._k !== st) { c._k = st; c.innerHTML = `<b>守则 ${st + 1}/${TUT.length}</b><span>${s.cap}</span><button id="tutX">跳过</button>`; $('tutX').onclick = e => { e.stopPropagation(); META.ft = TUT.length; saveMeta(); updateHint(); }; }
+  let p0 = s.mode === 'drag' ? s.from() : s.at(), p1 = s.mode === 'drag' ? s.to() : p0;
+  if (!p0 || !p1) { f.style.display = 'none'; return; }
+  f.style.display = 'block'; f.className = s.mode;
+  f.style.setProperty('--x0', p0[0] + 'px'); f.style.setProperty('--y0', p0[1] + 'px'); f.style.setProperty('--x1', p1[0] + 'px'); f.style.setProperty('--y1', p1[1] + 'px');
 }
+
 /* ---------- 装置图标（复用渲染器绘制） ---------- */
 const _devIcon = {};
 function devIcon(t) {
@@ -2907,77 +2938,79 @@ function devIcon(t) {
   ctx = sv; G.lv = lv; CAM.z = z; return _devIcon[t] = c.toDataURL();
 }
 
-/* ---------- 底部坞站（v0.6：大卡片 + NEW 角标 + 首次点击弹出介绍） ---------- */
+/* ---------- 底部坞站（v0.7 极简：只显示已解锁 + 「下一个」研究格） ---------- */
 function spUnlocked(i) { return G.unlocked.includes(SPECIES[i].key); }
 function isNew(key) { return G.unlocked.includes(key) && !META.introSeen.includes(key); }
-function resBadge(key, tier) {
-  if (G.resT === key) { const it = resItem(key), f = Math.min(1, G.rp / Math.max(1, it.cost)); return `<div class="lk res"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" class="bg"/><circle cx="20" cy="20" r="16" class="fg" stroke-dasharray="${(f * 100.5).toFixed(1)} 200"/></svg><b>研究中</b></div>`; }
-  const ok = G.maxLv >= resGate(tier);
-  return `<div class="lk"><span class="lki">${ok ? '🔬' : '🔒'}</span><b>${ok ? '可研究' : '潮汐 Lv' + resGate(tier)}</b></div>`;
+function itemIcon(it) { return it.kind === 's' ? speciesIcon(it.idx, 96) : devIcon(it.idx); }
+function nextSlot() {
+  const key = G.resT || nextRes(); if (!key) return '';
+  const it = resItem(key), f = Math.min(1, G.rp / Math.max(1, it.cost)), gate = resGate(it.tier), locked = G.maxLv < gate;
+  return `<div class="dc nx" data-nx="${key}"><div class="nxr"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" class="bg"/><circle cx="20" cy="20" r="17" class="fg" stroke-dasharray="${(f * 106.8).toFixed(1)} 200"/></svg><img src="${itemIcon(it)}"><b>?</b></div><div class="nm">下一个</div><div class="cs"><span class="np">${locked ? '🔒 ' + LV_NAMES[gate] : Math.floor(f * 100) + '%'}</span></div></div>`;
 }
 function buildDock() {
-  const L = $('dList'); let h = '';
-  if (UI.dock === 0) {
-    SPECIES.forEach((s, i) => {
-      const un = spUnlocked(i), nw = isNew(s.key);
-      h += `<div class="dc ${un ? '' : 'lock'} ${nw ? 'new' : ''}" data-s="${i}" data-k="${s.key}"><div class="glow" style="--c:${s.col}"></div><img src="${speciesIcon(i, 96)}" style="--sz:${[0.62, 0.78, 0.9, 1, 1][sizeClass(s.r)]}"><div class="nm">${s.name}</div><div class="cs"><span class="ce">⚡${s.cost}</span>${s.mcost ? `<span class="cm">◆${s.mcost}</span>` : ''}</div>${un ? `<div class="bd">${G.spCount[i]}</div><div class="inf" data-info="${i}">?</div>` : resBadge(s.key, s.tier)}</div>`;
-    });
-  } else {
-    DEVICES.forEach((d, i) => {
-      const un = devUnlocked(i), key = 'd' + d.key, nw = un && d.tier > 0 && isNew(key);
-      h += `<div class="dc ${un ? '' : 'lock'} ${nw ? 'new' : ''}" data-d="${i}" data-k="${key}"><div class="glow" style="--c:${DEV_COL[i]}"></div><img src="${devIcon(i)}"><div class="nm" style="color:${un ? DEV_COL[i] : ''}">${d.name}</div><div class="cs"><span class="cm">◆${d.mc}</span><span class="cc">▣${d.cost}</span></div>${un ? `<div class="inf" data-dinfo="${i}">?</div>` : resBadge(key, d.tier)}</div>`;
-    });
-  }
+  const L = $('dList'); let h = nextSlot();
+  SPECIES.forEach((s, i) => {
+    if (!spUnlocked(i)) return; const nw = isNew(s.key);
+    h += `<div class="dc ${nw ? 'new' : ''}" data-s="${i}" data-k="${s.key}"><div class="glow" style="--c:${s.col}"></div><img src="${speciesIcon(i, 96)}" style="--sz:${[0.62, 0.78, 0.9, 1, 1][sizeClass(s.r)]}"><div class="nm">${s.name}</div><div class="cs"><span class="ce">⚡${s.cost}</span>${s.mcost ? `<span class="cm">◆${s.mcost}</span>` : ''}</div><div class="bd">${G.spCount[i]}</div></div>`;
+  });
+  let sep = false;
+  DEVICES.forEach((d, i) => {
+    if (!devUnlocked(i)) return; const key = 'd' + d.key, nw = d.tier > 0 && isNew(key);
+    if (!sep) { h += '<div class="dsep"></div>'; sep = true; }
+    h += `<div class="dc dv ${nw ? 'new' : ''}" data-d="${i}" data-k="${key}"><div class="glow" style="--c:${DEV_COL[i]}"></div><img src="${devIcon(i)}"><div class="nm">${d.name}</div><div class="cs"><span class="cm">◆${d.mc}</span></div></div>`;
+  });
   L.innerHTML = h; updateDock();
-  // 页签上的 NEW 小红点
-  const nS = SPECIES.some(s => isNew(s.key)), nD = DEVICES.some(d => d.tier > 0 && isNew('d' + d.key));
-  document.querySelector('.dt[data-t="0"]').classList.toggle('dot', nS); document.querySelector('.dt[data-t="1"]').classList.toggle('dot', nD);
 }
 function updateDock() {
-  const sig = UI.dock + '|' + G.unlocked.length + '|' + G.lv + '|' + G.maxLv + '|' + G.resT + '|' + META.introSeen.length;
+  const sig = G.unlocked.length + '|' + G.maxLv + '|' + G.resT + '|' + META.introSeen.length;
   if (sig !== UI.dockSig) { UI.dockSig = sig; buildDock(); return; }
   const L = $('dList');
-  if (G.resT) { const el = L.querySelector(`[data-k="${G.resT}"] .fg`); if (el) { const it = resItem(G.resT); el.setAttribute('stroke-dasharray', (Math.min(1, G.rp / it.cost) * 100.5).toFixed(1) + ' 200'); } }
-  if (UI.dock === 0) {
-    for (const el of L.children) { const i = +el.dataset.s, s = SPECIES[i]; if (!spUnlocked(i)) continue; const okE = G.orb.tank >= s.cost, okM = G.matter >= s.mcost; el.classList.toggle('poor', !(okE && okM)); const cs = el.querySelector('.cs'); cs.children[0].classList.toggle('no', !okE); if (cs.children[1]) cs.children[1].classList.toggle('no', !okM); const bd = el.querySelector('.bd'); if (bd) bd.textContent = G.spCount[i]; }
-  } else {
-    const used = capUsed(), cap = totalCap();
-    for (const el of L.children) { const i = +el.dataset.d, d = DEVICES[i]; if (!devUnlocked(i)) continue; const okM = G.matter >= d.mc, okC = used + d.cost <= cap; el.classList.toggle('poor', !(okM && okC)); const cs = el.querySelector('.cs'); cs.children[0].classList.toggle('no', !okM); cs.children[1].classList.toggle('no', !okC); }
-    const bt = document.querySelector('.dt[data-t="1"] span'); bt.innerHTML = `建筑 <small>▣${used}/${cap}</small>`;
+  const nx = L.querySelector('.nx'); if (nx) { const it = resItem(nx.dataset.nx); if (it) { const f = Math.min(1, G.rp / Math.max(1, it.cost)); nx.querySelector('.fg').setAttribute('stroke-dasharray', (f * 106.8).toFixed(1) + ' 200'); if (G.maxLv >= resGate(it.tier)) nx.querySelector('.np').textContent = Math.floor(f * 100) + '%'; } }
+  const used = capUsed(), cap = totalCap();
+  for (const el of L.children) {
+    if (el.dataset.s !== undefined) { const i = +el.dataset.s, s = SPECIES[i]; const okE = G.orb.tank >= s.cost, okM = G.matter >= s.mcost; el.classList.toggle('poor', !(okE && okM)); const cs = el.querySelector('.cs'); cs.children[0].classList.toggle('no', !okE); if (cs.children[1]) cs.children[1].classList.toggle('no', !okM); el.querySelector('.bd').textContent = G.spCount[i]; }
+    else if (el.dataset.d !== undefined) { const d = DEVICES[+el.dataset.d]; const okM = G.matter >= d.mc; el.classList.toggle('poor', !okM || used + d.cost > cap); el.querySelector('.cs').children[0].classList.toggle('no', !okM); }
   }
 }
-function setDock(t) { UI.dock = t; document.querySelectorAll('.dt').forEach(b => b.classList.toggle('on', +b.dataset.t === t)); UI.dockSig = ''; updateDock(); $('dList').scrollLeft = 0; }
+function setDock() { UI.dockSig = ''; updateDock(); }
 function doSummon(i, el) {
   const s = SPECIES[i], o = G.orb, r = summon(i, isWall(o.x, o.y) ? null : { x: o.x, y: o.y });
-  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('能量') ? '<br><small>靠近白色光灵吸取能量</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
-  else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#9ff4ff' }); }
+  if (r) { AU.play('error'); toast('⚠ ' + r + (r.includes('能量') ? '<br><small>拖动小灯去吸收漂浮的光</small>' : '')); if (el) el.animate([{ transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'none' }], 220); }
+  else { AU.play('summon'); addFX('text', o.x, o.y - 24, { text: '-' + s.cost + '⚡', life: 1, color: '#ffe3a0' }); }
   updateDock();
+}
+/* 自动选位：先在小灯附近找，再在方塔附近找；路灯优先放在光场边缘向小灯方向延伸 */
+function autoSpot(t) {
+  const def = DEVICES[t], o = G.orb, cands = [];
+  const tryAt = (x, y) => !canPlace(t, x, y);
+  if (def.pf) { // 路灯：沿 塔→小灯 方向，尽量靠外
+    const a0 = Math.atan2(o.y, o.x || 0.01);
+    for (let r = 900; r >= 90; r -= 30) for (const da of [0, 0.25, -0.25, 0.5, -0.5, 0.9, -0.9]) { const x = Math.cos(a0 + da) * r, y = Math.sin(a0 + da) * r; if (Math.hypot(x - o.x, y - o.y) < 420 && tryAt(x, y)) return [x, y]; }
+  }
+  for (const [cx0, cy0] of [[o.x, o.y], [0, 0]]) for (let r = 50; r <= 600; r += 22) { const n = Math.max(8, Math.round(r / 14)), off = rnd() * 6.28; for (let k = 0; k < n; k++) { const a = off + k / n * 6.2832, x = cx0 + Math.cos(a) * r, y = cy0 + Math.sin(a) * r; if (tryAt(x, y)) return [x, y]; } }
+  return null;
 }
 function tryBuild(i) {
   const d = DEVICES[i];
-  if (G.matter < d.mc) { AU.play('error'); toast(`⚠ 物质不足：需要 ◆${d.mc}`); return; }
-  if (capUsed() + d.cost > totalCap()) { AU.play('error'); toast('⚠ 建造额度不足——提升潮汐或激活观测古碑'); return; }
-  AU.play('click'); enterBuild(i);
+  if (G.matter < d.mc) { AU.play('error'); toast(`⚠ 魂晶不足：需要 ◆${d.mc}`); return; }
+  if (capUsed() + d.cost > totalCap()) { AU.play('error'); toast('⚠ 建筑已达上限——提升光域等级可以建更多'); return; }
+  const p = autoSpot(i); if (!p) { AU.play('error'); toast('⚠ 附近没有空位——先建【' + DEVICES[DV_IDX.pylon].name + '】照亮更多地方'); return; }
+  placeDev(i, p[0], p[1], rnd() * 6.28); AU.play('place'); addFX('ring', p[0], p[1], { life: 0.8, r: 60, color: DEV_COL[i] });
+  toast(`🔨 ${d.name} 开工了（${d.time} 秒）`); updateDock();
 }
 function onDockClick(e) {
-  const inf = e.target.closest('[data-info]'); if (inf) { e.stopPropagation(); showIntro('s', +inf.dataset.info); return; }
-  const dinf = e.target.closest('[data-dinfo]'); if (dinf) { e.stopPropagation(); showIntro('d', +dinf.dataset.dinfo); return; }
-  const el = e.target.closest('.dc'); if (!el) return;
-  if (el.dataset.s !== undefined) {
-    const i = +el.dataset.s, s = SPECIES[i];
-    if (!spUnlocked(i)) { AU.play('click'); showIntro('s', i); return; }
-    if (!META.introSeen.includes(s.key)) { showIntro('s', i); return; } // 第一次点击：先介绍
-    doSummon(i, el); return;
-  }
-  if (el.dataset.d !== undefined) {
-    const i = +el.dataset.d, d = DEVICES[i];
-    if (!devUnlocked(i)) { AU.play('click'); showIntro('d', i); return; }
-    if (!META.introSeen.includes('d' + d.key)) { showIntro('d', i); return; }
-    tryBuild(i);
-  }
+  const el = e.target.closest('.dc'); if (!el || UI.lpFired) { UI.lpFired = false; return; }
+  if (el.dataset.nx) { const it = resItem(el.dataset.nx); showIntro(it.kind, it.idx); return; }
+  if (el.dataset.s !== undefined) { const i = +el.dataset.s; if (!META.introSeen.includes(SPECIES[i].key)) { showIntro('s', i); return; } doSummon(i, el); return; }
+  if (el.dataset.d !== undefined) { const i = +el.dataset.d; if (DEVICES[i].tier > 0 && !META.introSeen.includes('d' + DEVICES[i].key)) { showIntro('d', i); return; } tryBuild(i); }
+}
+function setupDockLongPress() { // 长按卡片 = 查看详情（代替图鉴）
+  const L = $('dList'); let tm = 0;
+  L.addEventListener('pointerdown', e => { const el = e.target.closest('.dc'); if (!el) return; UI.lpFired = false; clearTimeout(tm); tm = setTimeout(() => { UI.lpFired = true; if (el.dataset.s !== undefined) showIntro('s', +el.dataset.s, true); else if (el.dataset.d !== undefined) showIntro('d', +el.dataset.d, true); else if (el.dataset.nx) { const it = resItem(el.dataset.nx); showIntro(it.kind, it.idx, true); } }, 480); });
+  const cancel = () => clearTimeout(tm); L.addEventListener('pointerup', cancel); L.addEventListener('pointercancel', cancel); L.addEventListener('pointerleave', cancel); L.addEventListener('scroll', cancel);
 }
 
-/* ---------- 介绍卡（大师级大卡片：大立绘 + 图标属性条 + 特性 + 食物链） ---------- */
+/* ---------- 介绍卡（极简：大图 + 名字 + 一句话；「详细」可展开） ---------- */
 function traitsOf(sp) {
   const L = [];
   L.push(sp.diet === D_E ? { ic: '✦', name: '食能', d: '吃地上的能量星点' } : sp.diet === D_M ? (sp.drain ? { ic: '🩸', name: '寄生', d: '靠吸取其他生物为生' } : { ic: '🍖', name: '食肉', d: '只能靠捕食生物获得能量' }) : { ic: '🍽️', name: '杂食', d: '既吃能量也吃生物' });
@@ -3002,74 +3035,41 @@ function webRow(label, arr, energy) {
   const ic = j => `<div class="wi ${spUnlocked(j) ? '' : 'unk'}" title="${SPECIES[j].name}"><img src="${speciesIcon(j, 64)}"></div>`;
   return `<div class="webr"><span class="wl">${label}</span>${energy ? '<div class="wi en">✦</div>' : ''}${arr.length || energy ? arr.map(ic).join('') : '<span class="none">没有</span>'}</div>`;
 }
-function showIntro(kind, idx) {
-  const box = $('introBox'); let h = '', key, act = '';
+function showIntro(kind, idx, detail) {
+  const box = $('introBox'); let h = '', key, act = '', more = '', locked = false;
   AU.play('open');
   if (kind === 's') {
-    const sp = SPECIES[idx], un = spUnlocked(idx); key = sp.key;
+    const sp = SPECIES[idx], un = spUnlocked(idx); key = sp.key; locked = !un;
     const tr = traitsOf(sp);
-    h = `<div class="ih" style="--c:${sp.col}"><div class="ipic"><div class="halo"></div><img src="${speciesIcon(idx, 160)}" style="--sz:${[0.6, 0.75, 0.88, 1, 1.06][sizeClass(sp.r)]}"></div>
-      <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm">${un ? sp.name : sp.name}</div>
-      <div class="isub"><span>${tr[0].ic} ${tr[0].name}</span><span>📏 ${SIZE_NAME[sizeClass(sp.r)]}</span><span>${tr[1].ic} ${tr[1].name}</span></div>
-      <div class="ids">${sp.desc}</div></div></div>
-      <div class="icols"><div class="istats">${spStats(sp)}</div>
-      <div class="iside"><div class="ttl">特性</div><div class="traits">${tr.map(t => `<div class="trc"><span class="ti">${t.ic}</span><div><b>${t.name}</b><small>${t.d}</small></div></div>`).join('')}</div>
-      <div class="ttl">食物链</div>${webRow('吃', preyOf(idx), sp.diet !== D_M)}${webRow('天敌', predsOf(idx), false)}</div></div>`;
-    if (un) act = `<div class="icost"><span class="ce">⚡ ${sp.cost}</span>${sp.mcost ? `<span class="cm">◆ ${sp.mcost}</span>` : ''}<small>召唤在白球位置</small></div><button class="btn pri big2b" id="iAct">✨ 召唤</button>`;
-    else act = researchAct(key, sp.tier);
+    h = `<div class="ih" style="--c:${sp.col}"><div class="ipic ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${speciesIcon(idx, 160)}" style="--sz:${[0.6, 0.75, 0.88, 1, 1.06][sizeClass(sp.r)]}"></div>
+      <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm">${locked ? '？？？' : sp.name}</div>
+      <div class="isub">${tr.slice(0, 4).map(t => `<span>${t.ic} ${t.name}</span>`).join('')}</div>
+      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : sp.desc}</div></div></div>`;
+    more = `<div class="icols"><div class="istats">${spStats(sp)}</div><div class="iside"><div class="ttl">特性</div><div class="traits">${tr.map(t => `<div class="trc"><span class="ti">${t.ic}</span><div><b>${t.name}</b><small>${t.d}</small></div></div>`).join('')}</div><div class="ttl">食物链</div>${webRow('吃', preyOf(idx), sp.diet !== D_M)}${webRow('天敌', predsOf(idx), false)}</div></div>`;
+    if (un) act = `<button class="btn pri big2b" id="iAct">✨ 召唤 <small>⚡${sp.cost}${sp.mcost ? ' ◆' + sp.mcost : ''}</small></button>`;
   } else {
-    const d = DEVICES[idx], un = devUnlocked(idx); key = 'd' + d.key;
-    h = `<div class="ih" style="--c:${DEV_COL[idx]}"><div class="ipic dev"><div class="halo"></div><img src="${devIcon(idx)}"></div>
-      <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm" style="color:${DEV_COL[idx]}">${d.name}</div>
-      <div class="isub"><span>◆ ${d.mc} 物质</span><span>▣ ${d.cost} 额度</span><span>⏱ ${d.time} 秒</span>${d.r ? `<span>◎ 半径 ${d.r}</span>` : ''}</div>
-      <div class="ids big">${d.desc}</div></div></div>
-      <div class="note">🔌 建筑必须建在<b>能量场</b>内（方塔周围或导能塔范围）。建造需要时间，可以看广告 <b>-60 秒</b>。</div>`;
-    if (un) act = `<button class="btn pri big2b" id="iAct">🏗️ 开始建造</button>`;
-    else act = researchAct(key, d.tier);
+    const d = DEVICES[idx], un = devUnlocked(idx); key = 'd' + d.key; locked = !un;
+    h = `<div class="ih" style="--c:${DEV_COL[idx]}"><div class="ipic dev ${locked ? 'unk' : ''}"><div class="halo"></div><img src="${devIcon(idx)}"></div>
+      <div class="itx">${isNew(key) ? '<div class="newr">NEW</div>' : ''}<div class="inm" style="color:${DEV_COL[idx]}">${locked ? '？？？' : d.name}</div>
+      <div class="isub"><span>◆ ${d.mc}</span><span>⏱ ${d.time} 秒</span></div>
+      <div class="ids">${locked ? '还在黑暗里……研究完成后现身。' : d.desc}</div></div></div>`;
+    if (un) act = `<button class="btn pri big2b" id="iAct">🔨 建造 <small>◆${d.mc}</small></button>`;
   }
-  box.innerHTML = h + `<div class="iact"><button class="btn" id="iOk">知道了</button>${act}</div><button class="x ix" id="iX">✕</button>`;
+  if (locked) {
+    const it = resItem(key), gate = resGate(it.tier), f = Math.min(1, G.rp / it.cost), cur = (G.resT || nextRes()) === key;
+    act = `<div class="icost">${G.maxLv < gate ? `<span style="color:#ffb0a0">🔒 需要光域达到「${LV_NAMES[gate]}」</span>` : cur ? `<span>🔍 调查中 ${Math.floor(f * 100)}%</span>` : '<span>排队调查中</span>'}</div>${cur ? '<button class="btn ad big2b" id="iAd">📺 加速调查</button>' : ''}`;
+  }
+  box.innerHTML = h + (more ? `<div class="imore ${detail ? 'open' : ''}">${locked ? '' : more}</div>` : '') + `<div class="iact">${more && !locked ? `<button class="btn" id="iMore">${detail ? '收起' : '详细 ▾'}</button>` : ''}${act || '<button class="btn pri big2b" id="iOk2">好的</button>'}</div><button class="x ix" id="iX">✕</button>`;
   $('intro').classList.add('show');
   const seen = () => { if (G.unlocked.includes(key) && !META.introSeen.includes(key)) { META.introSeen.push(key); saveMeta(); UI.dockSig = ''; updateDock(); } };
   const close = () => { $('intro').classList.remove('show'); seen(); };
-  $('iOk').onclick = () => { AU.play('click'); close(); }; $('iX').onclick = close;
+  $('iX').onclick = close; const ok2 = $('iOk2'); if (ok2) ok2.onclick = close;
+  $('intro').onpointerdown = e => { if (e.target === $('intro')) close(); };
+  const im = $('iMore'); if (im) im.onclick = () => { const m = box.querySelector('.imore'); m.classList.toggle('open'); im.textContent = m.classList.contains('open') ? '收起' : '详细 ▾'; };
   const ia = $('iAct'); if (ia) ia.onclick = () => { close(); if (kind === 's') doSummon(idx, null); else tryBuild(idx); };
-  const ir = $('iRes'); if (ir) ir.onclick = () => { const e = setResearch(key); if (e) { AU.play('error'); toast('⚠ ' + e); } else { AU.play('gain'); toast('🔬 开始研究：' + (kind === 's' ? SPECIES[idx].name : DEVICES[idx].name)); } close(); UI.dockSig = ''; };
+  const iad = $('iAd'); if (iad) iad.onclick = () => Ads.rewarded(() => { G.rp += Math.max(25, G.rpRate * 90); stepResearch(0); toast('🔍 调查进度大幅提升'); close(); }, m => toast(m));
 }
-function researchAct(key, tier) {
-  const it = resItem(key), gate = resGate(tier), ok = G.maxLv >= gate;
-  if (G.resT === key) return `<div class="icost"><span>🔬 研究中 ${Math.floor(G.rp)} / ${it.cost}</span></div>`;
-  if (!ok) return `<div class="icost"><span style="color:#ffb0a0">🔒 需要潮汐 Lv${gate} 才能研究</span></div>`;
-  return `<div class="icost"><span style="color:#c9b8ff">🔬 ${it.cost} 研究点</span>${G.labs.length ? '' : '<small>需要先建造科研站</small>'}</div><button class="btn pri big2b" id="iRes">🔬 研究</button>`;
-}
-
-/* ---------- 科研面板 ---------- */
-function openResearch() {
-  AU.play('click');
-  openPanel('🔬 科研', ['生物', '建筑'], k => {
-    const B = $('pBody'), rate = G.rpRate;
-    const list = k === 0 ? SPECIES.map((s, i) => ({ key: s.key, tier: s.tier, name: s.name, ic: speciesIcon(i, 72), col: s.col })) : DEVICES.map((d, i) => ({ key: 'd' + d.key, tier: d.tier, name: d.name, ic: devIcon(i), col: DEV_COL[i] }));
-    let h = `<div class="rtop"><div class="rstat"><div class="rbig">🔬 <b>${Math.floor(G.rp)}</b><small> 研究点</small></div><div class="rrate">${G.labs.length ? `+${rate.toFixed(2)}/秒 · ${G.labs.length} 座科研设施 · 潮汐越高越快` : '⚠ 还没有运转中的科研站——先在【建筑】里建造科研站（潮汐需 ≥ Lv1）'}</div></div>
-      <button class="btn ad" id="rAd">📺 研究加速<br><small>+60 秒进度</small></button></div>`;
-    if (G.resT) { const it = resItem(G.resT); h += `<div class="rcur"><img src="${it.kind === 's' ? speciesIcon(it.idx, 72) : devIcon(it.idx)}"><div style="flex:1"><div>正在研究 <b>${it.def.name}</b></div><div class="rbar"><i style="width:${Math.min(100, G.rp / it.cost * 100)}%"></i></div><small>${Math.floor(G.rp)} / ${it.cost}${rate > 0 ? ' · 约 ' + fmtTime(Math.max(0, it.cost - G.rp) / rate) : ''}</small></div></div>`; }
-    for (let t = 0; t <= 9; t++) {
-      const L = list.filter(x => x.tier === t); if (!L.length) continue; const gate = resGate(t), ok = G.maxLv >= gate;
-      h += `<div class="rtier"><span class="tn">第 ${t} 阶</span>${t ? `<span class="tg ${ok ? 'ok' : ''}">${ok ? '✓' : '🔒'} 潮汐 Lv${gate}</span><span class="tc">🔬 ${RES_COST[t]}</span>` : '<span class="tg ok">初始解锁</span>'}</div><div class="rgrid">`;
-      for (const x of L) {
-        const done = G.unlocked.includes(x.key), cur = G.resT === x.key;
-        h += `<div class="rc ${done ? 'done' : cur ? 'cur' : ok ? 'can' : 'lock'}" data-rk="${x.key}"><img src="${x.ic}"><div class="rn">${x.name}</div><div class="rs">${done ? '✓ 已解锁' : cur ? '研究中…' : ok ? '点击研究' : '🔒'}</div>${isNew(x.key) ? '<i class="nw">NEW</i>' : ''}</div>`;
-      }
-      h += '</div>';
-    }
-    B.innerHTML = h;
-    B.querySelectorAll('.rc').forEach(el => el.onclick = () => {
-      const key = el.dataset.rk, it = resItem(key);
-      if (G.unlocked.includes(key) || G.maxLv < resGate(it.tier)) { showIntro(it.kind, it.idx); return; }
-      const e = setResearch(key); if (e) { AU.play('error'); toast('⚠ ' + e); return; }
-      AU.play('gain'); toast('🔬 开始研究：' + it.def.name); refreshPanel(); UI.dockSig = '';
-    });
-    $('rAd').onclick = () => Ads.rewarded(() => { G.rp += Math.max(25, G.rpRate * 60); stepResearch(0); toast('🔬 研究进度 +60 秒'); refreshPanel(); }, m => toast(m));
-  });
-}
+function openResearch() { const k = G.resT || nextRes(); if (!k) { toast('所有秘密都已揭开'); return; } const it = resItem(k); showIntro(it.kind, it.idx); }
 
 /* ---------- HUD ---------- */
 let hudT = 0, mmT = 0;
@@ -3089,7 +3089,7 @@ function updateHUD() {
   if (UI.boostT > 0) { $('speedTag').style.display = 'block'; $('speedTag').textContent = '⏩×4 ' + Math.ceil(UI.boostT) + 's'; } else $('speedTag').style.display = 'none';
   { const it = G.resT ? resItem(G.resT) : null; $('resN').textContent = it ? it.def.name : (G.labs.length ? '选择研究' : '科研'); $('resBar').style.width = it ? Math.min(100, G.rp / it.cost * 100) + '%' : '0%'; $('cRes').classList.toggle('idle', !it && G.labs.length > 0); }
   updateDock(); updateCard(); updateHint();
-  if (UI.build >= 0) updateBuildTip();
+  
 }
 
 /* ---------- 信息卡 ---------- */
@@ -3246,17 +3246,19 @@ function openMenu() {
   AU.play('click');
   openPanel('⚙️ 菜单', ['设置'], () => {
     $('pBody').innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;max-width:380px">
+    <button class="btn ad" id="mSpd">📺 加速 / 快进</button>
+    <button class="btn" id="mDex">📖 图鉴</button>
     <button class="btn" id="mSave">💾 立即保存</button>
     <button class="btn" id="mSnd">${AU.on ? '🔊 音效：开' : '🔇 音效：关'}</button>
     <button class="btn" id="mMus">${AU.musOn ? '🎵 音乐：开' : '🎵 音乐：关'}</button>
-    <button class="btn" id="mTut">💡 重新显示新手提示</button>
+    <button class="btn" id="mTut">🕯️ 重看新手守则</button>
     <button class="btn" id="mTitle">🏠 回到标题</button>
     <button class="btn red" id="mNew">🌱 新的世界（保留已解锁物种）</button>
     <div style="opacity:.55;font-size:13px">v${VERSION} · 广告：${Ads.platform} · 每 20 秒自动保存</div></div>`;
-    $('mSave').onclick = () => saveGame(false);
+    $('mSave').onclick = () => saveGame(false); $('mSpd').onclick = () => { closePanel(); openSpeed(); }; $('mDex').onclick = () => { closePanel(); openDex(); };
     $('mSnd').onclick = () => { AU.setOn(!AU.on); META.sound = AU.on; saveMeta(); refreshPanel(); };
     $('mMus').onclick = () => { AU.setMus(!AU.musOn); META.music = AU.musOn; saveMeta(); refreshPanel(); };
-    $('mTut').onclick = () => { META.tut = 0; saveMeta(); closePanel(); updateHint(); };
+    $('mTut').onclick = () => { META.ft = 0; saveMeta(); closePanel(); updateHint(); };
     $('mTitle').onclick = () => { saveGame(true); closePanel(); showTitle(); };
     $('mNew').onclick = () => { if (!confirm('确定开始新的世界吗？当前世界会被覆盖（解锁的物种保留）。')) return; closePanel(); startNew(); };
   });
@@ -3336,7 +3338,6 @@ function hitTest(wx, wy) {
 }
 function tap(sx, sy, isTouch) {
   const [wx, wy] = s2w(sx, sy);
-  if (UI.build >= 0) { UI.ghost = [wx, wy]; updateBuildTip(); if (!isTouch) tryPlace(); return; }
   const h = hitTest(wx, wy);
   if (h && h.tower) { openTide(); return; }
   if (h && h.dev) { clearSel(); UI.selDev = h.dev; AU.play('click'); updateCard(); return; }
@@ -3349,9 +3350,7 @@ function setupInput() {
   addEventListener('keydown', e => {
     if (UI.state !== 'play') return; const k = e.key.toLowerCase(); UI.keys[k] = true;
     if (k === ' ' || k === 'tab') e.preventDefault();
-    if (k === 'tab') setDock(UI.dock ? 0 : 1);
     if (k === 'escape') { if ($('intro').classList.contains('show')) $('intro').classList.remove('show'); else if (UI.panel) closePanel(); else if (UI.build >= 0) exitBuild(); else clearSel(); }
-    if (k === 'b') setDock(1);
     if (k === 'r') UI.ang += Math.PI / 8;
     if (k === '=' || k === '+') CAM.tz = Math.min(3, CAM.tz * 1.2); if (k === '-') CAM.tz = Math.max(0.2, CAM.tz / 1.2);
   });
@@ -3359,24 +3358,26 @@ function setupInput() {
   addEventListener('blur', () => { UI.keys = {}; UI.sprayTouch = false; });
   c.addEventListener('wheel', e => { e.preventDefault(); CAM.tz = Math.max(0.2, Math.min(3, CAM.tz * Math.pow(1.0015, -e.deltaY))); }, { passive: false });
   c.addEventListener('contextmenu', e => { e.preventDefault(); if (UI.build >= 0) exitBuild(); });
+  // v0.7 单指操作：按住拖动 = 小灯跟随手指；按住不动 = 洒光；轻点 = 查看/瞬移
   c.addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch' && !UI.touch) { UI.touch = true; document.body.classList.add('touch'); }
     AU.init(); c.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 1) { downPos = { x: e.clientX, y: e.clientY, t: performance.now(), btn: e.button }; dragMoved = false; }
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); zoom0 = CAM.tz; dragMoved = true; }
+    if (ptrs.size === 1) { downPos = { x: e.clientX, y: e.clientY, t: performance.now(), btn: e.button }; dragMoved = false; if (e.button === 0 && UI.state === 'play') UI.steer = { x: e.clientX, y: e.clientY, mx: e.clientX, my: e.clientY, still: 0, held: 0, wt: s2w(e.clientX, e.clientY) }; }
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); zoom0 = CAM.tz; dragMoved = true; UI.steer = null; }
   });
   c.addEventListener('pointermove', e => {
-    if (UI.build >= 0 && e.pointerType === 'mouse') { UI.ghost = s2w(e.clientX, e.clientY); }
     if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0 > 0) CAM.tz = CAM.z = Math.max(0.2, Math.min(3, zoom0 * d / pinch0)); }
-    else if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 12) { dragMoved = true; if (UI.build >= 0 && e.pointerType !== 'mouse') { UI.ghost = s2w(e.clientX, e.clientY); } }
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0 > 0) CAM.tz = CAM.z = Math.max(0.25, Math.min(3, zoom0 * d / pinch0)); return; }
+    const st = UI.steer; if (st) { st.x = e.clientX; st.y = e.clientY; if (Math.hypot(st.x - st.mx, st.y - st.my) > 14) { st.mx = st.x; st.my = st.y; st.still = 0; st.wt = s2w(st.x, st.y); } }
+    if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 12) dragMoved = true;
   });
   const up = e => {
     if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
-    if (ptrs.size === 0 && downPos && !dragMoved && downPos.btn === 0 && UI.state === 'play') tap(e.clientX, e.clientY, e.pointerType !== 'mouse');
-    if (ptrs.size === 0) downPos = null;
+    const quick = downPos && performance.now() - downPos.t < 260;
+    if (ptrs.size === 0 && downPos && !dragMoved && quick && downPos.btn === 0 && UI.state === 'play') tap(e.clientX, e.clientY, e.pointerType !== 'mouse');
+    if (ptrs.size === 0) { downPos = null; UI.steer = null; }
   };
-  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); downPos = null; });
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); downPos = null; UI.steer = null; });
   // 摇杆
   const joy = $('joy'), K = $('joyK');
   joy.addEventListener('pointerdown', e => { e.stopPropagation(); AU.init(); UI.joy.id = e.pointerId; joy.setPointerCapture(e.pointerId); mv(e); });
@@ -3390,10 +3391,9 @@ function setupInput() {
   const sup = () => { UI.sprayTouch = false; }; sp.addEventListener('pointerup', sup); sp.addEventListener('pointercancel', sup); sp.addEventListener('lostpointercapture', sup);
   // 坞站 / 卡片 / 按钮
   $('dList').addEventListener('click', onDockClick);
-  document.querySelectorAll('.dt').forEach(b => b.onclick = () => { AU.play('click'); setDock(+b.dataset.t); });
   $('card').addEventListener('click', onCardClick);
-  $('bDex').onclick = openDex; $('bRes').onclick = openResearch; $('cRes').onclick = openResearch; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
-  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 观测潮汐', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast(UI.touch ? '✦ 按住右下角【播撒】喷出能量' : '✦ 按住【空格】喷出能量');
+  setupDockLongPress(); $('bDex').onclick = openDex; $('bRes').onclick = openResearch; $('cRes').onclick = openResearch; $('bSpeed').onclick = openSpeed; $('bMenu').onclick = openMenu;
+  $('tide').onclick = openTide; $('cEco').onclick = () => { openTide(); openPanel('🌊 观测潮汐', UI.panel.tabs, UI.panel.renderFn, 1); }; $('cMat').onclick = () => openDex(); $('cTank').onclick = () => toast('🕯️ 按住屏幕不动，就能把光洒在地上');
   $('mm').onclick = () => { CAM.tz = CAM.tz > 0.45 ? 0.3 : 1; };
   $('pClose').onclick = () => { AU.play('click'); closePanel(); };
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
@@ -3419,7 +3419,16 @@ function frame(now) {
   const k = UI.keys, o = G.orb;
   let ix = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0) + UI.joy.x, iy = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0) + UI.joy.y;
   const il = Math.hypot(ix, iy); if (il > 1) { ix /= il; iy /= il; }
-  o.ix = ix; o.iy = iy; o.attract = false; o.spray = !!(k[' '] || UI.sprayTouch) && !UI.panel;
+  let stSpray = false; const st = UI.steer;
+  if (st && !UI.panel) {
+    st.held += dt; st.still += dt;
+    const [tx, ty] = st.wt, dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy);
+    { const vm = Math.min(260, d * 3.2), vx = d > 1 ? dx / d * vm : 0, vy = d > 1 ? dy / d * vm : 0; let ax = (vx - o.vx) / 90, ay = (vy - o.vy) / 90; const al = Math.hypot(ax, ay); if (al > 1) { ax /= al; ay /= al; } if (al > 0.02 || d > 6) { ix += ax || 1e-4; iy += ay || 1e-4; } }
+    stSpray = st.held > 0.28 && st.still > 0.28;
+    const pr = $('press'), ps = w2s(tx, ty); pr.style.display = 'block'; pr.style.left = ps[0] + 'px'; pr.style.top = ps[1] + 'px'; pr.classList.toggle('on', stSpray); pr.style.setProperty('--p', Math.min(1, st.still / 0.28));
+  } else $('press').style.display = 'none';
+  { const l2 = Math.hypot(ix, iy); if (l2 > 1) { ix /= l2; iy /= l2; } }
+  o.ix = ix; o.iy = iy; o.attract = false; o.spray = !!(k[' '] || UI.sprayTouch || stSpray) && !UI.panel;
   $('spray').classList.toggle('on', o.spray);
   const spd = UI.boostT > 0 ? 4 : 1; if (UI.boostT > 0) UI.boostT -= dt;
   const simDt = dt * spd, n = Math.ceil(simDt / 0.075);
@@ -3430,7 +3439,6 @@ function frame(now) {
   CAM.z += (CAM.tz - CAM.z) * Math.min(1, dt * 8); CAM.x = o.x; CAM.y = o.y;
   render(dt, UI);
   hudT -= dt; if (hudT <= 0) { hudT = 0.25; updateHUD(); }
-  mmT -= dt; if (mmT <= 0) { mmT = 0.5; drawMinimap(); }
   if (performance.now() - UI.lastSave > 20000) saveGame(true);
 }
 
