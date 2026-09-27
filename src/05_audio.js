@@ -36,7 +36,7 @@ const AU = {
   },
   play(name, p) {
     if (!this.ac || !this.on) return; const now = this.ac.currentTime;
-    const lim = { birth: 0.12, death: 0.15, eat: 0.1, gain: 0.08, wall: 0.07 }[name] || 0.03;
+    const lim = { birth: 0.12, death: 0.15, eat: 0.1, gain: 0.08, wall: 0.07, fight: 0.14, eaten: 0.12 }[name] || 0.03;
     if (this.lastSfx[name] && now - this.lastSfx[name] < lim) return; this.lastSfx[name] = now;
     p = p || 0;
     switch (name) {
@@ -44,6 +44,7 @@ const AU = {
       case 'death': { this.tone(300 - p * 10, 0.35, 'triangle', 0.05, null, 0.01, 110); break; }
       case 'eaten': { this.tone(200, 0.12, 'square', 0.02, null, 0.005, 90); this.tone(700, 0.08, 'sine', 0.03, null, 0.005, 400); break; }
       case 'gain': { const f = this.mtof(84 + [0, 2, 4, 7, 9][(Math.random() * 5) | 0]); const g = this.tone(f, 0.25, 'sine', 0.025); g.connect(this.rev); break; }
+      case 'fight': { this.tone(900 + Math.random() * 300, 0.06, 'triangle', 0.018, null, 0.002, 500); this.tone(140, 0.08, 'sine', 0.03, null, 0.003, 80); break; }
       case 'wall': { this.tone(160, 0.12, 'triangle', 0.06, null, 0.005, 60); break; }
       case 'tp': { this.tone(400, 0.22, 'sine', 0.06, null, 0.01, 1400).connect(this.rev); break; }
       case 'click': { this.tone(1200, 0.05, 'sine', 0.04); break; }

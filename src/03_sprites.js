@@ -1,5 +1,6 @@
 /* ===================== Q版生物精灵（全部代码绘制，预渲染 + mipmap） ===================== */
-// 变体：0 普通 1 眨眼 2 年迈(困倦+褪色) 3 开心 4 害怕
+// 变体：0 普通 1 眨眼 2 年迈(困倦+褪色) 3 开心 4 害怕 5 生气（战斗）
+const NVAR = 6;
 const SPR_BODY = 0.30; // 身体半径占画布比例
 const SPRITES = []; // SPRITES[s][variant] = [c128, c64, c32, c16]
 function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -26,6 +27,16 @@ function drawFace(g, x, y, R, v, dark) {
     for (const s of [-1, 1]) { g.beginPath(); g.moveTo(x + s * ex - er, ey + er * 0.2); g.lineTo(x + s * ex + er, ey + er * 0.2); g.stroke(); g.lineWidth = R * 0.05; g.beginPath(); g.moveTo(x + s * ex - er * 1.1, ey - er * 0.6); g.lineTo(x + s * ex + er * 0.6, ey - er * 0.9); g.stroke(); g.lineWidth = R * 0.09; }
   } else if (v === 3) {
     for (const s of [-1, 1]) { g.beginPath(); g.moveTo(x + s * ex - er, ey + er * 0.3); g.quadraticCurveTo(x + s * ex, ey - er * 1.1, x + s * ex + er, ey + er * 0.3); g.stroke(); }
+  } else if (v === 5) {
+    for (const s of [-1, 1]) {
+      g.fillStyle = dark; g.beginPath(); g.ellipse(x + s * ex, ey + er * 0.15, er * 0.8, er * 0.85, 0, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x + s * ex - er * 0.25, ey - er * 0.1, er * 0.3, 0, 7); g.fill();
+      g.lineWidth = R * 0.1; g.beginPath(); g.moveTo(x + s * ex * 1.55, ey - er * 1.5); g.lineTo(x + s * ex * 0.45, ey - er * 0.8); g.stroke();
+    }
+    // 💢 怒气符号
+    g.strokeStyle = '#ff4d6d'; g.lineWidth = R * 0.08; const ax = x + R * 0.78, ay = y - R * 0.78, q = R * 0.13;
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { g.beginPath(); g.moveTo(ax + sx * q * 0.4, ay + sy * q * 1.6); g.quadraticCurveTo(ax + sx * q * 0.5, ay + sy * q * 0.5, ax + sx * q * 1.6, ay + sy * q * 0.4); g.stroke(); }
+    g.strokeStyle = dark;
   } else if (v === 4) {
     for (const s of [-1, 1]) { g.beginPath(); g.moveTo(x + s * ex - er * s, ey - er); g.lineTo(x + s * ex + er * 0.6 * s, ey); g.lineTo(x + s * ex - er * s, ey + er); g.stroke(); }
     g.fillStyle = 'rgba(150,220,255,0.9)'; g.beginPath(); g.moveTo(x + R * 0.8, y - R * 0.5); g.quadraticCurveTo(x + R * 0.95, y - R * 0.25, x + R * 0.8, y - R * 0.15); g.quadraticCurveTo(x + R * 0.65, y - R * 0.25, x + R * 0.8, y - R * 0.5); g.fill();
@@ -33,6 +44,7 @@ function drawFace(g, x, y, R, v, dark) {
   // 嘴
   g.lineWidth = R * 0.07; g.strokeStyle = dark;
   if (v === 4) { g.beginPath(); g.ellipse(x, y + R * 0.3, R * 0.08, R * 0.1, 0, 0, 7); g.stroke(); }
+  else if (v === 5) { g.beginPath(); g.moveTo(x - R * 0.14, y + R * 0.34); g.quadraticCurveTo(x, y + R * 0.2, x + R * 0.14, y + R * 0.34); g.stroke(); g.fillStyle = '#fff'; g.fillRect(x - R * 0.05, y + R * 0.26, R * 0.04, R * 0.05); g.fillRect(x + R * 0.02, y + R * 0.26, R * 0.04, R * 0.05); }
   else if (v === 3) { g.fillStyle = '#ff6b8b'; g.beginPath(); g.moveTo(x - R * 0.14, y + R * 0.22); g.quadraticCurveTo(x, y + R * 0.5, x + R * 0.14, y + R * 0.22); g.closePath(); g.fill(); }
   else { g.beginPath(); g.moveTo(x - R * 0.13, y + R * 0.24); g.quadraticCurveTo(x - R * 0.065, y + R * 0.34, x, y + R * 0.25); g.quadraticCurveTo(x + R * 0.065, y + R * 0.34, x + R * 0.13, y + R * 0.24); g.stroke(); }
 }
@@ -44,14 +56,12 @@ function blob(g, x, y, rx, ry, col, col2) {
 function shine(g, x, y, R) { g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.ellipse(x - R * 0.42, y - R * 0.5, R * 0.2, R * 0.12, -0.6, 0, 7); g.fill(); g.beginPath(); g.arc(x - R * 0.15, y - R * 0.66, R * 0.06, 0, 7); g.fill(); }
 function outline(g, lw, c) { g.lineWidth = lw; g.strokeStyle = c; g.stroke(); }
 
-function drawSpecies(g, s, S, v) {
+function drawSpecies(g, s, S, v, noRim) {
   const sp = SPECIES[s]; const R = S * SPR_BODY, x = S / 2, y = S / 2 + S * 0.05;
   let col = sp.col, col2 = sp.col2;
   if (v === 2) { col = mixc(col, '#b8b8c8', 0.45); col2 = mixc(col2, '#c8c8d0', 0.4); }
   const dark = '#3a2a3a', ol = shade(col, -0.35), lw = S * 0.018;
   g.save();
-  // 阴影
-  g.fillStyle = 'rgba(0,0,0,0.28)'; g.beginPath(); g.ellipse(x, y + R * 0.98, R * 0.85, R * 0.2, 0, 0, 7); g.fill();
   const key = sp.key;
   if (key === 'slime') {
     const gr = g.createRadialGradient(x - R * 0.35, y - R * 0.3, R * 0.1, x, y, R * 1.2); gr.addColorStop(0, shade(col, 0.6)); gr.addColorStop(0.6, col); gr.addColorStop(1, shade(col, -0.25));
@@ -136,20 +146,36 @@ function drawSpecies(g, s, S, v) {
     shine(g, x, y, R); drawFace(g, x + R * 0.2, y + R * 0.05, R * 0.95, v, dark);
   }
   g.restore();
+  if (!noRim) rimLight(g, S, col);
+}
+// 轮廓光 + 次表面散射：让身体有“果冻”透光感
+function rimLight(g, S, col) {
+  const x = S / 2, y = S / 2 + S * 0.05, R = S * SPR_BODY;
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  const rg = g.createRadialGradient(x - R * 0.35, y - R * 0.45, R * 0.6, x, y, R * 1.45);
+  rg.addColorStop(0, 'rgba(255,255,255,0)'); rg.addColorStop(0.72, 'rgba(255,255,255,0)'); rg.addColorStop(0.9, 'rgba(190,240,255,0.32)'); rg.addColorStop(1, 'rgba(210,250,255,0.55)');
+  g.fillStyle = rg; g.fillRect(0, 0, S, S);
+  const sg = g.createLinearGradient(0, y + R * 0.2, 0, y + R * 1.1); sg.addColorStop(0, 'rgba(40,10,60,0)'); sg.addColorStop(1, 'rgba(40,10,60,0.22)');
+  g.fillStyle = sg; g.fillRect(0, 0, S, S);
+  g.restore();
 }
 function buildSprites() {
   for (let s = 0; s < NS; s++) {
     SPRITES[s] = [];
-    for (let v = 0; v < 5; v++) {
+    for (let v = 0; v < NVAR; v++) {
       const S = 128, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
       drawSpecies(g, s, S, v);
       const mips = [c]; let prev = c;
       for (let m = 1; m < 4; m++) { const n = S >> m, cc = document.createElement('canvas'); cc.width = cc.height = n; const gg = cc.getContext('2d'); gg.imageSmoothingQuality = 'high'; gg.drawImage(prev, 0, 0, n, n); mips.push(cc); prev = cc; }
       // 预先水平翻转的副本（朝左），渲染时不用 setTransform
       const flips = mips.map(m => { const f = document.createElement('canvas'); f.width = f.height = m.width; const fg = f.getContext('2d'); fg.translate(m.width, 0); fg.scale(-1, 1); fg.drawImage(m, 0, 0); return f; });
-      SPRITES[s][v] = mips; SPRITES[s][v + 5] = flips;
+      SPRITES[s][v] = mips; SPRITES[s][v + NVAR] = flips;
     }
   }
 }
 let _iconCache = {};
 function speciesIcon(s, size) { const k = s + '_' + size; if (_iconCache[k]) return _iconCache[k]; const c = document.createElement('canvas'); c.width = c.height = size; drawSpecies(c.getContext('2d'), s, size, 0); return _iconCache[k] = c.toDataURL(); }
+
+// 柔和的地面投影（单独绘制，跳跃时留在地面）
+let SHADOW = null;
+function shadowSprite() { if (SHADOW) return SHADOW; const c = document.createElement('canvas'); c.width = 64; c.height = 32; const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 16, 2, 32, 16, 30); gr.addColorStop(0, 'rgba(0,0,10,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,10,0.25)'); gr.addColorStop(1, 'rgba(0,0,10,0)'); g.fillStyle = gr; g.save(); g.scale(1, 0.5); g.beginPath(); g.arc(32, 32, 30, 0, 7); g.restore(); g.fill(); return SHADOW = c; }

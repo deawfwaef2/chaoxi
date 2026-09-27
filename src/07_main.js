@@ -1,29 +1,29 @@
 /* ===================== 主程序：UI / 输入 / 存档 / 离线推演 ===================== */
 const $ = id => document.getElementById(id);
 const UI = { state: 'title', build: -1, ghost: null, ang: 0, sel: -1, selId: 0, selDev: null, panel: null, tab: 0, boostT: 0, keys: {}, joy: { x: 0, y: 0, id: null }, touch: false, hidden: 0, lastSave: 0, tut: 0 };
-const META_KEY = 'chaoxi2_meta', SAVE_KEY = 'chaoxi2_save';
+const META_KEY = 'chaoxi3_meta', SAVE_KEY = 'chaoxi3_save';
 let META = { unlocked: [], bestLv: 0, tut: 0, sound: true, music: true, wins: 0 };
-function loadMeta() { try { const m = JSON.parse(localStorage.getItem(META_KEY) || 'null'); if (m) META = Object.assign(META, m); } catch (e) { } }
+function loadMeta() { try { let m = JSON.parse(localStorage.getItem(META_KEY) || 'null'); if (!m) { m = JSON.parse(localStorage.getItem('chaoxi2_meta') || 'null'); if (m) m.tut = 0; } if (m) META = Object.assign(META, m); META.unlocked = (META.unlocked || []).filter(k => SP_IDX[k] !== undefined || DV_IDX[k.slice(1)] !== undefined); } catch (e) { } }
 function saveMeta() { META.unlocked = G.unlocked.slice(); META.bestLv = Math.max(META.bestLv, G.maxLv); try { localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) { } }
 
 /* ---------- 存档（二进制打包 + base64） ---------- */
 function b64enc(u8) { let s = ''; for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); return btoa(s); }
 function b64dec(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
 function mergeParticlesForSave() { // 粒子太多时按格子合并（守恒）
-  const map = new Map(); for (let i = 0; i < pN; i++) { const k = pt[i] * SNC + sCell(px[i], py[i]); const m = map.get(k); if (m !== undefined && pv[m] + pv[i] < 60000) { pv[m] += pv[i]; pv[i] = 0; } else map.set(k, i); } compactP();
+  const map = new Map(); for (let i = 0; i < pN; i++) { const k = (pr[i] === 255 ? SNC : 0) + sCell(px[i], py[i]); const m = map.get(k); if (m !== undefined && pv[m] + pv[i] < 60000) { pv[m] += pv[i]; pv[i] = 0; } else map.set(k, i); } compactP();
 }
 function serialize() {
   const P = new DataView(new ArrayBuffer(pN * 8));
-  for (let i = 0; i < pN; i++) { const o = i * 8; P.setInt16(o, Math.round(px[i]), true); P.setInt16(o + 2, Math.round(py[i]), true); P.setUint16(o + 4, pv[i], true); P.setUint8(o + 6, pt[i]); }
-  const CB = 32, C = new DataView(new ArrayBuffer(cN * CB));
-  for (let i = 0; i < cN; i++) { const o = i * CB; C.setFloat32(o, cx[i], true); C.setFloat32(o + 4, cy[i], true); C.setInt32(o + 8, ce[i], true); C.setUint8(o + 12, csp[i]); C.setUint16(o + 13, cgen[i], true); C.setFloat32(o + 16, cage[i], true); C.setFloat32(o + 20, crep[i], true); C.setUint32(o + 24, cid[i], true); C.setFloat32(o + 28, cmeta[i], true); }
+  for (let i = 0; i < pN; i++) { const o = i * 8; P.setInt16(o, Math.round(px[i]), true); P.setInt16(o + 2, Math.round(py[i]), true); P.setUint16(o + 4, pv[i], true); P.setUint8(o + 6, pr[i]); }
+  const CB = 36, C = new DataView(new ArrayBuffer(cN * CB));
+  for (let i = 0; i < cN; i++) { const o = i * CB; C.setFloat32(o, cx[i], true); C.setFloat32(o + 4, cy[i], true); C.setInt32(o + 8, ce[i], true); C.setUint8(o + 12, csp[i]); C.setUint16(o + 13, cgen[i], true); C.setFloat32(o + 16, cage[i], true); C.setFloat32(o + 20, crep[i], true); C.setUint32(o + 24, cid[i], true); C.setFloat32(o + 28, cmeta[i], true); C.setFloat32(o + 32, cg[i], true); }
   const diffs = []; for (let i = 0; i < GN * GN; i++) if (whp[i] !== wMax[i]) diffs.push(i);
   const Wb = new DataView(new ArrayBuffer(diffs.length * 8)); diffs.forEach((i, k) => { Wb.setUint32(k * 8, i, true); Wb.setFloat32(k * 8 + 4, whp[i], true); });
   const o = G.orb;
   return JSON.stringify({
-    v: 2, ver: VERSION, savedAt: Date.now(), seed: G.seed, t: G.t, lv: G.lv, maxLv: G.maxLv, wt: G.wt, towerAcc: G.towerAcc, devAcc: G.devAcc, lastScore: G.lastScore, lastBreak: G.lastBreak,
+    v: 3, ver: VERSION, savedAt: Date.now(), seed: G.seed, t: G.t, lv: G.lv, maxLv: G.maxLv, wt: G.wt, towerAcc: G.towerAcc, devAcc: G.devAcc, lastScore: G.lastScore, lastBreak: G.lastBreak,
     hist: G.hist, popHist: G.popHist, total0: G.total0, nextId: G.nextId, devId: G.devId, won: G.won,
-    stats: [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons || 0],
+    stats: [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons || 0, G.fights || 0],
     orb: { x: o.x, y: o.y, hp: o.hp }, cam: CAM.tz,
     devs: G.devs.map(d => ({ id: d.id, type: d.type, x: d.x, y: d.y, ang: d.ang, bt: d.bt, bt0: d.bt0 })),
     P: b64enc(new Uint8Array(P.buffer)), C: b64enc(new Uint8Array(C.buffer)), W: b64enc(new Uint8Array(Wb.buffer)),
@@ -40,16 +40,16 @@ function saveGame(silent) {
 }
 function loadGame() {
   let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { return null; }
-  if (!s || s.v !== 2) return null;
+  if (!s || s.v !== 3) return null;
   genWorld(s.seed);
   // 墙体差异
   const W = new DataView(b64dec(s.W).buffer); for (let k = 0; k < W.byteLength / 8; k++) { const i = W.getUint32(k * 8, true), h = W.getFloat32(k * 8 + 4, true); whp[i] = h; if (h <= 0) wE[i] = 0; }
   let sealed = 0; for (let i = 0; i < GN * GN; i++) if (whp[i] > 0 && whp[i] < Infinity) sealed += wE[i]; G.wallSealed = sealed;
-  const P = new DataView(b64dec(s.P).buffer); pN = 0; for (let k = 0; k < P.byteLength / 8; k++) { const o = k * 8; px[pN] = P.getInt16(o, true); py[pN] = P.getInt16(o + 2, true); pv[pN] = P.getUint16(o + 4, true); pt[pN] = P.getUint8(o + 6); pvx[pN] = pvy[pN] = 0; if (pv[pN] > 0) pN++; }
-  const C = new DataView(b64dec(s.C).buffer); cN = 0; const CB = 32;
-  for (let k = 0; k < C.byteLength / CB; k++) { const o = k * CB; const i = newC(C.getUint8(o + 12), C.getFloat32(o, true), C.getFloat32(o + 4, true), C.getInt32(o + 8, true), C.getUint16(o + 13, true)); if (i < 0) break; cage[i] = C.getFloat32(o + 16, true); crep[i] = C.getFloat32(o + 20, true); cid[i] = C.getUint32(o + 24, true); cmeta[i] = C.getFloat32(o + 28, true); }
+  const P = new DataView(b64dec(s.P).buffer); pN = 0; for (let k = 0; k < P.byteLength / 8; k++) { const o = k * 8; px[pN] = P.getInt16(o, true); py[pN] = P.getInt16(o + 2, true); pv[pN] = P.getUint16(o + 4, true); pr[pN] = P.getUint8(o + 6); pvx[pN] = pvy[pN] = 0; if (pv[pN] > 0) pN++; }
+  const C = new DataView(b64dec(s.C).buffer); cN = 0; const CB = 36;
+  for (let k = 0; k < C.byteLength / CB; k++) { const o = k * CB; const i = newC(C.getUint8(o + 12), C.getFloat32(o, true), C.getFloat32(o + 4, true), C.getInt32(o + 8, true), C.getUint16(o + 13, true)); if (i < 0) break; cage[i] = C.getFloat32(o + 16, true); crep[i] = C.getFloat32(o + 20, true); cid[i] = C.getUint32(o + 24, true); cmeta[i] = C.getFloat32(o + 28, true); cg[i] = C.getFloat32(o + 32, true) || 1; }
   Object.assign(G, { t: s.t, lv: s.lv, maxLv: s.maxLv, wt: s.wt, towerAcc: s.towerAcc, devAcc: s.devAcc, lastScore: s.lastScore, lastBreak: s.lastBreak, hist: s.hist || [], popHist: s.popHist || [], total0: s.total0, nextId: s.nextId, devId: s.devId, won: s.won });
-  [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons] = s.stats;
+  [G.births, G.deaths, G.starve, G.oldDeaths, G.eaten, G.summons, G.fights] = s.stats; G.fights = G.fights || 0; computeOpen();
   G.orb.x = s.orb.x; G.orb.y = s.orb.y; G.orb.hp = s.orb.hp; G.orb.dead = 0; G.orb.vx = G.orb.vy = 0;
   G.devs = s.devs.map(d => Object.assign({ powered: true, acc: 0, lastAcc: 0, tt: Math.random(), conn: false, mult: 1, n: 0 }, d));
   recomputePower(); CAM.tz = CAM.z = s.cam || 1;
@@ -104,11 +104,12 @@ function showReport(r) {
 /* ---------- 提示 / Toast ---------- */
 function toast(msg, col) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg; if (col) d.style.borderColor = col; $('toasts').appendChild(d); while ($('toasts').children.length > 6) $('toasts').firstChild.remove(); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 4200); }
 const TUT = [
-  { txt: '👆 点击中央的【方塔】（或按 B）召唤生物吧！先召唤 啵啵史莱姆 和 菇菇仔。', done: () => (G.summons || 0) >= 2 },
-  { txt: '🔁 史莱姆吃【光能】排出【余烬】；菇菇仔吃余烬排出光能。两种都要有，循环才能转起来。', done: () => G.t > 60 || G.lv >= 1 },
-  { txt: '🌊 每 10 秒结算一次【观测潮汐】。物种越多越均衡，潮汐越高。Lv.1 后可以在方塔里建造观测装置。', done: () => G.lv >= 1 && G.devs.length > 0 },
-  { txt: '⚡ 装置只能建在能量场里：先铺【导能塔】，连成网络，再建【绊线仪】等装置。', done: () => G.devs.some(d => d.type !== D_PYLON) },
-  { txt: '🧱 撞向黑墙可以消融它（会掉血），释放封存的能量。离方塔越远墙越硬。按住空格/吸引按钮可以把能量带回来。', done: () => G.wallBroken > 5 },
+  { txt: '👆 点击中央的【方塔】（或按 B）召唤生物吧！先召唤几只 啵啵史莱姆 和 团子兔。', done: () => (G.summons || 0) >= 3 },
+  { txt: '✨ 能量刚释放时是暗淡的，约 4 秒后凝结成明亮的星点才能被吃。生物死亡、受伤、代谢都会把能量洒回地图（总量守恒）。', done: () => G.t > 50 || G.lv >= 1 },
+  { txt: '⚔️ 每只生物都有【战力】= 物种基础 × 体型² × 体力 × 年龄 × 同伴加成。打架时战力高的胜率大。点一只生物看看它的战力和基因。', done: () => G.t > 110 || G.lv >= 2 },
+  { txt: '🌊 每 10 秒结算一次【观测潮汐】。物种越多越均衡、食物链层级越完整（食能→捕食→顶级），潮汐越高。Lv.1 起可以建造观测装置。', done: () => G.lv >= 1 && G.devs.length > 0 },
+  { txt: '⚡ 装置只能建在能量场里：先铺【导能塔】连成网络，再建其它装置。安宁结界能保护猎物，角斗台靠战斗产出潮汐——怎么取舍由你决定。', done: () => G.devs.some(d => d.type !== D_PYLON) },
+  { txt: '🧱 撞向黑墙可以消融它（会掉血），释放封存的能量，也让每个物种的生态位容量变大。按住空格/吸引按钮可以把能量带回来。', done: () => G.wallBroken > 5 },
 ];
 function updateHint() {
   if (META.tut >= TUT.length) { $('hint').style.display = 'none'; return; }
@@ -124,7 +125,7 @@ function updateHUD() {
   const mini = innerWidth < 700 && !UI.statsOpen;
   $('stats').className = 'hud glass' + (mini ? ' mini' : '');
   $('stats').innerHTML = `<div class="row"><span>🧬 生物 <b>${cN}</b></span><span>物种 <b>${G.spAlive}</b>/${G.unlocked.filter(k => SP_IDX[k] !== undefined).length}</span></div>
-  <div class="row"><span class="lc">✦ 光能 ${L.light}</span><span class="ec">✦ 余烬 ${L.ember}</span></div>
+  <div class="row"><span class="lc">✦ 能量 ${L.ripe}</span><span class="ec" title="刚释放、尚未凝结的能量">✧ 凝结中 ${L.raw}</span></div>
   <div class="more"><div class="row"><span class="bc">♥ 生物体内 ${L.bio}</span><span class="sc">▣ 墙中 ${L.sealed}</span></div>
   <div class="row"><span>能量总量 ${L.total}</span><span class="${ok ? 'ok' : 'bad'}">${ok ? '✓守恒' : '⚠偏差 ' + (L.total - G.total0)}</span></div>
   <div class="row"><span>🔧 建造额度 ${used}/${cap}</span><span class="dim">⏱ ${fmtClock(G.t)}</span></div></div>
@@ -146,13 +147,14 @@ function updateCard() {
   if (UI.selId) {
     const i = findById(UI.selId, UI.sel); UI.sel = i;
     if (i < 0) { c.innerHTML = '<div style="opacity:.8">它已经离开了这个世界…（能量回到了地图上）</div>'; UI.selId = 0; setTimeout(() => { if (!UI.selId && !UI.selDev) c.style.display = 'none'; }, 2000); return; }
-    const s = csp[i], sp = SPECIES[s], ageP = cage[i] / sp.life, eP = ce[i] / sp.maxE;
-    const food = sp.eat ? '吃 ' + sp.eat.map(t => ET_NAME[t]).join('/') : '捕食 ' + sp.prey.map(k => SPECIES[SP_IDX[k]].name).join('/');
+    const s = csp[i], sp = SPECIES[s], cap = capE(i), ageP = cage[i] / sp.life, eP = ce[i] / cap, pw = power(i, false), g = cg[i];
     c.style.display = 'block';
-    c.innerHTML = `<div class="t"><img src="${speciesIcon(s, 64)}">${sp.name} <span style="font-size:11px;opacity:.6">#${cid[i]} · 第${cgen[i]}代 · ${ST_NAME[cst[i]]}</span></div>
-    <div>能量 ${ce[i]}/${sp.maxE}　<span style="opacity:.7">繁殖需 ${sp.repE}</span></div><div class="bar"><i style="width:${eP * 100}%;background:#8ff"></i></div>
-    <div>年龄 ${Math.floor(cage[i])}s / 寿命 ${sp.life}s ${ageP > 0.75 ? '（年迈）' : cage[i] < sp.mature ? '（幼年）' : ''}</div><div class="bar"><i style="width:${Math.min(100, ageP * 100)}%;background:${ageP > 0.75 ? '#f9a' : '#fd8'}"></i></div>
-    <div style="opacity:.75">${food} · 排出 ${ET_NAME[sp.exc]}</div>`;
+    const mood = cst[i] === ST_FLEE ? '😱' : cst[i] === ST_FIGHT ? '💢' : cst[i] === ST_HUNT ? '🎯' : cst[i] === ST_MATE ? '💕' : cst[i] === ST_REST ? '💤' : '';
+    c.innerHTML = `<div class="t"><img src="${speciesIcon(s, 64)}">${sp.name} <span style="font-size:11px;opacity:.6">#${cid[i]} · 第${cgen[i]}代 · ${mood}${ST_NAME[cst[i]]}</span></div>
+    <div class="pw"><span>⚔ 战力 <b>${pw.toFixed(2)}</b></span><span>🧬 体型基因 <b style="color:${g > 1.05 ? '#ffd07a' : g < 0.95 ? '#9fd8ff' : '#fff'}">×${g.toFixed(2)}</b></span>${ckin[i] ? `<span>👥 同伴 ${Math.min(ckin[i], 8)}</span>` : ''}</div>
+    <div>能量 ${ce[i]}/${cap}　<span style="opacity:.7">繁殖需 ${Math.round(repEi(i))}</span></div><div class="bar"><i style="width:${eP * 100}%;background:linear-gradient(90deg,#6ff,#bff)"></i></div>
+    <div>年龄 ${Math.floor(cage[i])}s / 寿命 ${sp.life}s ${ageP > 0.75 ? '（年迈，战力下降）' : cage[i] < sp.mature ? '（幼年，战力减半）' : ''}</div><div class="bar"><i style="width:${Math.min(100, ageP * 100)}%;background:${ageP > 0.75 ? '#f9a' : '#fd8'}"></i></div>
+    <div style="opacity:.8;margin-top:3px">${dietTags(sp)}</div>`;
   } else if (UI.selDev) {
     const d = UI.selDev; if (!G.devs.includes(d)) { UI.selDev = null; c.style.display = 'none'; return; }
     const def = DEVICES[d.type];
@@ -174,7 +176,7 @@ function drawMinimap() {
   g.fillStyle = '#000'; g.fillRect(0, 0, S, S); g.imageSmoothingEnabled = true;
   const src = R / CELL; g.drawImage(floorC, GN / 2 - src, GN / 2 - src, src * 2, src * 2, 0, 0, S, S);
   const k = S / (2 * R), o = S / 2;
-  g.fillStyle = 'rgba(160,240,255,0.8)'; for (let i = 0; i < pN; i += Math.max(1, pN / 400 | 0)) if (pt[i] === 0) g.fillRect(o + px[i] * k, o + py[i] * k, 1, 1);
+  g.fillStyle = 'rgba(160,240,255,0.8)'; for (let i = 0; i < pN; i += Math.max(1, pN / 400 | 0)) if (pr[i] === 255) g.fillRect(o + px[i] * k, o + py[i] * k, 1, 1);
   for (let i = 0; i < cN; i += Math.max(1, cN / 300 | 0)) { g.fillStyle = SPECIES[csp[i]].col; g.fillRect(o + cx[i] * k - 1, o + cy[i] * k - 1, 2, 2); }
   for (const d of G.devs) { g.fillStyle = devActive(d) ? DEV_COL[d.type] : '#666'; g.fillRect(o + d.x * k - 1.5, o + d.y * k - 1.5, 3, 3); }
   g.fillStyle = LV_COLORS[G.lv]; g.fillRect(o - 3, o - 3, 6, 6);
@@ -191,7 +193,9 @@ function openPanel(title, tabs, renderFn, tab) {
 }
 function closePanel() { $('panel').classList.remove('show'); document.body.classList.remove('pOpen'); UI.panel = null; }
 function refreshPanel() { if (UI.panel) UI.panel.renderFn(UI.tab); }
-function foodText(sp) { return sp.eat ? '吃 ' + sp.eat.map(t => `<span style="color:${ET_COLOR[t]}">${ET_NAME[t]}</span>`).join('/') : '捕食 ' + sp.prey.map(k => SPECIES[SP_IDX[k]].name).join('、'); }
+const DIET_COL = ['#8ff4ff', '#ff9a8a', '#ffd07a'];
+function foodText(sp) { return sp.diet === D_E ? '<span style="color:#8ff4ff">吃能量</span>' : (sp.diet === D_O ? '<span style="color:#ffd07a">吃能量 + 捕食</span> ' : '<span style="color:#ff9a8a">只吃生物</span>：') + (sp.prey ? sp.prey.map(k => SPECIES[SP_IDX[k]].name).join('、') : ''); }
+function dietTags(sp) { return `<span class="tag" style="color:${DIET_COL[sp.diet]}">${DIET_NAME[sp.diet]}</span><span class="tag" title="${SOC_DESC[sp.soc]}">对同类：${SOC_NAME[sp.soc]}</span><span class="tag" title="${AL_DESC[sp.al]}">对异类：${AL_NAME[sp.al]}</span><span class="tag">基础战力 ${sp.pow}</span>${sp.shell ? `<span class="tag">硬壳 ×${sp.shell}</span>` : ''}`; }
 function predText(i) { const L = []; SPECIES.forEach((s, j) => { if (S_preyMask[j] & (1 << i)) L.push(s.name); }); return L.length ? '天敌：' + L.join('、') : '没有天敌'; }
 function openTower(tab, nest) {
   AU.play('click');
@@ -199,8 +203,8 @@ function openTower(tab, nest) {
     const B = $('pBody');
     if (k === 0) {
       buildPGrid(); const avail = nest ? gatherLight(nest.x, nest.y, 160, 0, true) : gatherLight(0, 0, TOWER_PULL, 0, true);
-      B.innerHTML = `<div style="margin-bottom:8px">${nest ? '孵化巢' : '方塔'}附近可用光能：<b class="lc" style="color:#9ff4ff">${avail}</b>　<span style="opacity:.7">召唤会把这些光能凝聚成生物（能量守恒）。附近光能不够时，可以按住空格 / 吸引按钮把能量带过来。</span></div><div class="grid">` +
-        SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" data-s="${i}"><img src="${speciesIcon(i, 64)}"><div class="nm">${s.name}</div><div class="ds">${un ? `消耗 ${s.cost} 光能<br>${foodText(s)}<br>排出 ${ET_NAME[s.exc]} · 存活 ${G.spCount[i]}` : `🔒 潮汐 Lv.${s.unlock} 解锁`}</div></div>`; }).join('') + '</div>';
+      B.innerHTML = `<div style="margin-bottom:8px">${nest ? '孵化巢' : '方塔'}附近可用能量：<b class="lc" style="color:#9ff4ff">${avail}</b>　<span style="opacity:.7">召唤会把这些能量凝聚成生物（守恒）。不够时可以按住空格 / 吸引按钮把能量带过来。</span></div><div class="grid">` +
+        SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" data-s="${i}"><img src="${speciesIcon(i, 64)}"><div class="nm">${s.name}</div><div class="ds">${un ? `消耗 ${s.cost} 能量 · 战力 ${s.pow}<br>${foodText(s)}<br>寿命 ${s.life}s · 存活 ${G.spCount[i]}` : `🔒 潮汐 Lv.${s.unlock} 解锁`}</div></div>`; }).join('') + '</div>';
       B.querySelectorAll('.cardx').forEach(el => el.onclick = () => { const s = +el.dataset.s; if (!G.unlocked.includes(SPECIES[s].key)) { AU.play('error'); return; } const r = summon(s, nest); if (r) { toast('⚠ ' + r); AU.play('error'); } else { AU.play('summon'); toast('✨ 召唤了 ' + SPECIES[s].name); } refreshPanel(); });
     } else if (k === 1) {
       const used = capUsed(), cap = buildCap(G.lv);
@@ -210,7 +214,7 @@ function openTower(tab, nest) {
     } else {
       const b = G.lastBreak;
       B.innerHTML = `<div>当前 <b style="color:${LV_COLORS[G.lv]}">Lv.${G.lv} ${LV_NAMES[G.lv]}</b>　最高 Lv.${G.maxLv}</div>
-      ${b ? `<table class="tb"><tr><td>方塔基础（物种×0.1/s + 生物×0.001/s）</td><td>${b.tower.toFixed(2)}</td></tr><tr><td>观测装置</td><td>${b.dev.toFixed(2)}</td></tr><tr><td>和谐倍率（有效物种 ${b.eff.toFixed(2)}）</td><td>×${b.harm.toFixed(2)}</td></tr><tr><td><b>结算潮汐</b></td><td><b>${b.score.toFixed(2)}</b></td></tr></table>` : '<div style="opacity:.7">还没有结算记录</div>'}
+      ${b ? `<table class="tb"><tr><td>方塔基础（物种×0.1/s + 生物×0.001/s）</td><td>${b.tower.toFixed(2)}</td></tr><tr><td>观测装置</td><td>${b.dev.toFixed(2)}</td></tr><tr><td>和谐倍率（有效物种 ${b.eff.toFixed(2)} · 营养级 ${b.tr ? b.tr.n : '?'}/3 ×${(b.troph || 1).toFixed(2)}）</td><td>×${b.harm.toFixed(2)}</td></tr><tr><td><b>结算潮汐</b></td><td><b>${b.score.toFixed(2)}</b></td></tr></table>` : '<div style="opacity:.7">还没有结算记录</div>'}
       <div style="margin:8px 0 4px">近期潮汐</div><canvas class="spark" id="spark" width="700" height="90"></canvas>
       <div style="margin-top:8px">等级阈值：${THRESH.slice(1).map((v, k) => `<span class="tag" style="color:${LV_COLORS[k + 1]}">Lv${k + 1} ${v}</span>`).join('')}</div>
       <div style="opacity:.75;margin-top:6px">潮汐不是累加资源：每 10 秒只根据这 10 秒的表现结算。上升立即生效，下降每次最多降 1 级。归零时所有装置停机成为遗迹，但已解锁的物种永久保留。</div>`;
@@ -222,14 +226,16 @@ function openDex() {
   AU.play('click');
   openPanel('📖 图鉴', ['生物', '观测装置', '玩法说明'], k => {
     const B = $('pBody');
-    if (k === 0) B.innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">' + SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" style="cursor:default"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div class="nm">${un ? s.name : '？？？'}</div><div class="ds">${un ? s.desc + '<br>' : ''}${foodText(s)} · 排出 ${ET_NAME[s.exc]}<br>${predText(i)}<br><span class="tag">寿命 ${s.life}s</span><span class="tag">能量上限 ${s.maxE}</span><span class="tag">繁殖 ${s.repE}→幼崽 ${s.childE}</span><span class="tag">代谢 ${s.meta}/s</span><span class="tag">速度 ${s.speed}</span>${s.pair ? '<span class="tag">需配对繁殖</span>' : '<span class="tag">分裂繁殖</span>'}<span class="tag">Lv.${s.unlock} 解锁</span><br>存活 ${G.spCount[i]}</div></div>`; }).join('') + '</div>';
+    if (k === 0) B.innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">' + SPECIES.map((s, i) => { const un = G.unlocked.includes(s.key); return `<div class="cardx ${un ? '' : 'lock'}" style="cursor:default"><img src="${speciesIcon(i, 64)}" style="${un ? '' : 'filter:brightness(0)'}"><div class="nm">${un ? s.name : '？？？'}</div><div class="ds">${un ? s.desc + '<br>' : ''}${foodText(s)}<br>${predText(i)}<br>${dietTags(s)}<br><span style="opacity:.7">同类：${SOC_DESC[s.soc]}；异类：${AL_DESC[s.al]}</span><br><span class="tag">寿命 ${s.life}s</span><span class="tag">能量上限 ${s.maxE}</span><span class="tag">繁殖 ${s.repE}→幼崽 ${s.childE}</span><span class="tag">代谢 ${s.meta}/s</span><span class="tag">生态位容量 ${Math.round(nicheK(i))}</span><span class="tag">速度 ${s.speed}</span>${s.pair ? '<span class="tag">需配对繁殖</span>' : '<span class="tag">分裂繁殖</span>'}<span class="tag">Lv.${s.unlock} 解锁</span><br>存活 ${G.spCount[i]}</div></div>`; }).join('') + '</div>';
     else if (k === 1) B.innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">' + DEVICES.map((d, i) => `<div class="cardx" style="cursor:default"><div class="nm" style="color:${DEV_COL[i]}">${d.name}</div><div class="ds">${d.desc}<br><span class="tag">额度 ${d.cost}</span><span class="tag">建造 ${d.time}s</span><span class="tag">Lv.${d.unlock} 解锁</span>${d.r ? `<span class="tag">半径 ${d.r}</span>` : ''}</div></div>`).join('') + '</div>';
-    else B.innerHTML = `<p><b>能量守恒</b>：能量只存在于地图（光能 / 余烬粒子）、生物体内和黑墙里。左上角实时显示账本，总量永远不变。</p>
-    <p><b>循环</b>：食草生物吃光能、排出余烬；分解者（菇菇仔、萤火团、果冻蜗牛）吃余烬、排出光能；捕食者吃掉猎物时能量直接转移；生物老死时能量全部以光能爆出；饿死则早已把能量排光。余烬也会极其缓慢地自然变回光能。</p>
-    <p><b>观测潮汐</b>：每 10 秒结算一次，根据这 10 秒内方塔与装置的观测数据 × 和谐倍率（物种越多越均衡越高）。潮汐达到 Lv.10【永恒之潮】即胜利。</p>
-    <p><b>建造</b>：Lv.1 起可以在方塔里建造装置。装置需要能量场：导能塔必须接在已有能量场内，连成网络（像星际争霸神族的水晶塔）。建造需要时间，可以看广告加速。</p>
-    <p><b>黑墙</b>：白球撞墙会消融它并掉血，墙里封存的能量会释放出来。离中央越远墙越硬、封存能量越多。潮汐越高，白球消融力越强。墙外还藏着洞穴和能量矿脉。</p>
-    <p><b>离线</b>：关掉游戏后生态圈继续运转（最多推演 12 小时）。回来时像开盲盒——可能更繁荣，也可能全灭。潮汐归零时装置停机成为遗迹，但解锁的物种永久保留。</p>`;
+    else B.innerHTML = `<p><b>唯一的能量</b>：能量只存在于地图（星点粒子）、生物体内和黑墙里，总量永远不变（左上角账本）。刚释放的能量是暗淡的，约 4 秒后凝结成明亮星点才能被吃。</p>
+    <p><b>食物链</b>：食能生物（史莱姆、团子兔、萤火团…）吃能量，寿命短、繁殖快；食肉动物（圆滚狸、棉花鸟、糖豆龙…）只吃生物，寿命长、繁殖慢；杂食的布丁熊两样都吃。捕食者只吸收猎物 75% 的能量，其余洒回地图。</p>
+    <p><b>战力与战斗</b>：战力 = 物种基础 × 体型基因² × (0.6+0.4×体力) × 年龄系数 × 同伴加成（群居/猎团）× 硬壳（防守时）。胜率 = A²/(A²+D²)。捕猎失败会受伤逃跑；同类之间的领地驱赶不致命，但会打掉能量。</p>
+    <p><b>基因</b>：幼崽继承父母的体型基因并随机突变 ±7%。大个子战力高但吃得多、繁殖贵——自然选择会找到平衡。</p>
+    <p><b>生态位饱和</b>：每个物种都有容量（与体型成反比）。数量超过容量后代谢飙升，给别的物种留出空间。开拓黑墙释放能量后，容量会变大。捕食者附近同类过多（猎场饱和）时不会繁殖。</p>
+    <p><b>观测潮汐</b>：每 10 秒根据这 10 秒的观测数据 × 和谐倍率结算（物种越多越均衡、营养级越完整越高）。Lv.10【永恒之潮】即胜利。</p>
+    <p><b>建造</b>：Lv.1 起可建造装置。装置必须在能量场内：导能塔要接在已有能量场上连成网络。建造需要时间，可以看广告加速。</p>
+    <p><b>离线</b>：关掉游戏后生态圈继续运转（最多推演 12 小时）。回来时像开盲盒。潮汐归零时装置停机成为遗迹，但解锁的物种永久保留。</p>`;
   });
 }
 function openSpeed() {
@@ -286,7 +292,8 @@ function processEvents() {
     switch (e.type) {
       case 'birth': if (inView(e.a, e.b)) { addFX('heart', e.a, e.b, { life: 1.2 }); if (CAM.z > 0.5) AU.play('birth', 12 - SPECIES[e.c].r / 3); } break;
       case 'death': if (inView(e.a, e.b)) { addFX('puff', e.a, e.b, { life: 0.8, color: '#9ff4ff' }); if (CAM.z > 0.5) AU.play('death'); } break;
-      case 'eaten': if (inView(e.a, e.b)) { addFX('puff', e.a, e.b, { life: 0.6, color: SPECIES[e.c].col }); AU.play('eaten'); } break;
+      case 'kill': if (inView(e.a, e.b)) { addFX('puff', e.a, e.b, { life: 0.7, color: SPECIES[e.c].col }); addFX('slash', e.a, e.b, { life: 0.45 }); if (CAM.z > 0.5) AU.play('eaten'); } break;
+      case 'fight': if (inView(e.a, e.b) && CAM.z > 0.35) { addFX('spark', e.a, e.b, { life: 0.5, big: e.c }); if (CAM.z > 0.6 && Math.random() < 0.5) AU.play('fight'); } break;
       case 'tidegain': if (inView(e.a, e.b) && CAM.z > 0.4) { addFX('text', e.a, e.b - 10, { text: '+' + (+e.c).toFixed(1), life: 1.2, color: '#8fffd0' }); AU.play('gain'); } break;
       case 'wallbreak': G.wallBroken = (G.wallBroken || 0) + 1; if (inView(e.a, e.b)) { addFX('ring', e.a, e.b, { life: 0.5, r: 20, color: '#ff9ad0' }); AU.play('wall'); } break;
       case 'tp': addFX('ring', e.a, e.b, { life: 0.4, r: 30 }); AU.play('tp'); break;
@@ -295,7 +302,7 @@ function processEvents() {
       case 'built': addFX('ring', e.a, e.b, { life: 0.8, r: 50, color: DEV_COL[e.c] }); AU.play('built'); toast('✅ ' + DEVICES[e.c].name + ' 建造完成'); break;
       case 'summon': addFX('ring', e.a, e.b, { life: 0.8, r: 30, color: SPECIES[e.c].col }); break;
       case 'settle': G._pulse = 1; AU.play('settle', G.lv); break;
-      case 'lv': if (e.a > e.b) { AU.play('lvup'); toast(`🌊 潮汐上升到 <b style="color:${LV_COLORS[e.a]}">Lv.${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐下降到 Lv.${e.a}${e.a === 0 ? ' —— 所有装置停机了…' : ''}`, '#f99'); } refreshPanel(); break;
+      case 'lv': if (e.a > e.b) { AU.play('lvup'); CAM.shake = 1; toast(`🌊 潮汐上升到 <b style="color:${LV_COLORS[e.a]}">Lv.${e.a} ${LV_NAMES[e.a]}</b>`, LV_COLORS[e.a]); } else { AU.play('lvdown'); toast(`🌘 潮汐下降到 Lv.${e.a}${e.a === 0 ? ' —— 所有装置停机了…' : ''}`, '#f99'); } refreshPanel(); break;
       case 'unlock': if (e.a === 's') toast(`🔓 解锁新物种：<b>${SPECIES[e.b].name}</b>`, SPECIES[e.b].col); else toast(`🔓 解锁新装置：<b>${DEVICES[e.b].name}</b>`, DEV_COL[e.b]); saveMeta(); break;
       case 'extinct': toast(`💀 ${SPECIES[e.a].name} 在这个世界灭绝了`, '#f99'); AU.play('extinct'); break;
       case 'win': showWin(); break;
@@ -420,12 +427,12 @@ function startNew() {
   const keepUnlocked = G.unlocked.slice();
   newGame(); G.unlocked = Array.from(new Set(keepUnlocked.concat(G.unlocked)));
   UI.selId = 0; UI.selDev = null; exitBuild(); CAM.tz = CAM.z = 1;
-  for (let i = 0; i < GN * GN; i++) paintCell(i); floorDirty = true; rimDirty = true;
+  rebuildFloor();
   beginPlay(); saveGame(true); toast('🌱 新的世界诞生了');
 }
 function continueGame() {
   const s = loadGame(); if (!s) { startNew(); return; }
-  for (let i = 0; i < GN * GN; i++) paintCell(i); floorDirty = true; rimDirty = true;
+  rebuildFloor();
   beginPlay(); const away = (Date.now() - s.savedAt) / 1000;
   if (away > 30) runOffline(away);
 }
