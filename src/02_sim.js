@@ -18,6 +18,10 @@ const ctg = new Int32Array(MAXC), ctgId = new Uint32Array(MAXC), cid = new Uint3
 const cph = new Float32Array(MAXC), ctim = new Float32Array(MAXC), cwire = new Float32Array(MAXC), cstas = new Float32Array(MAXC);
 const chop = new Float32Array(MAXC), cdead = new Uint8Array(MAXC), cgen = new Uint16Array(MAXC), cmood = new Float32Array(MAXC);
 const cg = new Float32Array(MAXC), ckin = new Uint8Array(MAXC), cfc = new Float32Array(MAXC), cang = new Float32Array(MAXC), cmt = new Float32Array(MAXC);
+const cflag = new Uint8Array(MAXC), cdr = new Float32Array(MAXC); // cflag bit0 = 已涅槃；cdr = 汲取/祝福计时
+/* ---------- 光灵（环境中的白色能量球）SoA ---------- */
+const wx = new Float32Array(MAXW), wy = new Float32Array(MAXW), wvx = new Float32Array(MAXW), wvy = new Float32Array(MAXW), wval = new Uint8Array(MAXW), wage = new Float32Array(MAXW), wph = new Float32Array(MAXW), wtg = new Int16Array(MAXW);
+let wN = 0;
 /* ---------- 物质结晶 SoA ---------- */
 const mx = new Float32Array(MAXM), my = new Float32Array(MAXM), mvx = new Float32Array(MAXM), mvy = new Float32Array(MAXM), mval = new Uint16Array(MAXM), mage = new Float32Array(MAXM);
 let mN = 0;
@@ -34,10 +38,11 @@ const WALL_DIRTY = [];
 const G = {
   t: 0, lv: 0, maxLv: 0, wt: 0, towerAcc: 0, devAcc: 0, lastScore: 0, lastRaw: 0, lastHarm: 1, lastBreak: null,
   hist: [], popHist: [], total0: 0, wallSealed: 0, nextId: 1, devs: [], devId: 1,
-  orb: { x: 0, y: 60, vx: 0, vy: 0, hp: 100, dead: 0, attract: false, spray: false, drill: 0, ix: 0, iy: 0, tank: 80, sprAcc: 0 },
+  orb: { x: 0, y: 60, vx: 0, vy: 0, hp: 100, dead: 0, attract: false, spray: false, drill: 0, ix: 0, iy: 0, tank: 60, sprAcc: 0, absorbed: 0 },
+  rp: 0, resT: '', rpRate: 0, wAcc: 0, expR: START_R,
   matter: 0, pois: [], flow: { spray: 0, gen: 0, burn: 0, mat: 0 }, flowWin: { inE: 0, burn: 0, mat: 0 }, lastFlow: { inE: 0, burn: 0, mat: 0 },
   spCount: new Int32Array(NS), spAlive: 0, births: 0, deaths: 0, starve: 0, oldDeaths: 0, eaten: 0, fights: 0,
-  unlocked: [], won: false, frame: 0, events: [], seed: 1, sancts: [], arenas: [], lures: [], open: 1, open0: 0, kMul: 1,
+  unlocked: [], won: false, frame: 0, events: [], seed: 1, sancts: [], arenas: [], lures: [], catchers: [], suns: [], labs: [], nurs: [], cols: [], relays: [], open: 1, open0: 0, kMul: 1,
 };
 function emit(type, a, b, c, d) { if (G.events.length < 500) G.events.push({ type, a, b, c, d }); }
 
@@ -91,7 +96,7 @@ function genWorld(seed) {
   G.total0 = ledger().total; computeOpen();
 }
 /* ---------- 迷雾：只看得见与中心连通的区域 + 白球附近 ---------- */
-function markSeen(i) { if (!seen[i]) { seen[i] = 1; SEEN_DIRTY.push(i); } }
+function markSeen(i) { if (!seen[i]) { seen[i] = 1; SEEN_DIRTY.push(i); const x = (i % GN + 0.5) * CELL - HALF, y = ((i / GN | 0) + 0.5) * CELL - HALF, d = Math.hypot(x, y); if (d > G.expR && whp[i] <= 0) G.expR = d; } }
 const SEEN_DIRTY = [];
 function revealFlood(i0) {
   if (i0 < 0) return; const st = [i0]; const vis = new Set([i0]);
@@ -204,21 +209,45 @@ function power(i, defending) {
   return p;
 }
 
+/* ---------- v0.6 特性辅助 ---------- */
+const THORNY = Uint8Array.from(SPECIES, s => s.tr.includes('thorn') ? 1 : 0), WOOL = Uint8Array.from(SPECIES, s => s.tr.includes('wool') ? 1 : 0);
+const SPECIAL = Uint8Array.from(SPECIES, s => (s.drain || s.tr.includes('bless')) ? 1 : 0), CARRIER = Uint8Array.from(SPECIES, s => s.tr.includes('carrier') ? 1 : 0);
+const S_tongue = Float32Array.from(SPECIES, s => s.tongue || 0);
+let CAN_FX = true;
+function inR(list, x, y, R) { for (const d of list) if (dist2(x, y, d.x, d.y) < R * R) return true; return false; }
+function special(i, s, r) {
+  const sp = SPECIES[s];
+  if (sp.drain) { // 汲取：贴近其他物种，慢慢吸走能量
+    const cap = capE(i); if (ce[i] >= cap - 1) return;
+    const j = findC(cx[i], cy[i], r + 30, ~(1 << s), i, null); if (j < 0) { if (cst[i] === ST_WANDER && rnd() < 0.5) { const k = findC(cx[i], cy[i], 200, ~(1 << s), i, null); if (k >= 0) { ctx_[i] = cx[k]; cty[i] = cy[k]; } } return; }
+    if (G.sancts.length && inSanct(cx[j], cy[j])) return;
+    const take = Math.min(ce[j], 2, cap - ce[i]); ce[j] -= take; ce[i] += take; ctx_[i] = cx[j]; cty[i] = cy[j];
+    if (CAN_FX && rnd() < 0.5) emit('drain', cx[j], cy[j], cx[i], cy[i]);
+    if (ce[j] <= 0) { killC(j, false); G.deaths++; emit('death', cx[j], cy[j], csp[j]); }
+  } else { // 祝福：身边生物衰老减半
+    countInR(cx[i], cy[i], 90, j => { if (cstas[j] < 0.6) cstas[j] = 0.6; });
+  }
+}
 function newC(s, x, y, e, gen, g) {
   if (cN >= MAXC) return -1;
   const i = cN++;
   cx[i] = x; cy[i] = y; cvx[i] = 0; cvy[i] = 0; cpx[i] = x; cpy[i] = y; ce[i] = e; csp[i] = s; cage[i] = 0; cmeta[i] = rnd();
   cthink[i] = rnd() * 0.5; cst[i] = ST_WANDER; ctx_[i] = x; cty[i] = y; ctg[i] = -1; ctgId[i] = 0; cid[i] = G.nextId++;
   crep[i] = SPECIES[s].mature * 0.3; cph[i] = rnd() * 6.28; ctim[i] = 0; cwire[i] = -99; cstas[i] = 0; chop[i] = rnd() * 0.5; cdead[i] = 0; cgen[i] = gen || 0; cmood[i] = 1.2;
-  cg[i] = g || (0.95 + rnd() * 0.1); ckin[i] = 0; cfc[i] = 0; cang[i] = 0; cmt[i] = SPECIES[s].matT * (0.3 + rnd() * 0.7);
+  cg[i] = g || (0.95 + rnd() * 0.1); ckin[i] = 0; cfc[i] = 0; cang[i] = 0; cmt[i] = SPECIES[s].matT * (0.3 + rnd() * 0.7); cflag[i] = 0; cdr[i] = rnd();
   return i;
 }
-function killC(i, burstIt) {
+function killC(i, burstIt, natural) {
   if (cdead[i]) return; cdead[i] = 1;
+  const sp = SPECIES[csp[i]];
+  if (natural && ce[i] > 0) { // 寿终：孢子分裂 / 凤凰涅槃
+    if (sp.tr.includes('spore')) { for (let k = 0; k < 2; k++) { const e = Math.min(ce[i], sp.childE); if (e < 2) break; ce[i] -= e; const a = rnd() * 6.2832, j = newC(csp[i], cx[i] + Math.cos(a) * 8, cy[i] + Math.sin(a) * 8, e, cgen[i] + 1, cg[i]); if (j >= 0) { cvx[j] = Math.cos(a) * 50; cvy[j] = Math.sin(a) * 50; G.births++; } } emit('spore', cx[i], cy[i], csp[i]); }
+    else if (sp.tr.includes('rebirth') && !(cflag[i] & 1) && ce[i] >= 20) { const j = newC(csp[i], cx[i], cy[i], ce[i], cgen[i], cg[i]); if (j >= 0) { cflag[j] |= 1; ce[i] = 0; emit('rebirth', cx[i], cy[i], csp[i]); } }
+  }
   if (ce[i] > 0) burst(cx[i], cy[i], ce[i], burstIt ? 55 : 25);
   ce[i] = 0; G.deaths++;
 }
-const C_ARRS = () => [cx, cy, cvx, cvy, cpx, cpy, ce, csp, cage, cmeta, cthink, cst, ctx_, cty, ctg, ctgId, cid, crep, cph, ctim, cwire, cstas, chop, cgen, cmood, cg, ckin, cfc, cang, cmt];
+const C_ARRS = () => [cx, cy, cvx, cvy, cpx, cpy, ce, csp, cage, cmeta, cthink, cst, ctx_, cty, ctg, ctgId, cid, crep, cph, ctim, cwire, cstas, chop, cgen, cmood, cg, ckin, cfc, cang, cmt, cflag, cdr];
 let _carrs = null;
 function compactC() { // 交换删除（顺序无关；目标引用用 cid 校验）
   const A = _carrs || (_carrs = C_ARRS()), L = A.length;
@@ -281,7 +310,7 @@ function pickPrey(i) {
           const pp = power(j, true); if (pp > myP * 1.6) continue;
           if (hunted[j] === G.frame && huntedBy[j] !== i) continue;
           if (G.sancts.length && inSanct(cx[j], cy[j])) continue;
-          const sc = d / R + 1.2 * pp / myP - 1.6 * Math.min(1, ce[j] / (capE(i) - ce[i] + 1)); if (sc < bs) { bs = sc; best = j; }
+          let sc = d / R + 1.2 * pp / myP - 1.6 * Math.min(1, ce[j] / (capE(i) - ce[i] + 1)); if (THORNY[csp[j]] && !SPECIES[s].dash) sc += 1.5; if (sc < bs) { bs = sc; best = j; }
         }
         if (r === 0) break;
       }
@@ -373,12 +402,18 @@ function hurt(i, frac) {
   if (ce[i] <= 0) { cdead[i] = 1; G.deaths++; emit('death', cx[i], cy[i], csp[i]); }
   return dmg;
 }
+function fleeFromPt(i, x, y, t) { const dx = cx[i] - x, dy = cy[i] - y, d = Math.hypot(dx, dy) + 1e-3; cst[i] = ST_FLEE; ctx_[i] = cx[i] + dx / d * 220; cty[i] = cy[i] + dy / d * 220; ctim[i] = t; }
 function fleeFrom(i, j, t) { const dx = cx[i] - cx[j], dy = cy[i] - cy[j], d = Math.hypot(dx, dy) + 1e-3; cst[i] = ST_FLEE; ctx_[i] = cx[i] + dx / d * 170; cty[i] = cy[i] + dy / d * 170; ctim[i] = t; cvx[i] += dx / d * 90; cvy[i] += dy / d * 90; }
 function fight(a, d, lethal) {
   if (cfc[a] > 0 || cdead[a] || cdead[d]) return 0;
   if (G.sancts.length && (inSanct(cx[a], cy[a]) || inSanct(cx[d], cy[d]))) { cst[a] = ST_WANDER; cthink[a] = 0.5; return 0; }
   const A = power(a, false), D = power(d, true), p = A * A / (A * A + D * D);
-  const x = (cx[a] + cx[d]) / 2, y = (cy[a] + cy[d]) / 2;
+  const x = (cx[a] + cx[d]) / 2, y = (cy[a] + cy[d]) / 2, spD = SPECIES[csp[d]];
+  if (lethal && spD.tr.includes('ink') && rnd() < 0.6) { // 墨遁：毫发无伤逃走
+    cfc[a] = 1.2; emit('ink', cx[d], cy[d]); const a2 = rnd() * 6.2832; let nx = cx[d] + Math.cos(a2) * 70, ny = cy[d] + Math.sin(a2) * 70; if (!isWall(nx, ny)) { cx[d] = nx; cy[d] = ny; } fleeFrom(d, a, 2); cst[a] = ST_REST; ctim[a] = 1.2; return 1;
+  }
+  if (spD.tr.includes('thorn')) { hurt(a, 0.18); emit('thorn', cx[d], cy[d]); if (cdead[a]) return 1; }
+  if (SPECIES[csp[a]].dash && lethal) { cst[a] = ST_REST; ctim[a] = 2.5; }
   cfc[a] = 1.2; if (cfc[d] < 0.6) cfc[d] = 0.6; cang[a] = 1; cang[d] = 1; G.fights++;
   let killed = false;
   if (rnd() < p) {
@@ -417,7 +452,7 @@ function stepC(dt) {
     if (cstas[i] > 0) { cstas[i] -= dt; ageMul = 0.5; metaMul = 0.7; }
     cage[i] += dt * ageMul;
     const life = S_life[s];
-    if (cage[i] > life) { killC(i, true); G.oldDeaths++; emit('death', cx[i], cy[i], s); continue; }
+    if (cage[i] > life) { killC(i, true, true); G.oldDeaths++; emit('death', cx[i], cy[i], s); continue; }
     // 代谢：能量以未凝结粒子形式散逸（守恒）。体型大 → 代谢高
     cmeta[i] += S_meta[s] * META_MUL * g * Math.sqrt(g) * dt * metaMul * (1 + 0.1 * ckin[i]) * S_crowd[s]; // 同类拥挤 + 生态位饱和 → 代谢升高
     if (cmeta[i] >= 1) {
@@ -426,9 +461,10 @@ function stepC(dt) {
     }
     // 代谢物 → 物质结晶（吃饱的成年个体才会产出；高级生物产量高得多）
     cmt[i] -= dt;
-    if (cmt[i] <= 0) { cmt[i] = sp.matT * (0.8 + rnd() * 0.4); if (cage[i] >= sp.mature && ce[i] > capE(i) * 0.4) dropMatter(cx[i], cy[i] + r * 0.5, sp.mat); }
+    if (cmt[i] <= 0) { cmt[i] = sp.matT * (0.8 + rnd() * 0.4); if (cage[i] >= sp.mature && ce[i] > capE(i) * 0.4) dropMatter(cx[i], cy[i] + r * 0.5, sp.mat * (WOOL[s] && ckin[i] >= 2 ? 2 : 1)); }
+    if (SPECIAL[s]) { cdr[i] -= dt; if (cdr[i] <= 0) { cdr[i] = 0.5; special(i, s, r); if (cdead[i]) continue; } }
     if (ce[i] <= 0) { killC(i, false); G.starve++; emit('death', cx[i], cy[i], s); continue; }
-    if (crep[i] > 0) crep[i] -= dt; if (cmood[i] > 0) cmood[i] -= dt; if (cfc[i] > 0) cfc[i] -= dt; if (cang[i] > 0) cang[i] -= dt;
+    if (crep[i] > 0) crep[i] -= dt * (G.nurs.length && inR(G.nurs, cx[i], cy[i], 170) ? 1.67 : 1); if (cmood[i] > 0) cmood[i] -= dt; if (cfc[i] > 0) cfc[i] -= dt; if (cang[i] > 0) cang[i] -= dt;
     cthink[i] -= dt;
     if (cthink[i] <= 0) { think(i); cthink[i] = (0.4 + rnd() * 0.5) * loadF; if (cdead[i]) continue; }
     let tx = ctx_[i], ty = cty[i], spMul = 1;
@@ -438,11 +474,11 @@ function stepC(dt) {
       if (j < 0 || j >= cN || cid[j] !== ctgId[i] || cdead[j]) { cst[i] = ST_WANDER; cthink[i] = 0; }
       else {
         tx = cx[j]; ty = cy[j]; ctim[i] -= dt;
-        const rr = r + radius(j) + 3, d2 = dist2(cx[i], cy[i], tx, ty), reach = rr + (big ? S_speed[s] * dt : 0);
+        const rr = r + radius(j) + 3 + (st === ST_HUNT ? S_tongue[s] : 0), d2 = dist2(cx[i], cy[i], tx, ty), reach = rr + (big ? S_speed[s] * dt : 0);
         if (st === ST_HUNT) { hunted[j] = G.frame + 1; huntedBy[j] = i; }
         if (st === ST_HUNT || st === ST_FIGHT) {
-          spMul = st === ST_HUNT ? 1.15 : 1.05;
-          if (d2 < reach * reach) fight(i, j, st === ST_HUNT);
+          spMul = st === ST_HUNT ? (sp.dash ? 1.8 : 1.15) : 1.05;
+          if (d2 < reach * reach) { if (st === ST_HUNT && S_tongue[s] && CAN_FX) emit('tongue', cx[i], cy[i], cx[j], cy[j]); fight(i, j, st === ST_HUNT); }
           else if (ctim[i] <= 0) { cst[i] = ST_REST; ctim[i] = 0.8; }
         } else {
           if (d2 < (rr + 6) * (rr + 6) || big && d2 < reach * reach) { if (readyToBreed(i) && partnerOK(j)) reproduce(i, j); cst[i] = ST_WANDER; cthink[i] = 0.3; }
@@ -570,11 +606,6 @@ function stepOrb(dt) {
   if (o.spray && o.tank >= 1) {
     o.sprAcc += SPRAY_RATE * dt; let n = Math.min(Math.floor(o.sprAcc), Math.floor(o.tank)); o.sprAcc -= Math.floor(o.sprAcc);
     while (n > 0) { const v = Math.min(n, 2); n -= v; o.tank -= v; G.flow.spray += v; G.flowWin.inE += v; const a = rnd() * 6.2832, sp = 40 + rnd() * 70; addP(o.x + Math.cos(a) * 8, o.y + Math.sin(a) * 8, v, Math.cos(a) * sp + o.vx * 0.3, Math.sin(a) * sp + o.vy * 0.3, 170); }
-  } else {
-    o.tank += tankRegen(G.lv) * dt;
-    // 能量槽满了会缓缓溢出（=回充速度），让放置不管 / 离线时生态圈也有一丝细流
-    if (o.tank > TM) { o.ovAcc = (o.ovAcc || 0) + (o.tank - TM); o.tank = TM;
-      while (o.ovAcc >= 1) { o.ovAcc -= 1; G.flow.spray++; G.flowWin.inE++; const a = rnd() * 6.2832, r = 10 + rnd() * 40; addP(o.x + Math.cos(a) * r, o.y + Math.sin(a) * r, 1, Math.cos(a) * 25, Math.sin(a) * 25, 170); } }
   }
   if (o.tank > TM) o.tank = TM;
   if ((G.frame & 7) === 0) { revealAround(o.x, o.y, 170); checkPOIs(); }
@@ -594,12 +625,75 @@ function teleportOrb(tx, ty) {
   o.x = lx; o.y = ly; o.vx = dx / d * 60; o.vy = dy / d * 60; emit('tp', x, y); return true;
 }
 
+/* ===================== 光灵：环境中的白色能量球（v0.6 唯一的“天然”能量来源） ===================== */
+function addW(x, y, v) { if (wN >= MAXW) return -1; const k = wN++; wx[k] = x; wy[k] = y; const a = rnd() * 6.2832; wvx[k] = Math.cos(a) * 8; wvy[k] = Math.sin(a) * 8; wval[k] = v; wage[k] = 0; wph[k] = rnd() * 6.28; wtg[k] = -1; return k; }
+function wispTarget() { return Math.min(260, 26 + G.open / 140); }
+function spawnWisp() {
+  const R = Math.min(VOID_R - 100, G.expR + 40);
+  for (let t = 0; t < 24; t++) {
+    const a = rnd() * 6.2832, d = Math.sqrt(rnd()) * R, x = Math.cos(a) * d, y = Math.sin(a) * d, i = gIdx(x, y);
+    if (i < 0 || !seen[i] || whp[i] > 0 || d < 110) continue;
+    if (isWall(x + 14, y) || isWall(x - 14, y) || isWall(x, y + 14) || isWall(x, y - 14)) continue;
+    addW(x, y, Math.min(9, 3 + (d / 700 | 0))); return true; // 越远的光灵越亮（能量越多）
+  }
+  return false;
+}
+function stepW(dt) {
+  // 生成：已探索区域越大，光灵越多
+  G.wAcc += dt * (0.45 + G.open / 9000);
+  while (G.wAcc >= 1) { G.wAcc -= 1; if (wN < wispTarget()) spawnWisp(); }
+  // 星光汇聚塔：在周围降下光灵
+  if (G.lv >= 1) for (const d of G.suns) { d.acc2 = (d.acc2 || 0) + dt / 1.5; while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 40 + rnd() * 160, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r; if (!isWall(x, y)) { const k = addW(x, y, 5); if (k >= 0) emit('wdrop', x, y); } } }
+  const o = G.orb, TM = tankMax(G.lv), canAbs = !o.dead && !G.offline && o.tank < TM - 0.5, cat = G.lv >= 1 ? G.catchers : [];
+  let got = 0;
+  for (let k = 0; k < wN; k++) {
+    if (!wval[k]) continue;
+    wage[k] += dt; if (wage[k] > WISP_LIFE) { wval[k] = 0; continue; }
+    let vx = wvx[k], vy = wvy[k]; const x = wx[k], y = wy[k]; wph[k] += dt;
+    // 缓慢漂浮
+    vx += Math.cos(wph[k] * 0.7 + k) * 10 * dt; vy += Math.sin(wph[k] * 0.9 + k * 1.3) * 10 * dt;
+    let pulled = false;
+    if (canAbs) { const dx = o.x - x, dy = o.y - y, d2 = dx * dx + dy * dy;
+      if (d2 < 20 * 20) { const v = Math.min(wval[k], TM - o.tank); o.tank += v; o.absorbed += v; got += v; emit('wabs', x, y, v); wval[k] = 0; continue; }
+      if (d2 < WISP_MAG * WISP_MAG) { const d = Math.sqrt(d2), f = 1400 * dt / (0.35 + d / WISP_MAG); vx += dx / d * f; vy += dy / d * f; pulled = true; } }
+    if (!pulled) for (const c of cat) { const dx = c.x - x, dy = c.y - y, d2 = dx * dx + dy * dy;
+      if (d2 < 18 * 18) { const v = wval[k]; for (let q = 0; q < v; q++) { const a = rnd() * 6.2832, r = 8 + rnd() * 26; addP(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r, 1, Math.cos(a) * 30, Math.sin(a) * 30, 255); } G.flow.gen += v; G.flowWin.inE += v; c.n = (c.n || 0) + v; c.flash = 1; emit('wcat', c.x, c.y, v); wval[k] = 0; break; }
+      if (d2 < 260 * 260) { const d = Math.sqrt(d2), f = 300 * dt / (0.5 + d / 260); vx += dx / d * f; vy += dy / d * f; pulled = true; break; } }
+    const f = Math.exp(-(pulled ? 2.5 : 1.2) * dt); vx *= f; vy *= f;
+    const nx = x + vx * dt, ny = y + vy * dt;
+    if (!isWall(nx, ny) || pulled) { wx[k] = nx; wy[k] = ny; } else { vx = -vx; vy = -vy; }
+    wvx[k] = vx; wvy[k] = vy;
+  }
+  if (!wval[0] || (G.frame & 15) === 0) { let j = 0; for (let k = 0; k < wN; k++) if (wval[k]) { if (k !== j) { wx[j] = wx[k]; wy[j] = wy[k]; wvx[j] = wvx[k]; wvy[j] = wvy[k]; wval[j] = wval[k]; wage[j] = wage[k]; wph[j] = wph[k]; } j++; } wN = j; }
+  return got;
+}
+/* ===================== 科研（研究速度由潮汐驱动） ===================== */
+function resKey(kind, idx) { return kind === 's' ? SPECIES[idx].key : 'd' + DEVICES[idx].key; }
+function resItem(key) { if (key[0] === 'd' && DV_IDX[key.slice(1)] !== undefined) { const d = DEVICES[DV_IDX[key.slice(1)]]; return { kind: 'd', idx: d.id, def: d, tier: d.tier, cost: RES_COST[d.tier] || 0 }; } const i = SP_IDX[key]; if (i === undefined) return null; const sp = SPECIES[i]; return { kind: 's', idx: i, def: sp, tier: sp.tier, cost: RES_COST[sp.tier] || 0 }; }
+function resErr(key) { const it = resItem(key); if (!it) return '未知项目'; if (G.unlocked.includes(key)) return '已解锁'; if (G.maxLv < resGate(it.tier)) return '需要潮汐 Lv' + resGate(it.tier); return ''; }
+function researchRate() { // 每秒研究点数
+  let base = 0; for (const d of G.labs) base += DEVICES[d.type].rs * d.mult;
+  return base * (1 + Math.max(0, G.lastScore) / WINDOW);
+}
+function stepResearch(dt) {
+  G.rpRate = G.lv >= 1 ? researchRate() : 0;
+  if (!G.resT) { if (G.rpRate > 0) G.rp = Math.min(G.rp + G.rpRate * dt, 99999); return; }
+  const it = resItem(G.resT); if (!it || G.unlocked.includes(G.resT)) { G.resT = ''; return; }
+  G.rp += G.rpRate * dt;
+  if (G.rp >= it.cost) { G.rp -= it.cost; finishResearch(G.resT); }
+}
+function finishResearch(key) {
+  const it = resItem(key); if (!it || G.unlocked.includes(key)) return; G.unlocked.push(key); if (G.resT === key) G.resT = '';
+  emit('unlock', it.kind, it.idx);
+}
+function setResearch(key) { const e = resErr(key); if (e) return e; G.resT = key; const it = resItem(key); if (G.rp >= it.cost) { G.rp -= it.cost; finishResearch(key); } return ''; }
+
 /* ===================== 遗迹 ===================== */
 function touchPOI(q) {
   const key = POI[q.type].key;
   if (key === 'crystal') { q.used = true; G.matter += q.amt; G.flow.mat += q.amt; emit('poi', q.x, q.y, q.type, q.amt); }
   else if (key === 'pod') {
-    q.used = true; const pool = SPECIES.filter(s => s.unlock <= Math.min(MAXLV, G.maxLv + 2) && s.unlock >= 1); const sp = pool.length ? pool[(rnd() * pool.length) | 0] : SPECIES[0];
+    q.used = true; const pool = SPECIES.filter(s => s.tier <= G.maxLv + 2 && s.tier >= 1 && !G.unlocked.includes(s.key)).concat(SPECIES.filter(s => s.tier >= 1 && s.tier <= G.maxLv + 1)); const sp = pool.length ? pool[(rnd() * pool.length) | 0] : SPECIES[0];
     q.sp = sp.id; if (!G.unlocked.includes(sp.key)) { G.unlocked.push(sp.key); emit('unlock', 's', sp.id); }
     const n = sp.pair ? 4 : 5; for (let k = 0; k < n; k++) { const a = k / n * 6.2832, j = newC(sp.id, q.x + Math.cos(a) * 25, q.y + Math.sin(a) * 25, Math.round(sp.maxE * 0.8), 0); if (j >= 0) { cage[j] = sp.mature; crep[j] = 5; } }
     emit('poi', q.x, q.y, q.type, sp.id);
@@ -627,13 +721,15 @@ function dropMatter(x, y, v) {
 function collectM(j) { const v = mval[j]; G.matter += v; G.flow.mat += v; G.flowWin.mat += v; mval[j] = 0; return v; }
 function stepM(dt) {
   const o = G.orb, cols = G.cols || [];
-  let got = 0;
+  let got = 0; const car = [];
+  if (G.spCount[SP_IDX.mite] > 0) for (let i = 0; i < cN && car.length < 120; i++) if (CARRIER[csp[i]] && !cdead[i] && cage[i] > 3) car.push(i);
   for (let j = 0; j < mN; j++) {
     if (!mval[j]) continue;
     mage[j] += dt; if (mage[j] > MAT_LIFE) { mval[j] = 0; continue; }
     let vx = mvx[j], vy = mvy[j];
     // 白球吸取
     if (!o.dead && !G.offline) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
+    if (car.length) { let hit = -1; for (const i of car) { const dx = cx[i] - mx[j], dy = cy[i] - my[j]; if (dx * dx + dy * dy < 26 * 26) { hit = i; break; } } if (hit >= 0) { const v = collectM(j); if (CAN_FX) emit('carry', cx[hit], cy[hit], v); continue; } }
     for (const c of cols) { const dx = c.x - mx[j], dy = c.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 18 * 18) { collectM(j); c.n = (c.n || 0) + 1; break; } if (d2 < 210 * 210) { const d = Math.sqrt(d2); vx += dx / d * 260 * dt; vy += dy / d * 260 * dt; } }
     if (!mval[j]) continue;
     const f = Math.exp(-3 * dt); vx *= f; vy *= f;
@@ -647,15 +743,15 @@ function stepM(dt) {
 /* ===================== 观测者装置 ===================== */
 function devActive(d) { return d.bt <= 0 && d.powered && G.lv >= 1; }
 function recomputePower() {
-  const pylons = G.devs.filter(d => d.type === D_PYLON);
-  for (const p of pylons) p.conn = false;
+  const pylons = G.devs.filter(d => DEVICES[d.type].pf);
+  for (const p of pylons) { p.conn = false; p.fr = DEVICES[p.type].pf; }
   const q = [];
   // 远古中继塔：找到后也算一个导能节点（能量场半径 320）
   for (const r of G.pois) if (POI[r.type].key === 'relay') { r.conn = false; r.bt = r.found ? 0 : 1; r.fr = 320; if (r.found) pylons.push(r); }
   const fr = p => p.fr || PYLON_FIELD;
-  for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD + (p.fr ? p.fr : 0)) { p.conn = true; q.push(p); }
+  for (const p of pylons) if (p.bt <= 0 && Math.hypot(p.x, p.y) <= TOWER_FIELD + (p.fr > PYLON_FIELD ? p.fr - PYLON_FIELD : 0)) { p.conn = true; q.push(p); }
   while (q.length) { const a = q.pop(); for (const p of pylons) { const R = Math.max(fr(a), fr(p)); if (!p.conn && p.bt <= 0 && dist2(a.x, a.y, p.x, p.y) <= R * R) { p.conn = true; q.push(p); } } }
-  G.relays = pylons.filter(p => p.fr && p.conn);
+  G.relays = pylons.filter(p => p.conn && p.bt <= 0);
   for (const d of G.devs) d.powered = inField(d.x, d.y, d);
   const lenses = G.devs.filter(d => d.type === DV_IDX.lens && d.bt <= 0);
   for (const d of G.devs) { d.mult = 1; for (const l of lenses) if (l !== d && dist2(l.x, l.y, d.x, d.y) < 260 * 260) d.mult *= 1.3; }
@@ -663,18 +759,21 @@ function recomputePower() {
   G.sancts = G.devs.filter(d => d.type === DV_IDX.sanct && devActive(d));
   G.arenas = G.devs.filter(d => d.type === DV_IDX.arena && devActive(d));
   G.cols = G.devs.filter(d => d.type === DV_IDX.collector && d.bt <= 0 && d.powered);
+  G.catchers = G.devs.filter(d => d.type === DV_IDX.catcher && d.bt <= 0 && d.powered);
+  G.suns = G.devs.filter(d => d.type === DV_IDX.sun && devActive(d));
+  G.labs = G.devs.filter(d => DEVICES[d.type].rs && devActive(d));
+  G.nurs = G.devs.filter(d => d.type === DV_IDX.nursery && devActive(d));
 }
 function inField(x, y, except) {
   if (x * x + y * y <= TOWER_FIELD * TOWER_FIELD) return true;
-  for (const p of G.devs) if (p.type === D_PYLON && p !== except && p.conn && p.bt <= 0 && dist2(x, y, p.x, p.y) <= PYLON_FIELD * PYLON_FIELD) return true;
-  if (G.relays) for (const r of G.relays) if (r !== except && dist2(x, y, r.x, r.y) <= 320 * 320) return true;
+  if (G.relays) for (const r of G.relays) if (r !== except && dist2(x, y, r.x, r.y) <= r.fr * r.fr) return true;
   return false;
 }
 function capUsed() { let s = 0; for (const d of G.devs) s += DEVICES[d.type].cost; return s; }
-function devUnlocked(type) { return DEVICES[type].unlock <= G.lv || G.unlocked.includes('d' + DEVICES[type].key); }
+function devUnlocked(type) { return DEVICES[type].tier === 0 || G.unlocked.includes('d' + DEVICES[type].key); }
 function canPlace(type, x, y) {
   const def = DEVICES[type];
-  if (!devUnlocked(type)) return '需要潮汐 Lv.' + def.unlock;
+  if (!devUnlocked(type)) return '需要先在科研站研究';
   if (capUsed() + def.cost > totalCap()) return '建造额度不足（提升潮汐等级可增加）';
   if (G.matter < def.mc) return '物质不足（需要 ' + def.mc + '）';
   if (x * x + y * y < 80 * 80) return '离方塔太近';
@@ -721,6 +820,7 @@ function stepDevs(dt) {
   let dirty = false;
   for (const d of G.devs) if (d.bt > 0) { d.bt -= dt; if (d.bt <= 0) { d.bt = 0; emit('built', d.x, d.y, d.type); dirty = true; } }
   if (dirty) recomputePower();
+  stepResearch(dt);
   if (G.lv < 1) return; // 潮汐归零：所有装置停机（遗迹）
   for (const d of G.devs) {
     if (!devActive(d)) continue;
@@ -743,9 +843,10 @@ function stepDevs(dt) {
     } else if (key === 'well') {
       const R = def.r;
       for (let b = 0; b < 2; b++) forPInR(d.x, d.y, R, b, j => { const dx = d.x - px[j], dy = d.y - py[j], d2 = dx * dx + dy * dy; if (d2 < 50 * 50) return; const dd = Math.sqrt(d2); pvx[j] += dx / dd * 14 * dt; pvy[j] += dy / dd * 14 * dt; });
-    } else if (key === 'gen' || key === 'sun') {
-      d.acc2 = (d.acc2 || 0) + def.out * dt;
-      while (d.acc2 >= 1) { d.acc2 -= 1; const a = rnd() * 6.2832, r = 18 + rnd() * 30; addP(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 1, Math.cos(a) * 30, Math.sin(a) * 30, 255); G.flow.gen++; G.flowWin.inE++; }
+    } else if (key === 'pool') {
+      if (d.tt >= 1) { const k = Math.floor(d.tt); d.tt -= k; let e = 0, m = 0, a = 0; countInR(d.x, d.y, def.r, j => { const s = csp[j]; if (S_apex[s]) a = 1; else if (S_diet[s] !== D_E) m = 1; else e = 1; }); d.n = e + m + a; const v = d.n * 0.4 * k * d.mult; d.acc += v; G.devAcc += v; }
+    } else if (key === 'scare') {
+      if (d.tt >= 0.5) { d.tt -= 0.5; let n = 0; countInR(d.x, d.y, def.r, j => { if (S_diet[csp[j]] === D_E) return; n++; fleeFromPt(j, d.x, d.y, 2); }); d.n = n; if (n) d.flash = 0.5; }
     } else if (key === 'stasis') {
       if (d.tt >= 0.5) { d.tt -= 0.5; let n = 0; countInR(d.x, d.y, def.r, j => { cstas[j] = 0.7; n++; }); d.n = n; }
     }
@@ -783,13 +884,12 @@ function settle() {
   G.lastFlow = G.flowWin; G.inRate = (G.inRate || 0) * 0.75 + 0.25 * G.flowWin.inE / WINDOW; G.flowWin = { inE: 0, burn: 0, mat: 0 };
   if (G.lv > G.maxLv) G.maxLv = G.lv;
   if (G.lv !== prevLv) { recomputePower(); emit('lv', G.lv, prevLv); }
-  unlockUpTo(G.lv);
   emit('settle', score, G.lv, prevLv);
   if (G.lv >= MAXLV && !G.won) { G.won = true; emit('win'); }
 }
-function unlockUpTo(lv) {
-  for (const s of SPECIES) if (s.unlock <= lv && !G.unlocked.includes(s.key)) { G.unlocked.push(s.key); emit('unlock', 's', s.id); }
-  for (const d of DEVICES) if (d.unlock <= lv && !G.unlocked.includes('d' + d.key)) { G.unlocked.push('d' + d.key); emit('unlock', 'd', d.id); }
+function unlockUpTo() { // v0.6：只有 tier 0 自带，其它全部靠科研
+  for (const s of SPECIES) if (s.tier === 0 && !G.unlocked.includes(s.key)) G.unlocked.push(s.key);
+  for (const d of DEVICES) if (d.tier === 0 && !G.unlocked.includes('d' + d.key)) G.unlocked.push('d' + d.key);
 }
 
 /* ===================== 召唤（消耗方塔/孵化巢附近的能量，守恒） ===================== */
@@ -832,7 +932,7 @@ function ledger() {
 function simStep(dt) {
   G.frame++;
   buildPGrid(); buildCGrid();
-  stepDevs(dt); stepPOIs(dt); stepC(dt); stepP(dt); stepOrb(dt); stepM(dt);
+  stepDevs(dt); stepPOIs(dt); stepC(dt); stepP(dt); stepOrb(dt); stepW(dt); stepM(dt);
   compactP(); compactC();
   G.spCount.fill(0); for (let i = 0; i < cN; i++) G.spCount[csp[i]]++;
   let alive = 0; for (let s = 0; s < NS; s++) if (G.spCount[s] > 0) alive++;
@@ -845,7 +945,8 @@ function simStep(dt) {
 }
 function newGame(seed) {
   Object.assign(G, { t: 0, lv: 0, wt: 0, towerAcc: 0, devAcc: 0, lastScore: 0, hist: [], popHist: [], devs: [], devId: 1, nextId: 1, births: 0, deaths: 0, starve: 0, oldDeaths: 0, eaten: 0, fights: 0, won: false, summons: 0, lastBreak: null, wallBroken: 0, _lastCount: null, matter: 20, flow: { spray: 0, gen: 0, burn: 0, mat: 0 }, flowWin: { inE: 0, burn: 0, mat: 0 }, lastFlow: { inE: 0, burn: 0, mat: 0 } });
-  G.orb.x = 0; G.orb.y = 70; G.orb.vx = G.orb.vy = 0; G.orb.hp = 100; G.orb.dead = 0; G.orb.tank = tankMax(0); G.orb.sprAcc = 0;
+  G.orb.x = 0; G.orb.y = 70; G.orb.vx = G.orb.vy = 0; G.orb.hp = 100; G.orb.dead = 0; G.orb.tank = 60; G.orb.sprAcc = 0; G.orb.absorbed = 0; wN = 0; G.rp = 0; G.resT = ''; G.rpRate = 0; G.wAcc = 0; G.expR = START_R;
   G.open0 = 0; genWorld(seed || ((Math.random() * 1e9) | 0));
-  unlockUpTo(0); recomputePower();
+  unlockUpTo(); recomputePower();
+  for (let k = 0; k < 34; k++) spawnWisp();
 }

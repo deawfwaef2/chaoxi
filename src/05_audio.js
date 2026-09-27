@@ -55,6 +55,10 @@ const AU = {
       case 'lvup': { [0, 4, 7, 11, 14, 19].forEach((s, k) => this.tone(this.mtof(64 + s), 1.6, 'sine', 0.06, null, 0.01, 0, now + k * 0.12).connect(this.rev)); break; }
       case 'lvdown': { [0, -5, -9].forEach((s, k) => this.tone(this.mtof(55 + s), 2, 'triangle', 0.05, null, 0.02, 0, now + k * 0.3).connect(this.rev)); break; }
       case 'extinct': { this.tone(this.mtof(50), 2.5, 'sine', 0.06, null, 0.05, this.mtof(43)).connect(this.rev); break; }
+      case 'open': { [0, 7, 12].forEach((q, k) => this.tone(this.mtof(72 + q), 0.35, 'sine', 0.03, null, 0.01, 0, now + k * 0.04).connect(this.rev)); break; }
+      case 'wisp': { const f = this.mtof(86 + [0, 3, 5, 7, 10, 12][(Math.random() * 6) | 0]); this.tone(f, 0.3, 'sine', 0.022, null, 0.005, f * 1.5).connect(this.rev); break; }
+      case 'research': { [0, 4, 7, 12, 16].forEach((q, k) => this.tone(this.mtof(69 + q), 0.9, 'triangle', 0.045, null, 0.01, 0, now + k * 0.09).connect(this.rev)); break; }
+      case 'pop': { this.tone(600, 0.12, 'sine', 0.04, null, 0.004, 1200); break; }
       case 'error': { this.tone(180, 0.18, 'square', 0.03, null, 0.005, 140); break; }
       case 'win': { for (let k = 0; k < 12; k++) this.tone(this.mtof(60 + [0, 4, 7, 12, 16, 19, 24][k % 7] + (k > 6 ? 12 : 0)), 2.5, 'sine', 0.05, null, 0.01, 0, now + k * 0.15).connect(this.rev); break; }
     }

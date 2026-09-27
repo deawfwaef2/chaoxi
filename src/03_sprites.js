@@ -144,6 +144,109 @@ function drawSpecies(g, s, S, v, noRim) {
     for (const sx of [0.25, 0.75]) { g.fillStyle = '#fff6d0'; g.beginPath(); g.moveTo(x + R * sx - R * 0.12, y - R * 0.78); g.quadraticCurveTo(x + R * sx, y - R * 1.3, x + R * sx + R * 0.14, y - R * 0.72); g.fill(); outline(g, lw * 0.8, '#d8c080'); }
     g.fillStyle = col2; g.beginPath(); g.ellipse(x + R * 0.1, y + R * 0.4, R * 0.6, R * 0.42, 0, 0, 7); g.fill();
     shine(g, x, y, R); drawFace(g, x + R * 0.2, y + R * 0.05, R * 0.95, v, dark);
+  } else if (key === 'mite') {
+    g.strokeStyle = shade(col2, -0.3); g.lineWidth = lw * 1.6; g.lineCap = 'round';
+    for (const sx of [-1, 1]) for (const k of [-0.4, 0.2, 0.75]) { g.beginPath(); g.moveTo(x + sx * R * 0.5, y + R * k * 0.6 + R * 0.2); g.lineTo(x + sx * R * 1.15, y + R * k * 0.8 + R * 0.45); g.stroke(); }
+    for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(x + sx * R * 0.25, y - R * 0.8); g.quadraticCurveTo(x + sx * R * 0.5, y - R * 1.35, x + sx * R * 0.8, y - R * 1.3); g.stroke(); const gl = g.createRadialGradient(x + sx * R * 0.82, y - R * 1.3, 0, x + sx * R * 0.82, y - R * 1.3, R * 0.3); gl.addColorStop(0, '#fff'); gl.addColorStop(1, 'rgba(255,240,160,0)'); g.fillStyle = gl; g.beginPath(); g.arc(x + sx * R * 0.82, y - R * 1.3, R * 0.3, 0, 7); g.fill(); }
+    blob(g, x, y, R * 0.98, R * 0.92, col, col); g.beginPath(); g.ellipse(x, y, R * 0.98, R * 0.92, 0, 0, 7); outline(g, lw, ol);
+    g.fillStyle = shade(col2, 0.1); g.beginPath(); g.ellipse(x, y + R * 0.55, R * 0.6, R * 0.28, 0, 0, 7); g.fill();
+    shine(g, x, y, R); drawFace(g, x, y + R * 0.02, R, v, dark);
+  } else if (key === 'hedgehog') {
+    g.fillStyle = shade(col, -0.28);
+    for (let k = 0; k < 11; k++) { const a = Math.PI * (1.02 + k * 0.096), bx = x + Math.cos(a) * R * 0.85, by = y + Math.sin(a) * R * 0.8; g.beginPath(); g.moveTo(bx + Math.cos(a + 1.57) * R * 0.2, by + Math.sin(a + 1.57) * R * 0.2); g.quadraticCurveTo(x + Math.cos(a) * R * 1.45, y + Math.sin(a) * R * 1.4, x + Math.cos(a) * R * 1.4, y + Math.sin(a) * R * 1.38); g.lineTo(bx - Math.cos(a + 1.57) * R * 0.2, by - Math.sin(a + 1.57) * R * 0.2); g.fill(); }
+    for (const [a0, a1] of [[-0.2, 0], [3.14, 3.34]]) { g.beginPath(); g.moveTo(x + Math.cos(a0) * R * 0.9, y + Math.sin(a0) * R * 0.9); g.lineTo(x + Math.cos(a0) * R * 1.35, y - R * 0.05); g.lineTo(x + Math.cos(a1) * R * 0.9, y + Math.sin(a1) * R * 0.5); g.fill(); }
+    blob(g, x, y, R * 1.02, R * 0.92, col, col); g.beginPath(); g.ellipse(x, y, R * 1.02, R * 0.92, 0, 0, 7); outline(g, lw, ol);
+    g.fillStyle = col2; g.beginPath(); g.ellipse(x + R * 0.08, y + R * 0.3, R * 0.72, R * 0.55, 0, 0, 7); g.fill();
+    shine(g, x, y, R); drawFace(g, x + R * 0.08, y + R * 0.2, R * 0.92, v, dark);
+    g.fillStyle = dark; g.beginPath(); g.ellipse(x + R * 0.08, y + R * 0.33, R * 0.08, R * 0.055, 0, 0, 7); g.fill();
+  } else if (key === 'spore') {
+    g.fillStyle = 'rgba(240,200,255,0.8)'; for (const [a, b, r] of [[-1.25, -0.9, 0.12], [1.3, -0.6, 0.1], [1.1, 0.8, 0.08], [-1.2, 0.5, 0.09]]) { g.beginPath(); g.arc(x + a * R, y + b * R, r * R, 0, 7); g.fill(); }
+    const puff = [[0, 0, 1], [-0.55, -0.35, 0.55], [0.55, -0.4, 0.55], [0, -0.7, 0.5]];
+    for (const [a, b, r] of puff) blob(g, x + a * R, y + b * R, R * r, R * r, col, col);
+    g.beginPath(); for (const [a, b, r] of puff) { g.moveTo(x + a * R + R * r, y + b * R); g.arc(x + a * R, y + b * R, R * r, 0, 7); } outline(g, lw, ol);
+    for (const [a, b, r] of puff) blob(g, x + a * R, y + b * R, R * r * 0.92, R * r * 0.92, col, col);
+    g.fillStyle = 'rgba(255,255,255,0.85)'; for (const [a, b, r] of [[-0.6, -0.5, 0.1], [0.5, -0.6, 0.08], [0.1, -0.85, 0.07], [0.75, 0.1, 0.07]]) { g.beginPath(); g.arc(x + a * R, y + b * R, r * R, 0, 7); g.fill(); }
+    g.strokeStyle = '#7cd67c'; g.lineWidth = lw * 1.5; g.beginPath(); g.moveTo(x, y - R * 1.15); g.quadraticCurveTo(x + R * 0.1, y - R * 1.45, x + R * 0.35, y - R * 1.5); g.stroke(); g.fillStyle = '#9ff29f'; g.beginPath(); g.ellipse(x + R * 0.4, y - R * 1.5, R * 0.18, R * 0.1, -0.4, 0, 7); g.fill();
+    drawFace(g, x, y + R * 0.15, R, v, dark);
+  } else if (key === 'beetle') {
+    g.strokeStyle = shade(col, -0.45); g.lineWidth = lw * 1.5; g.lineCap = 'round';
+    for (const sx of [-1, 1]) for (const k of [-0.2, 0.3, 0.8]) { g.beginPath(); g.moveTo(x + sx * R * 0.6, y + R * k * 0.6); g.lineTo(x + sx * R * 1.15, y + R * k * 0.8 + R * 0.3); g.stroke(); }
+    for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(x + sx * R * 0.2, y - R * 0.85); g.quadraticCurveTo(x + sx * R * 0.35, y - R * 1.35, x + sx * R * 0.7, y - R * 1.35); g.stroke(); }
+    blob(g, x, y - R * 0.55, R * 0.55, R * 0.42, shade(col, -0.35), shade(col, -0.35));
+    const gr = g.createLinearGradient(x - R, y - R, x + R, y + R); gr.addColorStop(0, shade(col2, 0.3)); gr.addColorStop(0.45, col); gr.addColorStop(1, shade(col, -0.35));
+    g.fillStyle = gr; g.beginPath(); g.ellipse(x, y + R * 0.12, R * 0.98, R * 0.9, 0, 0, 7); g.fill(); outline(g, lw, shade(col, -0.45));
+    g.strokeStyle = shade(col, -0.45); g.lineWidth = lw; g.beginPath(); g.moveTo(x, y - R * 0.3); g.lineTo(x, y + R * 1.0); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.ellipse(x - R * 0.45, y - R * 0.12, R * 0.22, R * 0.1, -0.7, 0, 7); g.fill(); g.beginPath(); g.ellipse(x + R * 0.4, y - R * 0.05, R * 0.12, R * 0.06, 0.7, 0, 7); g.fill();
+    drawFace(g, x, y - R * 0.5, R * 0.55, v, '#ffffff');
+  } else if (key === 'frog') {
+    for (const sx of [-1, 1]) { blob(g, x + sx * R * 0.5, y - R * 0.72, R * 0.36, R * 0.34, col, col); g.beginPath(); g.arc(x + sx * R * 0.5, y - R * 0.72, R * 0.36, 0, 7); outline(g, lw, ol); }
+    blob(g, x, y + R * 0.05, R * 1.12, R * 0.85, col, col); g.beginPath(); g.ellipse(x, y + R * 0.05, R * 1.12, R * 0.85, 0, 0, 7); outline(g, lw, ol);
+    g.fillStyle = col2; g.beginPath(); g.ellipse(x, y + R * 0.42, R * 0.72, R * 0.38, 0, 0, 7); g.fill();
+    for (const sx of [-1, 1]) { g.fillStyle = '#fff'; g.beginPath(); g.arc(x + sx * R * 0.5, y - R * 0.74, R * 0.25, 0, 7); g.fill(); }
+    if (v === 1 || v === 2) { g.strokeStyle = dark; g.lineWidth = R * 0.08; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(x + sx * R * 0.5 - R * 0.14, y - R * 0.72); g.lineTo(x + sx * R * 0.5 + R * 0.14, y - R * 0.72); g.stroke(); } }
+    else for (const sx of [-1, 1]) { g.fillStyle = dark; g.beginPath(); g.arc(x + sx * R * 0.5 + R * 0.04, y - R * 0.72, R * (v === 5 ? 0.09 : 0.13), 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x + sx * R * 0.5 - R * 0.02, y - R * 0.78, R * 0.05, 0, 7); g.fill(); }
+    g.fillStyle = 'rgba(255,120,150,0.5)'; for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(x + sx * R * 0.72, y + R * 0.08, R * 0.16, R * 0.09, 0, 0, 7); g.fill(); }
+    g.strokeStyle = dark; g.lineWidth = R * 0.07; g.beginPath(); if (v === 4) g.ellipse(x, y + R * 0.12, R * 0.1, R * 0.12, 0, 0, 7); else { g.moveTo(x - R * 0.35, y + R * 0.05); g.quadraticCurveTo(x, y + R * (v === 5 ? 0.0 : 0.3), x + R * 0.35, y + R * 0.05); } g.stroke();
+    if (v === 5) { g.strokeStyle = '#ff4d6d'; g.lineWidth = R * 0.08; g.beginPath(); g.moveTo(x + R * 0.8, y - R * 1.0); g.lineTo(x + R * 1.0, y - R * 0.8); g.moveTo(x + R * 1.0, y - R * 1.0); g.lineTo(x + R * 0.8, y - R * 0.8); g.stroke(); }
+    shine(g, x, y + R * 0.2, R * 0.8);
+  } else if (key === 'octo') {
+    g.lineCap = 'round';
+    for (let k = 0; k < 4; k++) { const bx = x + (k - 1.5) * R * 0.48; g.strokeStyle = shade(col, -0.25); g.lineWidth = R * 0.34; g.beginPath(); g.moveTo(bx, y + R * 0.3); g.bezierCurveTo(bx + (k < 2 ? -1 : 1) * R * 0.3, y + R * 0.8, bx + (k < 2 ? 1 : -1) * R * 0.1, y + R * 1.05, bx + (k < 2 ? -1 : 1) * R * 0.35, y + R * 1.1); g.stroke(); g.strokeStyle = col; g.lineWidth = R * 0.24; g.stroke(); }
+    const gr = g.createRadialGradient(x - R * 0.35, y - R * 0.5, R * 0.1, x, y - R * 0.1, R * 1.2); gr.addColorStop(0, shade(col, 0.55)); gr.addColorStop(0.6, col); gr.addColorStop(1, shade(col, -0.2));
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x - R * 0.95, y + R * 0.45); g.bezierCurveTo(x - R * 1.15, y - R * 1.25, x + R * 1.15, y - R * 1.25, x + R * 0.95, y + R * 0.45); g.quadraticCurveTo(x, y + R * 0.7, x - R * 0.95, y + R * 0.45); g.fill(); outline(g, lw, ol);
+    g.fillStyle = 'rgba(255,255,255,0.55)'; for (const [a, b, r] of [[0.45, -0.6, 0.1], [0.65, -0.3, 0.07], [0.3, -0.85, 0.06]]) { g.beginPath(); g.arc(x + a * R, y + b * R, r * R, 0, 7); g.fill(); }
+    shine(g, x, y - R * 0.1, R); drawFace(g, x, y + R * 0.05, R * 0.9, v, dark);
+  } else if (key === 'sheep') {
+    for (const sx of [-1, 1]) { g.fillStyle = shade(col2, -0.1); g.beginPath(); g.ellipse(x + sx * R * 0.72, y - R * 0.18, R * 0.3, R * 0.14, sx * 0.5, 0, 7); g.fill(); }
+    const fl = []; for (let k = 0; k < 11; k++) { const a = k / 11 * 6.283; fl.push([Math.cos(a) * 0.72, Math.sin(a) * 0.62 - 0.05, 0.4]); } fl.push([0, -0.05, 0.75]);
+    g.beginPath(); for (const [a, b, r] of fl) { g.moveTo(x + a * R + R * r, y + b * R); g.arc(x + a * R, y + b * R, R * r, 0, 7); } g.fillStyle = shade(col, -0.12); g.fill(); outline(g, lw, shade(col2, -0.2));
+    for (const [a, b, r] of fl) blob(g, x + a * R - R * 0.03, y + b * R - R * 0.03, R * r * 0.9, R * r * 0.9, col, col);
+    blob(g, x, y + R * 0.12, R * 0.52, R * 0.46, col2, col2); g.beginPath(); g.ellipse(x, y + R * 0.12, R * 0.52, R * 0.46, 0, 0, 7); outline(g, lw * 0.8, shade(col2, -0.3));
+    for (const [a, b] of [[-0.25, -0.62], [0.05, -0.72], [0.3, -0.6]]) { blob(g, x + a * R, y + b * R, R * 0.2, R * 0.2, col, col); }
+    drawFace(g, x, y + R * 0.1, R * 0.52, v, dark);
+  } else if (key === 'weasel') {
+    g.fillStyle = shade(col, -0.05); g.beginPath(); g.moveTo(x - R * 0.8, y + R * 0.2); g.lineTo(x - R * 1.35, y - R * 0.25); g.lineTo(x - R * 1.12, y - R * 0.18); g.lineTo(x - R * 1.55, y - R * 0.75); g.lineTo(x - R * 0.95, y - R * 0.3); g.lineTo(x - R * 1.15, y - R * 0.38); g.lineTo(x - R * 0.7, y - R * 0.05); g.closePath(); g.fill(); outline(g, lw, ol);
+    for (const sx of [-1, 1]) { g.fillStyle = col; g.beginPath(); g.moveTo(x + sx * R * 0.35 + R * 0.15, y - R * 0.55); g.lineTo(x + sx * R * 0.55 + R * 0.15, y - R * 1.1); g.lineTo(x + sx * R * 0.8 + R * 0.15, y - R * 0.45); g.fill(); outline(g, lw, ol); }
+    blob(g, x + R * 0.05, y + R * 0.05, R * 1.12, R * 0.82, col, col); g.beginPath(); g.ellipse(x + R * 0.05, y + R * 0.05, R * 1.12, R * 0.82, 0, 0, 7); outline(g, lw, ol);
+    g.fillStyle = col2; g.beginPath(); g.ellipse(x + R * 0.3, y + R * 0.35, R * 0.6, R * 0.4, 0, 0, 7); g.fill();
+    g.fillStyle = shade(col, -0.25); for (const k of [-0.3, 0.1]) { g.beginPath(); g.moveTo(x + k * R, y - R * 0.75); g.lineTo(x + k * R + R * 0.12, y - R * 0.45); g.lineTo(x + k * R - R * 0.05, y - R * 0.5); g.fill(); }
+    shine(g, x, y, R); drawFace(g, x + R * 0.3, y + R * 0.08, R * 0.9, v, dark);
+    g.fillStyle = dark; g.beginPath(); g.ellipse(x + R * 0.3, y + R * 0.22, R * 0.07, R * 0.05, 0, 0, 7); g.fill();
+  } else if (key === 'turtle') {
+    blob(g, x + R * 0.95, y + R * 0.15, R * 0.42, R * 0.38, col, col); g.beginPath(); g.ellipse(x + R * 0.95, y + R * 0.15, R * 0.42, R * 0.38, 0, 0, 7); outline(g, lw, ol);
+    for (const [a, b] of [[-0.7, 0.62], [0.55, 0.65]]) { blob(g, x + a * R, y + b * R, R * 0.24, R * 0.2, col, col); }
+    const gr = g.createRadialGradient(x - R * 0.35, y - R * 0.6, R * 0.1, x - R * 0.1, y - R * 0.1, R * 1.2); gr.addColorStop(0, shade(col2, 0.4)); gr.addColorStop(0.6, col2); gr.addColorStop(1, shade(col2, -0.35));
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x - R * 1.05, y + R * 0.45); g.bezierCurveTo(x - R * 1.05, y - R * 1.1, x + R * 0.85, y - R * 1.1, x + R * 0.85, y + R * 0.45); g.closePath(); g.fill(); outline(g, lw, shade(col2, -0.45));
+    g.strokeStyle = shade(col2, -0.35); g.lineWidth = lw; for (const [cx2, cy2, rr] of [[-0.1, -0.25, 0.3], [-0.62, 0.05, 0.22], [0.42, 0.05, 0.22]]) { g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * 1.047 + 0.52; g.lineTo(x + cx2 * R + Math.cos(a) * rr * R, y + cy2 * R + Math.sin(a) * rr * R); } g.closePath(); g.stroke(); }
+    g.fillStyle = '#8fe07f'; for (const [a, b, r] of [[-0.45, -0.72, 0.16], [-0.2, -0.82, 0.19], [0.1, -0.78, 0.15]]) { g.beginPath(); g.arc(x + a * R, y + b * R, r * R, 0, 7); g.fill(); }
+    g.fillStyle = '#ff9fc8'; g.beginPath(); g.arc(x - R * 0.2, y - R * 0.98, R * 0.08, 0, 7); g.fill();
+    g.fillStyle = shade(col2, -0.2); g.fillRect(x - R * 1.05, y + R * 0.38, R * 1.9, R * 0.12);
+    drawFace(g, x + R * 1.0, y + R * 0.1, R * 0.4, v, dark);
+  } else if (key === 'ghost') {
+    const gl = g.createRadialGradient(x, y - R * 1.1, 0, x, y - R * 1.1, R * 0.7); gl.addColorStop(0, 'rgba(220,255,245,0.95)'); gl.addColorStop(1, 'rgba(120,255,220,0)'); g.fillStyle = gl; g.beginPath(); g.arc(x, y - R * 1.1, R * 0.7, 0, 7); g.fill();
+    g.fillStyle = col2; g.beginPath(); g.moveTo(x, y - R * 1.45); g.quadraticCurveTo(x + R * 0.22, y - R * 1.1, x, y - R * 0.9); g.quadraticCurveTo(x - R * 0.22, y - R * 1.1, x, y - R * 1.45); g.fill();
+    const gr = g.createRadialGradient(x - R * 0.3, y - R * 0.5, R * 0.1, x, y, R * 1.3); gr.addColorStop(0, 'rgba(255,255,255,0.97)'); gr.addColorStop(0.55, col); gr.addColorStop(1, shade(col, -0.25));
+    g.fillStyle = gr; g.globalAlpha = 0.93; g.beginPath(); g.moveTo(x - R * 0.95, y + R * 0.8); g.bezierCurveTo(x - R * 1.1, y - R * 1.2, x + R * 1.1, y - R * 1.2, x + R * 0.95, y + R * 0.8);
+    for (let k = 0; k < 4; k++) { const x0 = x + R * 0.95 - k * R * 0.475; g.quadraticCurveTo(x0 - R * 0.12, y + (k % 2 ? R * 0.6 : R * 1.1), x0 - R * 0.475, y + R * 0.8); } g.fill(); g.globalAlpha = 1; outline(g, lw, shade(col, -0.35));
+    shine(g, x, y, R); drawFace(g, x, y - R * 0.05, R * 0.9, v, dark);
+  } else if (key === 'unicorn') {
+    const rb = ['#ff9fb8', '#ffd98a', '#9fffc0', '#9fd8ff', '#c8a8ff'];
+    rb.forEach((c, k) => { g.strokeStyle = c; g.lineWidth = R * 0.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - R * 0.2 - k * R * 0.14, y - R * 0.85 + k * R * 0.1); g.quadraticCurveTo(x - R * 1.2 - k * R * 0.05, y - R * 0.6 + k * R * 0.15, x - R * 1.0 - k * R * 0.05, y + R * 0.3 + k * R * 0.08); g.stroke(); });
+    for (const sx of [0.25, 0.7]) { blob(g, x + sx * R, y - R * 0.82, R * 0.18, R * 0.26, col, col); }
+    blob(g, x, y, R * 1.05, R * 0.95, col, col); g.beginPath(); g.ellipse(x, y, R * 1.05, R * 0.95, 0, 0, 7); outline(g, lw, shade(col2, -0.3));
+    const hg = g.createLinearGradient(x + R * 0.35, y - R * 0.8, x + R * 0.55, y - R * 1.6); hg.addColorStop(0, '#ffcf5a'); hg.addColorStop(1, '#fff6c8'); g.fillStyle = hg; g.beginPath(); g.moveTo(x + R * 0.28, y - R * 0.78); g.lineTo(x + R * 0.62, y - R * 1.65); g.lineTo(x + R * 0.64, y - R * 0.72); g.closePath(); g.fill(); outline(g, lw * 0.8, '#d9a53a');
+    g.strokeStyle = '#e8b448'; g.lineWidth = lw; for (let k = 1; k < 4; k++) { g.beginPath(); g.moveTo(x + R * (0.32 + k * 0.07), y - R * (0.8 + k * 0.2)); g.lineTo(x + R * (0.63), y - R * (0.76 + k * 0.2)); g.stroke(); }
+    g.fillStyle = col2; g.beginPath(); g.ellipse(x + R * 0.1, y + R * 0.45, R * 0.55, R * 0.35, 0, 0, 7); g.fill();
+    shine(g, x, y, R); drawFace(g, x + R * 0.2, y + R * 0.08, R * 0.95, v, dark);
+  } else if (key === 'phoenix') {
+    const fc = ['#ffe066', '#ffab4a', '#ff6a4a'];
+    for (let k = 0; k < 3; k++) { const gr = g.createLinearGradient(x - R * 0.8, y, x - R * 1.7, y + R * 0.2); gr.addColorStop(0, fc[0]); gr.addColorStop(0.5, fc[1]); gr.addColorStop(1, fc[2]); g.fillStyle = gr; g.beginPath(); const a = -0.5 + k * 0.45; g.moveTo(x - R * 0.7, y + R * 0.2); g.quadraticCurveTo(x - R * 1.3, y + R * (a - 0.3), x - R * 1.75, y + R * (a * 1.4 - 0.2)); g.quadraticCurveTo(x - R * 1.3, y + R * (a + 0.25), x - R * 0.7, y + R * 0.45); g.fill(); }
+    for (let k = 0; k < 3; k++) { const gr = g.createLinearGradient(0, y - R * 0.8, 0, y - R * 1.7); gr.addColorStop(0, fc[1]); gr.addColorStop(1, fc[0]); g.fillStyle = gr; g.beginPath(); const bx = x - R * 0.15 + k * R * 0.25; g.moveTo(bx - R * 0.12, y - R * 0.8); g.quadraticCurveTo(bx - R * 0.2 + k * R * 0.05, y - R * 1.35, bx + R * 0.05 + k * R * 0.1, y - R * (1.55 + (k === 1 ? 0.2 : 0))); g.quadraticCurveTo(bx + R * 0.05, y - R * 1.1, bx + R * 0.15, y - R * 0.8); g.fill(); }
+    g.fillStyle = '#ffd36b'; g.beginPath(); g.moveTo(x + R * 0.95, y - R * 0.05); g.lineTo(x + R * 1.35, y + R * 0.1); g.lineTo(x + R * 0.95, y + R * 0.28); g.fill();
+    blob(g, x, y, R * 1.05, R * 0.98, col, col); g.beginPath(); g.ellipse(x, y, R * 1.05, R * 0.98, 0, 0, 7); outline(g, lw, shade(col, -0.35));
+    const wg = g.createLinearGradient(x - R * 0.9, y, x, y + R * 0.4); wg.addColorStop(0, fc[2]); wg.addColorStop(1, fc[0]); g.fillStyle = wg; g.beginPath(); g.ellipse(x - R * 0.45, y + R * 0.2, R * 0.5, R * 0.3, -0.5, 0, 7); g.fill();
+    g.fillStyle = col2; g.beginPath(); g.ellipse(x + R * 0.25, y + R * 0.45, R * 0.5, R * 0.32, 0, 0, 7); g.fill();
+    shine(g, x, y, R); drawFace(g, x + R * 0.28, y + R * 0.02, R * 0.9, v, dark);
   }
   g.restore();
   if (!noRim) rimLight(g, S, col);

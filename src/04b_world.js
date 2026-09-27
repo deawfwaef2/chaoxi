@@ -178,3 +178,36 @@ function drawSignals(x0, y0, x1, y1) {
     ctx.globalAlpha = 1;
   }
 }
+
+/* ===================== v0.6 光灵（环境白色能量球） ===================== */
+let WISPSPR = null;
+function wispSprite() {
+  if (WISPSPR) return WISPSPR; const S = 64, c = mkC(S), g = c.getContext('2d');
+  let gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.18, 'rgba(250,254,255,0.95)'); gr.addColorStop(0.32, 'rgba(200,240,255,0.45)'); gr.addColorStop(0.6, 'rgba(150,210,255,0.12)'); gr.addColorStop(1, 'rgba(120,190,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, S, S); return WISPSPR = c;
+}
+function drawWisps(x0, y0, x1, y1) {
+  if (!wN) return; const spr = wispSprite(), t = G.t, z = CAM.z;
+  ctx.globalCompositeOperation = 'lighter';
+  for (let k = 0; k < wN; k++) {
+    if (!wval[k]) continue; const x = wx[k], y = wy[k]; if (x < x0 - 40 || x > x1 + 40 || y < y0 - 40 || y > y1 + 40) continue;
+    const gi = gIdx(x, y); if (gi >= 0 && !seen[gi]) continue;
+    const age = wage[k], fin = Math.min(1, age / 2), fout = age > WISP_LIFE - 12 ? Math.max(0, (WISP_LIFE - age) / 12) * (0.6 + 0.4 * Math.sin(age * 20)) : 1;
+    const a = fin * fout, pul = 1 + 0.18 * Math.sin(t * 3 + wph[k] * 2), R = (7 + wval[k] * 1.1) * pul, bob = Math.sin(t * 1.6 + k) * 3;
+    ctx.globalAlpha = a * 0.55; ctx.drawImage(spr, x - R * 2.2, y + bob - R * 2.2, R * 4.4, R * 4.4);
+    ctx.globalAlpha = a; ctx.drawImage(spr, x - R * 0.8, y + bob - R * 0.8, R * 1.6, R * 1.6);
+    if (z > 0.45) { ctx.fillStyle = '#ffffff'; for (let q = 0; q < 2; q++) { const an = t * (1.6 + q * 0.7) + k + q * 3.1; ctx.globalAlpha = a * 0.85; ctx.beginPath(); ctx.arc(x + Math.cos(an) * R * 1.25, y + bob + Math.sin(an) * R * 0.5, 1.2, 0, 7); ctx.fill(); } }
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+/* 彗星粒子：播撒 / 吸收光灵的拖尾动画 */
+function drawComet(f, p) {
+  const e = f.inw ? p * p : 1 - (1 - p) * (1 - p) * (1 - p);
+  const pt = q => { const u = Math.max(0, Math.min(1, q)), ix = f.x + (f.tx - f.x) * u, iy = f.y + (f.ty - f.y) * u, dx = f.tx - f.x, dy = f.ty - f.y, bend = Math.sin(u * Math.PI) * (f.c || 0); return [ix - dy * bend, iy + dx * bend]; };
+  ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  const N = 7, tail = f.inw ? 0.35 : 0.3; let prev = pt(e - tail);
+  for (let q = 1; q <= N; q++) { const u = e - tail + tail * q / N, cur = pt(u), w = q / N; ctx.globalAlpha = w * (f.inw ? 0.9 : 1 - p * 0.6); ctx.strokeStyle = f.color || '#bff8ff'; ctx.lineWidth = (f.w || 2.4) * w; ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(cur[0], cur[1]); ctx.stroke(); prev = cur; }
+  const [hx, hy] = pt(e), hr = (f.w || 2.4) * 3.2; ctx.globalAlpha = f.inw ? 1 : 1 - p * 0.5; ctx.drawImage(wispSprite(), hx - hr, hy - hr, hr * 2, hr * 2);
+  if (!f.inw && p > 0.82) { ctx.globalAlpha = (1 - p) * 5 * 0.8; ctx.fillStyle = '#fff'; star4(f.tx, f.ty, 5 * (1 - p) * 5 + 1); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
