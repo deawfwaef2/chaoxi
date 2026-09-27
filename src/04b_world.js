@@ -71,7 +71,8 @@ function buildProps() {
 
 /* ---------- 植被：按格子哈希确定位置（开阔 + 已探索的格子才画） ---------- */
 function drawProps(gx0, gy0, gx1, gy1) {
-  const z = CAM.z; if (z < 0.3 || !PROPS) return;
+  const z = CAM.z; if (z < 0.45 || !PROPS) return;
+  const fade = Math.min(1, (z - 0.45) / 0.15); ctx.globalAlpha = fade;
   const seed = G.seed & 1023, t = G.t, glows = [];
   for (let gy = gy0; gy < gy1; gy++) for (let gx = gx0; gx < gx1; gx++) {
     const i = gy * GN + gx; if (whp[i] > 0 || !seen[i]) continue;
@@ -86,9 +87,10 @@ function drawProps(gx0, gy0, gx1, gy1) {
     ctx.drawImage(PROPS[type], -w / 2, -w * 0.78, w, w); ctx.restore();
     if (PROP_GLOW[type]) glows.push(px_, py_ - w * 0.25, w * 0.55, type, h2);
   }
+  ctx.globalAlpha = 1;
   if (glows.length) {
     ctx.globalCompositeOperation = 'lighter';
-    for (let k = 0; k < glows.length; k += 5) { const tp = glows[k + 3]; ctx.globalAlpha = 0.18 + 0.12 * Math.sin(t * 1.6 + glows[k + 4] * 20); ctx.drawImage(glowTint(tp), glows[k] - glows[k + 2], glows[k + 1] - glows[k + 2], glows[k + 2] * 2, glows[k + 2] * 2); }
+    for (let k = 0; k < glows.length; k += 5) { const tp = glows[k + 3]; ctx.globalAlpha = (0.18 + 0.12 * Math.sin(t * 1.6 + glows[k + 4] * 20)) * fade; ctx.drawImage(glowTint(tp), glows[k] - glows[k + 2], glows[k + 1] - glows[k + 2], glows[k + 2] * 2, glows[k + 2] * 2); }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
 }

@@ -59,7 +59,7 @@ function outline(g, lw, c) { g.lineWidth = lw; g.strokeStyle = c; g.stroke(); }
 function drawSpecies(g, s, S, v, noRim) {
   const sp = SPECIES[s]; const R = S * SPR_BODY, x = S / 2, y = S / 2 + S * 0.05;
   let col = sp.col, col2 = sp.col2;
-  if (v === 2) { col = mixc(col, '#b8b8c8', 0.45); col2 = mixc(col2, '#c8c8d0', 0.4); }
+  if (v === 2) { col = mixc(col, '#d8d0e8', 0.2); col2 = mixc(col2, '#e0dcea', 0.18); }
   const dark = '#3a2a3a', ol = shade(col, -0.35), lw = S * 0.018;
   g.save();
   const key = sp.key;
@@ -159,12 +159,21 @@ function rimLight(g, S, col) {
   g.fillStyle = sg; g.fillRect(0, 0, S, S);
   g.restore();
 }
+// 柔和深色描边：小尺寸下也能从地面上清晰分辨轮廓
+function outlineSprite(c) {
+  const S = c.width, o = document.createElement('canvas'); o.width = o.height = S; const g = o.getContext('2d');
+  const k = S * 0.026;
+  for (let a = 0; a < 12; a++) g.drawImage(c, Math.cos(a / 12 * 6.2832) * k, Math.sin(a / 12 * 6.2832) * k);
+  g.globalCompositeOperation = 'source-in'; g.fillStyle = 'rgba(8,12,34,0.82)'; g.fillRect(0, 0, S, S);
+  g.globalCompositeOperation = 'source-over'; g.drawImage(c, 0, 0);
+  const cg = c.getContext('2d'); cg.clearRect(0, 0, S, S); cg.drawImage(o, 0, 0);
+}
 function buildSprites() {
   for (let s = 0; s < NS; s++) {
     SPRITES[s] = [];
     for (let v = 0; v < NVAR; v++) {
       const S = 128, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
-      drawSpecies(g, s, S, v);
+      drawSpecies(g, s, S, v); outlineSprite(c);
       const mips = [c]; let prev = c;
       for (let m = 1; m < 4; m++) { const n = S >> m, cc = document.createElement('canvas'); cc.width = cc.height = n; const gg = cc.getContext('2d'); gg.imageSmoothingQuality = 'high'; gg.drawImage(prev, 0, 0, n, n); mips.push(cc); prev = cc; }
       // 预先水平翻转的副本（朝左），渲染时不用 setTransform

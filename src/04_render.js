@@ -277,6 +277,7 @@ const SP_PACK = [], SP_PACK_HI = [];
 function packCol(h) { const [r, g, b] = hex2rgb(h); return 0xff000000 | (b << 16) | (g << 8) | r; }
 function rgb2hex(s) { return s.replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, r, g, b) => '#' + [r, g, b].map(v => (+v).toString(16).padStart(2, '0')).join('')); }
 const _sprList = new Int32Array(MAXC);
+const VIS = 1.35; // 生物绘制放大（碰撞半径不变）
 function drawCreatures(x0, y0, x1, y1, ui) {
   const z = CAM.z, D = CAM.dpr, k = z * D, t = G.t, offx = (CAM.W / 2 - CAM.x * z) * D, offy = (CAM.H / 2 - CAM.y * z) * D;
   const lod = LOD.lodPx; let nSpr = 0, nDot = 0; const maxSpr = LOD.maxSpr, ox0 = G.orb.x, oy0 = G.orb.y;
@@ -305,8 +306,8 @@ function drawCreatures(x0, y0, x1, y1, ui) {
   const sh = shadowSprite();
   for (let q = 0; q < nSpr; q++) {
     const i = _sprList[q], s = csp[i], r = S_r[s] * cg[i], mv = S_mv[s];
-    const fly = mv === MV_FLY || mv === MV_FLOAT || mv === MV_ORBIT, w = r * 2.1 * k * (fly ? 0.7 : 1), h = w * 0.42; if (w < 9 * D) continue;
-    ctx.globalAlpha = fly ? 0.45 : 0.8; ctx.drawImage(sh, cx[i] * k + offx - w / 2, (cy[i] + r * (fly ? 1.5 : 0.92)) * k + offy - h / 2, w, h);
+    const fly = mv === MV_FLY || mv === MV_FLOAT || mv === MV_ORBIT, w = r * 2.1 * VIS * k * (fly ? 0.7 : 1), h = w * 0.42; if (w < 9 * D) continue;
+    ctx.globalAlpha = fly ? 0.45 : 0.8; ctx.drawImage(sh, cx[i] * k + offx - w / 2, (cy[i] + r * VIS * (fly ? 1.5 : 0.92)) * k + offy - h / 2, w, h);
   }
   ctx.globalAlpha = 1;
   // 2) 身体（Q弹：挤压拉伸 + 弹跳）
@@ -323,7 +324,7 @@ function drawCreatures(x0, y0, x1, y1, ui) {
     let v = 0; const st = cst[i];
     if (st === ST_FLEE) v = 4; else if (cang[i] > 0 || st === ST_FIGHT || (st === ST_HUNT && S_diet[s] !== D_E)) v = 5; else if (cage[i] > S_life[s] * 0.75) v = 2; else if (cmood[i] > 0 || st === ST_MATE) v = 3;
     if (v < 4 && ((t * 0.8 + cid[i] * 0.37) % 3.7) < 0.13) v = 1;
-    const ds = r / SPR_BODY, dpx = ds * k; const mip = dpx > 90 ? 0 : dpx > 45 ? 1 : dpx > 22 ? 2 : 3;
+    const ds = r * VIS / SPR_BODY, dpx = ds * k; const mip = dpx > 90 ? 0 : dpx > 45 ? 1 : dpx > 22 ? 2 : 3;
     const n = 128 >> mip;
     const w = dpx * sx, h = dpx * sy, scx = x * k + offx, scy = (y + yo + r * 0.3 * (1 - sy)) * k + offy;
     ctx.drawImage(SPR_ATLAS[mip], (vx < -2 ? v + NVAR : v) * n, s * n, n, n, scx - w / 2, scy - h / 2, w, h);

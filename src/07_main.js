@@ -60,6 +60,7 @@ function loadGame() {
   const o = G.orb; o.x = s.orb.x; o.y = s.orb.y; o.hp = s.orb.hp; o.tank = s.orb.tank != null ? s.orb.tank : tankMax(G.lv); o.dead = 0; o.vx = o.vy = 0;
   G.devs = s.devs.map(d => Object.assign({ powered: true, acc: 0, lastAcc: 0, tt: Math.random(), conn: false, mult: 1, n: 0 }, d));
   recomputePower(); CAM.tz = CAM.z = s.cam || 1;
+  G.spCount.fill(0); for (let i = 0; i < cN; i++) G.spCount[csp[i]]++; G._lastCount = Int32Array.from(G.spCount); G.spAlive = G.spCount.filter(x => x > 0).length;
   return s;
 }
 
@@ -73,7 +74,7 @@ function runOffline(sec, title, done) {
   const before = { lv: G.lv, pop: cN, sp: Array.from(G.spCount), births: G.births, deaths: G.deaths, t: G.t, E: visibleE(), mat: G.matter };
   const ext = new Set(); let maxLvSeen = G.lv, minLvSeen = G.lv;
   $('offline').classList.add('show'); $('offTxt').textContent = title || '你离开期间，生态圈仍在运转'; offCancel = false;
-  const tStart = performance.now(); let simmed = 0, dt = 0.25; const budget = 9000;
+  const tStart = performance.now(); let simmed = 0, dt = 0.25; const budget = 9000; G.offline = true;
   const t0 = performance.now(); for (let k = 0; k < 8 && simmed < sec; k++) { simStep(dt); simmed += dt; G.events.length = 0; }
   const ms = Math.max(0.3, (performance.now() - t0) / 8); const steps = budget / ms; dt = Math.max(0.25, Math.min(4, (sec - simmed) / steps));
   function chunk() {
@@ -86,7 +87,7 @@ function runOffline(sec, title, done) {
     $('offBar').firstChild.style.width = (simmed / sec * 100).toFixed(1) + '%';
     if (simmed < sec && !offCancel && performance.now() - tStart < budget * 1.6) setTimeout(chunk, 0);
     else {
-      $('offline').classList.remove('show'); UI.dockSig = '';
+      $('offline').classList.remove('show'); UI.dockSig = ''; G.offline = false;
       const rep = { sec: simmed, want: sec, before, after: { lv: G.lv, pop: cN, sp: Array.from(G.spCount), E: visibleE(), mat: G.matter }, births: G.births - before.births, deaths: G.deaths - before.deaths, ext: [...ext], maxLv: maxLvSeen, minLv: minLvSeen };
       showReport(rep); saveGame(true); if (done) done(rep);
     }
@@ -103,7 +104,7 @@ function showReport(r) {
     <div class="i">🌊</div><div>潮汐</div><b style="color:${LV_COLORS[r.after.lv]}">Lv${r.before.lv} → Lv${r.after.lv}</b>
     <div class="i">🐾</div><div>生物</div><b>${r.before.pop} → ${r.after.pop}</b>
     <div class="i" style="color:#9ff4ff">✦</div><div>世界能量</div><b class="${dE >= 0 ? 'up' : 'dn'}">${dE >= 0 ? '+' : ''}${fmtN(dE)}</b>
-    <div class="i">🔷</div><div>物质</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
+    <div class="i cm">◆</div><div>物质</div><b class="${dM >= 0 ? 'up' : 'dn'}">${dM >= 0 ? '+' : ''}${fmtN(dM)}</b>
   </div>
   ${r.ext.length ? `<div style="color:#f99">💀 灭绝：${r.ext.map(s => SPECIES[s].name).join('、')}</div>` : ''}
   <table class="tb" style="margin-top:6px">${spLines}</table>
@@ -117,7 +118,7 @@ function toast(msg, col) { const d = document.createElement('div'); d.className 
 const TUT = [
   { i: '✦', txt: () => UI.touch ? '按住右下角【播撒】，把白球里的能量喷到地上' : '按住【空格】播撒能量——生物靠地上的能量生存', done: () => G.flow.spray >= 30 },
   { i: '🐾', txt: () => '点底部的生物卡片，用白球的能量召唤生物', done: () => (G.summons || 0) >= 3 },
-  { i: '🔷', txt: () => '生物会掉落金色【物质】结晶，靠近就能收集', done: () => G.flow.mat >= 10 },
+  { i: '◆', txt: () => '生物会掉落金色【物质】结晶，靠近就能收集', done: () => G.flow.mat >= 10 },
   { i: '🔥', txt: () => '能量会被生物代谢掉、不会再生。食物链越完整，能量用得越久', done: () => G.lv >= 1 || G.t > 150 },
   { i: '🏗️', txt: () => '潮汐 Lv1 解锁建筑：先建【导能塔】扩大能量场，再建【物质收集器】', done: () => G.devs.length > 0 },
   { i: '❓', txt: () => '撞开黑墙探索迷雾——闪烁的 ? 信号下藏着远古遗迹和能量洞', done: () => G.pois.some(q => q.found) },
@@ -324,7 +325,7 @@ function openTide() {
       <div class="i">⚡</div><div>白球能量槽</div><b>${Math.floor(G.orb.tank)} / ${tankMax(lv)}</b>
       <div class="i">➕</div><div>近 10 秒新增（播撒 + 发生器 + 反应堆）</div><b class="up">+${f.inE || 0}</b>
       <div class="i">🔥</div><div>近 10 秒代谢消耗</div><b class="dn">-${f.burn || 0}</b>
-      <div class="i">🔷</div><div>近 10 秒物质产出</div><b class="cm">+${f.mat || 0}</b></div>
+      <div class="i cm">◆</div><div>近 10 秒物质产出</div><b class="cm">+${f.mat || 0}</b></div>
       <div class="note ${net < 0 ? 'warn' : 'okb'}">${net < 0 ? `能量正在减少，照此速度约 <b>${fmtTime(eta)}</b> 后耗尽。<br>办法：播撒能量 · 开拓能量洞 · 接通远古反应堆 · 建造发生器 · 引入捕食者控制食草动物数量。` : '能量收支平衡或增长中。生态圈很健康！'}</div>
       <div class="note">🔬 生态学：能量沿食物链单向流动、逐级耗散（约 10% 定律）。只有食草动物时，它们会繁殖到吃光能量再集体饿死；捕食者让食草动物保持在较低数量（营养级联，就像黄石公园的狼），能量就能细水长流。</div>`;
     }
@@ -340,7 +341,7 @@ function openDex() {
     else B.innerHTML = `<div class="help">
       <div class="i" style="color:#9ff4ff">✦</div><div><b>能量是有限的。</b>白球的能量槽会慢慢回充，按住【播撒】把能量喷到地上，生物才有东西吃。生物的代谢会让能量消失。</div>
       <div class="i">🐾</div><div><b>召唤生物</b>会消耗白球的能量（⚡），高级生物还需要物质（◆）。</div>
-      <div class="i">🔷</div><div><b>物质</b>是生物的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造物质收集器。</div>
+      <div class="i cm">◆</div><div><b>物质</b>是生物的代谢产物。越高级的动物产出越多——一头糖豆龙抵得上上百只史莱姆。靠近就能拾取，或建造物质收集器。</div>
       <div class="i">⚖️</div><div><b>生态平衡</b>：只有食草动物会吃光能量然后集体饿死。加入捕食者，食物链越完整，能量消耗越慢、物质越多、潮汐越高。</div>
       <div class="i">🌊</div><div><b>观测潮汐</b>决定建筑的种类与数量（▣ 额度）。Lv10【永恒之潮】即胜利。</div>
       <div class="i">🏗️</div><div><b>建筑</b>必须建在能量场内：先铺导能塔。高潮汐解锁能量发生器、恒星炉。</div>
@@ -419,7 +420,7 @@ function processEvents() {
       case 'mat': if (e.c >= 5 && inView(e.a, e.b) && CAM.z > 0.4) addFX('ring', e.a, e.b, { life: 0.5, r: 14, color: '#ffd36b' }); break;
       case 'matget': addFX('text', e.a, e.b - 26, { text: '+' + e.c + '◆', life: 1, color: '#ffd36b' }); if (G.t - matSnd > 0.15) { matSnd = G.t; AU.play('gain'); } break;
       case 'found': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1.2, r: 80, color: P.col }); AU.play('lvup'); toast(`<span style="color:${P.col};font-size:18px">${P.icon}</span> 发现 <b style="color:${P.col}">${P.name}</b>`, P.col); break; }
-      case 'poi': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1, r: 60, color: P.col }); CAM.shake = 0.6; AU.play('built'); if (P.key === 'crystal') toast(`🔷 采集晶簇 <b class="cm">+${e.d !== undefined ? e.d : ''}</b>`, P.col); else if (P.key === 'pod') toast('🥚 孵化舱苏醒了！', P.col); break; }
+      case 'poi': { const P = POI[e.c]; addFX('ring', e.a, e.b, { life: 1, r: 60, color: P.col }); CAM.shake = 0.6; AU.play('built'); if (P.key === 'crystal') toast(`<span class="cm">◆</span> 采集晶簇 <b class="cm">+${e.d !== undefined ? e.d : ''}</b>`, P.col); else if (P.key === 'pod') toast('🥚 孵化舱苏醒了！', P.col); break; }
       case 'wallbreak': G.wallBroken = (G.wallBroken || 0) + 1; if (inView(e.a, e.b)) { addFX('ring', e.a, e.b, { life: 0.5, r: 20, color: '#ff9ad0' }); AU.play('wall'); } break;
       case 'tp': addFX('ring', e.a, e.b, { life: 0.4, r: 30 }); AU.play('tp'); break;
       case 'orbdie': toast('💫 白球被黑墙消融了，稍后在方塔重生'); AU.play('lvdown'); break;

@@ -570,7 +570,12 @@ function stepOrb(dt) {
   if (o.spray && o.tank >= 1) {
     o.sprAcc += SPRAY_RATE * dt; let n = Math.min(Math.floor(o.sprAcc), Math.floor(o.tank)); o.sprAcc -= Math.floor(o.sprAcc);
     while (n > 0) { const v = Math.min(n, 2); n -= v; o.tank -= v; G.flow.spray += v; G.flowWin.inE += v; const a = rnd() * 6.2832, sp = 40 + rnd() * 70; addP(o.x + Math.cos(a) * 8, o.y + Math.sin(a) * 8, v, Math.cos(a) * sp + o.vx * 0.3, Math.sin(a) * sp + o.vy * 0.3, 170); }
-  } else o.tank = Math.min(TM, o.tank + tankRegen(G.lv) * dt);
+  } else {
+    o.tank += tankRegen(G.lv) * dt;
+    // 能量槽满了会缓缓溢出（=回充速度），让放置不管 / 离线时生态圈也有一丝细流
+    if (o.tank > TM) { o.ovAcc = (o.ovAcc || 0) + (o.tank - TM); o.tank = TM;
+      while (o.ovAcc >= 1) { o.ovAcc -= 1; G.flow.spray++; G.flowWin.inE++; const a = rnd() * 6.2832, r = 10 + rnd() * 40; addP(o.x + Math.cos(a) * r, o.y + Math.sin(a) * r, 1, Math.cos(a) * 25, Math.sin(a) * 25, 170); } }
+  }
   if (o.tank > TM) o.tank = TM;
   if ((G.frame & 7) === 0) { revealAround(o.x, o.y, 170); checkPOIs(); }
   for (const q of G.pois) if (!q.used && q.found && dist2(q.x, q.y, o.x, o.y) < 55 * 55) touchPOI(q);
@@ -628,7 +633,7 @@ function stepM(dt) {
     mage[j] += dt; if (mage[j] > MAT_LIFE) { mval[j] = 0; continue; }
     let vx = mvx[j], vy = mvy[j];
     // 白球吸取
-    if (!o.dead) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
+    if (!o.dead && !G.offline) { const dx = o.x - mx[j], dy = o.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 22 * 22) { got += collectM(j); continue; } if (d2 < 150 * 150) { const d = Math.sqrt(d2), f = 900 * dt / (0.4 + d / 150); vx += dx / d * f; vy += dy / d * f; } }
     for (const c of cols) { const dx = c.x - mx[j], dy = c.y - my[j], d2 = dx * dx + dy * dy; if (d2 < 18 * 18) { collectM(j); c.n = (c.n || 0) + 1; break; } if (d2 < 210 * 210) { const d = Math.sqrt(d2); vx += dx / d * 260 * dt; vy += dy / d * 260 * dt; } }
     if (!mval[j]) continue;
     const f = Math.exp(-3 * dt); vx *= f; vy *= f;
