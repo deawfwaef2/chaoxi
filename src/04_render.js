@@ -311,9 +311,9 @@ function drawCreatures(x0, y0, x1, y1, ui) {
     if (st === ST_FLEE) v = 4; else if (cang[i] > 0 || st === ST_FIGHT || (st === ST_HUNT && S_diet[s] !== D_E)) v = 5; else if (cage[i] > S_life[s] * 0.75) v = 2; else if (cmood[i] > 0 || st === ST_MATE) v = 3;
     if (v < 4 && ((t * 0.8 + cid[i] * 0.37) % 3.7) < 0.13) v = 1;
     const ds = r / SPR_BODY, dpx = ds * k; const mip = dpx > 90 ? 0 : dpx > 45 ? 1 : dpx > 22 ? 2 : 3;
-    const img = SPRITES[s][vx < -2 ? v + NVAR : v][mip];
+    const n = 128 >> mip;
     const w = dpx * sx, h = dpx * sy, scx = x * k + offx, scy = (y + yo + r * 0.3 * (1 - sy)) * k + offy;
-    ctx.drawImage(img, scx - w / 2, scy - h / 2, w, h);
+    ctx.drawImage(SPR_ATLAS[mip], (vx < -2 ? v + NVAR : v) * n, s * n, n, n, scx - w / 2, scy - h / 2, w, h);
     if (cang[i] > 0.6 && dpx > 20) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (cang[i] - 0.6) * 1.2; ctx.drawImage(glowSpr, scx - w * 0.6, scy - h * 0.6, w * 1.2, h * 1.2); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
   }
   LOD.nSpr = nSpr;

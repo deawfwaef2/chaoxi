@@ -172,7 +172,11 @@ function buildSprites() {
       SPRITES[s][v] = mips; SPRITES[s][v + NVAR] = flips;
     }
   }
+  // 图集：每个 mip 级别一张（行 = 物种，列 = 变体），渲染时同一张纹理，减少切换
+  for (let m = 0; m < 4; m++) { const n = 128 >> m, A = document.createElement('canvas'); A.width = n * NVAR * 2; A.height = n * NS; const ag = A.getContext('2d');
+    for (let s = 0; s < NS; s++) for (let v = 0; v < NVAR * 2; v++) ag.drawImage(SPRITES[s][v][m], v * n, s * n); SPR_ATLAS[m] = A; }
 }
+const SPR_ATLAS = [];
 let _iconCache = {};
 function speciesIcon(s, size) { const k = s + '_' + size; if (_iconCache[k]) return _iconCache[k]; const c = document.createElement('canvas'); c.width = c.height = size; drawSpecies(c.getContext('2d'), s, size, 0); return _iconCache[k] = c.toDataURL(); }
 
