@@ -49,15 +49,15 @@ function buildNebula() {
     const wx = (x + 0.5) / N * GN * CELL - HALF, wy = (y + 0.5) / N * GN * CELL - HALF, dist = Math.hypot(wx, wy) / HALF;
     let f = 0, amp = 0.5, fr = 1 / 22; for (let o = 0; o < 5; o++) { f += amp * n1(x * fr, y * fr); amp *= 0.5; fr *= 2.03; }
     let h = 0; amp = 0.5; fr = 1 / 40; for (let o = 0; o < 3; o++) { h += amp * n2(x * fr + 50, y * fr + 20); amp *= 0.5; fr *= 2.1; }
-    const k = Math.max(0, f - 0.35) * 1.6, fall = Math.max(0.35, 1 - dist * 0.55);
+    const k = Math.pow(Math.max(0, f - 0.38) * 1.7, 1.4), fall = Math.max(0.3, 1 - dist * 0.6) * 0.78;
     // 深海蓝 → 青绿 / 紫罗兰 两种星云按 h 混合
-    let r = 10 + k * (h > 0.5 ? 70 : 20), gg = 16 + k * (h > 0.5 ? 30 : 75), b = 34 + k * (h > 0.5 ? 95 : 70);
+    const m = Math.min(1, Math.max(0, (h - 0.42) * 5)); let r = 8 + k * (18 + 70 * m), gg = 12 + k * (80 - 50 * m), b = 30 + k * (75 + 20 * m);
     const i = (y * N + x) * 4; d[i] = r * fall; d[i + 1] = gg * fall; d[i + 2] = b * fall; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   nebC = mkC(FW); const ng = nebC.getContext('2d'); ng.imageSmoothingEnabled = true; ng.imageSmoothingQuality = 'high'; ng.drawImage(c, 0, 0, FW, FW);
   // 六边形科技网格（很淡）
-  const hexS = 18 * FS / CELL * 6, hh = hexS * Math.sqrt(3); ng.strokeStyle = 'rgba(120,200,255,0.07)'; ng.lineWidth = 1; ng.beginPath();
+  const hexS = 18 * FS / CELL * 6, hh = hexS * Math.sqrt(3); ng.strokeStyle = 'rgba(120,200,255,0.045)'; ng.lineWidth = 1; ng.beginPath();
   for (let row = 0; row * hh * 0.5 < FW + hh; row++) for (let col = 0; col * hexS * 3 < FW + hexS * 3; col++) {
     const cx0 = col * hexS * 3 + (row % 2 ? hexS * 1.5 : 0), cy0 = row * hh * 0.5;
     for (let q = 0; q < 6; q++) { const a = q * Math.PI / 3, a2 = (q + 1) * Math.PI / 3; if (q > 2) continue; ng.moveTo(cx0 + Math.cos(a) * hexS, cy0 + Math.sin(a) * hexS); ng.lineTo(cx0 + Math.cos(a2) * hexS, cy0 + Math.sin(a2) * hexS); }
@@ -71,12 +71,26 @@ function buildNebula() {
 function maskRegion(gx0, gy0, gx1, gy1) {
   gx0 = Math.max(0, gx0); gy0 = Math.max(0, gy0); gx1 = Math.min(GN - 1, gx1); gy1 = Math.min(GN - 1, gy1);
   const X = gx0 * FS, Y = gy0 * FS, Wd = (gx1 - gx0 + 1) * FS, Ht = (gy1 - gy0 + 1) * FS;
-  maskG.save(); maskG.beginPath(); maskG.rect(X, Y, Wd, Ht); maskG.clip(); maskG.clearRect(X, Y, Wd, Ht);
-  maskG.fillStyle = '#fff'; maskG.beginPath(); const rr = FS * 0.74;
-  for (let gy = Math.max(0, gy0 - 1); gy <= Math.min(GN - 1, gy1 + 1); gy++) for (let gx = Math.max(0, gx0 - 1); gx <= Math.min(GN - 1, gx1 + 1); gx++) {
-    if (whp[gy * GN + gx] > 0) continue; const x = (gx + 0.5) * FS, y = (gy + 0.5) * FS; maskG.moveTo(x + rr, y); maskG.arc(x, y, rr, 0, 6.2832);
+  // 平滑开阔度场（3×3 加权）→ 双线性采样 → smoothstep 阈值 = 抗锯齿的圆润洞壁
+  const fx0 = gx0 - 1, fy0 = gy0 - 1, fw = gx1 - gx0 + 3, fh = gy1 - gy0 + 3, F = new Float32Array(fw * fh);
+  const op = (x, y) => (x < 0 || y < 0 || x >= GN || y >= GN) ? 0 : (whp[y * GN + x] <= 0 ? 1 : 0);
+  for (let j = 0; j < fh; j++) for (let i = 0; i < fw; i++) {
+    const x = fx0 + i, y = fy0 + j, c = op(x, y);
+    const sm = (2 * c + op(x - 1, y) + op(x + 1, y) + op(x, y - 1) + op(x, y + 1) + 0.5 * (op(x - 1, y - 1) + op(x + 1, y - 1) + op(x - 1, y + 1) + op(x + 1, y + 1))) / 8;
+    F[j * fw + i] = Math.max(sm, c * 0.62);
   }
-  maskG.fill(); maskG.restore();
+  const img = maskG.createImageData(Wd, Ht), d = new Uint32Array(img.data.buffer);
+  for (let py = 0; py < Ht; py++) {
+    const v = (Y + py + 0.5) / FS - 0.5 - fy0, j = Math.floor(v), ty = v - j;
+    for (let px = 0; px < Wd; px++) {
+      const u = (X + px + 0.5) / FS - 0.5 - fx0, i = Math.floor(u), tx = u - i, o = j * fw + i;
+      const a = F[o], b = F[o + 1], c = F[o + fw], e = F[o + fw + 1];
+      const f = (a + (b - a) * tx) * (1 - ty) + (c + (e - c) * tx) * ty;
+      let al = (f - 0.44) / 0.12; if (al <= 0) continue; if (al > 1) al = 1; else al = al * al * (3 - 2 * al);
+      d[py * Wd + px] = ((al * 255) << 24) | 0xffffff;
+    }
+  }
+  maskG.putImageData(img, X, Y);
   hiG.save(); hiG.beginPath(); hiG.rect(X, Y, Wd, Ht); hiG.clip(); hiG.clearRect(X, Y, Wd, Ht);
   hiG.globalCompositeOperation = 'source-over'; hiG.drawImage(maskC, X, Y, Wd, Ht, X, Y, Wd, Ht);
   hiG.globalCompositeOperation = 'source-in'; hiG.drawImage(nebC, X, Y, Wd, Ht, X, Y, Wd, Ht);
@@ -86,8 +100,8 @@ function rebuildRim() {
   // 墙体（遮罩反相）→ 阴影模糊 → 只保留落在地面上的部分 = 贴着墙边的青色辉光
   invG.globalCompositeOperation = 'source-over'; invG.clearRect(0, 0, RW, RW); invG.fillStyle = '#fff'; invG.fillRect(0, 0, RW, RW);
   invG.globalCompositeOperation = 'destination-out'; invG.drawImage(maskC, 0, 0, RW, RW); invG.globalCompositeOperation = 'source-over';
-  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(80,220,255,1)'; rimG.shadowBlur = 9; rimG.shadowOffsetX = RW * 2;
-  rimG.drawImage(invC, -RW * 2, 0); rimG.drawImage(invC, -RW * 2, 0); rimG.restore();
+  rimG.clearRect(0, 0, RW, RW); rimG.save(); rimG.shadowColor = 'rgba(70,200,255,0.9)'; rimG.shadowBlur = 5; rimG.shadowOffsetX = RW * 2;
+  rimG.drawImage(invC, -RW * 2, 0); rimG.restore();
   rimG.globalCompositeOperation = 'destination-in'; rimG.drawImage(maskC, 0, 0, RW, RW); rimG.globalCompositeOperation = 'source-over';
 }
 function rebuildFloor() {
@@ -159,7 +173,7 @@ function render(realDt, ui) {
     ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.9; ctx.drawImage(floorC, gx0, gy0, gx1 - gx0, gy1 - gy0, sx, sy, sw, sh);
     // 墙边辉光
     const pulse = 0.65 + 0.25 * Math.sin(G.t * 0.8);
-    ctx.globalAlpha = pulse * (G.lv > 0 ? 1 : 0.55); ctx.drawImage(rimC, gx0 * RS, gy0 * RS, (gx1 - gx0) * RS, (gy1 - gy0) * RS, sx, sy, sw, sh);
+    ctx.globalAlpha = pulse * (G.lv > 0 ? 0.55 : 0.3); ctx.drawImage(rimC, gx0 * RS, gy0 * RS, (gx1 - gx0) * RS, (gy1 - gy0) * RS, sx, sy, sw, sh);
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
   drawRune();
@@ -195,19 +209,19 @@ function drawRune() {
 }
 
 /* ---------- 能量粒子：JS 像素缓冲（凝结 = 明亮闪烁的星点；未凝结 = 暗淡紫雾） + 泛光 + 近景星芒 ---------- */
-const _starList = new Int32Array(4000);
+const _starList = new Int32Array(4000), TWK = new Uint8Array(64); for (let q = 0; q < 64; q++) TWK[q] = 3 + ((Math.sin(q / 64 * 6.2832) + 1) * 2.2) | 0;
 function drawParticles(x0, y0, x1, y1) {
   const z = CAM.z, W = CAM.W, H = CAM.H, hx = CAM.x, hy = CAM.y, t = G.t;
   accR.fill(0); accU.fill(0);
   const k = z * 0.5, ox = W / 4 - hx * k, oy = H / 4 - hy * k, bw = pbW, bh = pbH;
-  const big = z > 1.1, huge = z > 2.2, wantStars = z > 1.25; let nStar = 0; const maxStar = Math.min(4000, LOD.stars | 0);
+  const big = z > 1.1, huge = z > 2.2, wantStars = z > 1.25; let nStar = 0; const tf = (t * 30) | 0; const maxStar = Math.min(4000, LOD.stars | 0);
   for (let i = 0; i < pN; i++) {
     const v = pv[i]; if (v === 0) continue;
     const bx = (px[i] * k + ox) | 0, by = (py[i] * k + oy) | 0;
     if (bx < 1 || by < 1 || bx >= bw - 1 || by >= bh - 1) continue;
     const idx = by * bw + bx, w = v > 6 ? 6 : v;
     if (pr[i] === 255) {
-      const tw = 3 + ((Math.sin(t * 3.1 + i * 1.7) + 1) * 2.2) | 0;
+      const tw = TWK[(i * 23 + tf) & 63];
       accR[idx] += tw * w + 3;
       if (big) { accR[idx - 1] += w; accR[idx + 1] += w; accR[idx - bw] += w; accR[idx + bw] += w; if (huge) { accR[idx - bw - 1] += w; accR[idx - bw + 1] += w; accR[idx + bw - 1] += w; accR[idx + bw + 1] += w; } }
       if (wantStars && nStar < maxStar) _starList[nStar++] = i;
@@ -278,7 +292,7 @@ function drawCreatures(x0, y0, x1, y1, ui) {
   const sh = shadowSprite();
   for (let q = 0; q < nSpr; q++) {
     const i = _sprList[q], s = csp[i], r = S_r[s] * cg[i], mv = S_mv[s];
-    const fly = mv === MV_FLY || mv === MV_FLOAT || mv === MV_ORBIT, w = r * 2.1 * k * (fly ? 0.7 : 1), h = w * 0.42;
+    const fly = mv === MV_FLY || mv === MV_FLOAT || mv === MV_ORBIT, w = r * 2.1 * k * (fly ? 0.7 : 1), h = w * 0.42; if (w < 9 * D) continue;
     ctx.globalAlpha = fly ? 0.45 : 0.8; ctx.drawImage(sh, cx[i] * k + offx - w / 2, (cy[i] + r * (fly ? 1.5 : 0.92)) * k + offy - h / 2, w, h);
   }
   ctx.globalAlpha = 1;
