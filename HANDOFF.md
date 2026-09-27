@@ -36,3 +36,11 @@
 
 ## 三、实现记录（按时间追加）
 - 2026-09-27：清空仓库，开始重建单文件 index.html（Canvas2D，无依赖）。
+- 2026-09-27 v0.1：首个可玩版本 index.html（单文件约 70KB）。
+  - 架构：生物/能量粒子全部 TypedArray SoA + 空闲链表；每步用计数排序重建空间网格（格子 40px）；思考分帧（0.35~1.4s）；视野裁剪；远景 LOD 色块；生物精灵预渲染（普通/眨眼/年迈 3 个变体），运行时用 setTransform 做 Q 弹形变。
+  - 能量账本：地图粒子 mEnergy + 生物 cen[] + 墙体封存 wallLatent = 常数。HUD 左上显示“✓守恒”，如出现“⚠偏差”就是 Bug。
+  - 代谢粒子有 3 秒 mlock（不能立即被吃），防止生物吃自己散逸的能量无限永生。
+  - 潮汐：方塔基础 = 存活物种数×1 + min(生物数,500)×0.01，再加各装置在窗口内的累计；上升立即生效，下降每次结算最多降 1 级；Lv0 时所有装置停机（遗迹样式）。
+  - 解锁存 localStorage `chaoxi_meta_v1`（新开局也保留），存档 `chaoxi_save_v1`，每 15 秒自动保存 + 关页面时保存。离线推演最多 12 小时，实际计算预算约 12 秒。
+  - 广告：`Ads` 对象自动识别 CrazyGames v3 / Playgama Bridge / Poki / GameDistribution；没有 SDK 时用 3 秒本地模拟广告。SDK 的 script 标签以注释形式写在 <head> 里。
+  - 测试：/tmp 下的 playwright chromium（不在仓库里）。

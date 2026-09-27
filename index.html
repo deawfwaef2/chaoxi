@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>潮汐生态圈 · Chaoxi</title>
+<!--
+  ===== 平台广告 SDK（上传对应平台时取消注释其中一行即可，游戏会自动识别） =====
+  CrazyGames:  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+  Playgama:    <script src="https://bridge.playgama.com/v1/stable/playgama-bridge.js"></script>
+  Poki:        <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+  GameDistribution: 按其后台说明注入 GD_OPTIONS 与 main.min.js
+  未检测到任何 SDK 时，使用本地“模拟广告”（3 秒倒计时），保证单机可玩。
+-->
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#e8f4ff;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hud{position:fixed;pointer-events:none;z-index:5}
+.pe{pointer-events:auto}
+#topL{left:10px;top:10px;font-size:12px;line-height:1.55;background:rgba(8,14,26,.62);border:1px solid rgba(120,200,255,.18);border-radius:12px;padding:8px 10px;min-width:190px;backdrop-filter:blur(4px)}
+#topL b{color:#9ff}
+#topL .ok{color:#7dffa8}#topL .bad{color:#ff7d7d}
+#hpbar{height:6px;border-radius:3px;background:#223;overflow:hidden;margin-top:4px}
+#hpbar i{display:block;height:100%;background:linear-gradient(90deg,#fff,#aef);width:100%}
+#tide{left:50%;top:8px;transform:translateX(-50%);text-align:center;background:rgba(8,14,26,.62);border:1px solid rgba(120,200,255,.2);border-radius:16px;padding:6px 16px 8px;min-width:230px}
+#tideLv{font-size:22px;font-weight:800;letter-spacing:2px}
+#tideSub{font-size:11px;opacity:.85}
+#tideBar{height:6px;background:#1a2438;border-radius:3px;overflow:hidden;margin-top:5px}
+#tideBar i{display:block;height:100%;width:0;background:#4fd1ff;transition:width .4s}
+#winBar{height:3px;background:#1a2438;border-radius:2px;overflow:hidden;margin-top:3px}
+#winBar i{display:block;height:100%;width:0;background:#fff}
+#panel{right:10px;top:10px;bottom:10px;width:300px;display:flex;flex-direction:column;background:rgba(8,14,26,.78);border:1px solid rgba(120,200,255,.2);border-radius:14px;overflow:hidden;backdrop-filter:blur(6px)}
+#tabs{display:flex;border-bottom:1px solid rgba(120,200,255,.18)}
+#tabs button{flex:1;background:none;border:0;color:#9bb;padding:9px 0;font-size:13px;cursor:pointer;font-family:inherit}
+#tabs button.on{color:#fff;background:rgba(79,209,255,.14);box-shadow:inset 0 -2px #4fd1ff}
+#tabBody{flex:1;overflow-y:auto;padding:8px;font-size:12px}
+#tabBody::-webkit-scrollbar{width:6px}#tabBody::-webkit-scrollbar-thumb{background:#345;border-radius:3px}
+.card{display:flex;gap:8px;align-items:center;padding:6px;border-radius:10px;border:1px solid rgba(120,200,255,.12);margin-bottom:6px;cursor:pointer;background:rgba(255,255,255,.03);transition:background .15s}
+.card:hover{background:rgba(79,209,255,.1)}
+.card.sel{border-color:#4fd1ff;background:rgba(79,209,255,.16)}
+.card.lock{opacity:.42;cursor:not-allowed}
+.card img,.card canvas{width:42px;height:42px;flex:none}
+.card .t{font-weight:700;font-size:13px}
+.card .d{opacity:.75;font-size:11px;line-height:1.35}
+.card .n{margin-left:auto;text-align:right;font-size:11px;opacity:.9;white-space:nowrap}
+.btn{background:linear-gradient(180deg,#2b6d8f,#1c4a63);border:1px solid #4fd1ff66;color:#fff;border-radius:9px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn:hover{filter:brightness(1.2)}
+.btn.warn{background:linear-gradient(180deg,#8f3b2b,#63251c);border-color:#ff8a6666}
+.btn.gold{background:linear-gradient(180deg,#b88a1d,#7a5a10);border-color:#ffd04f88}
+.btn.sm{padding:4px 8px;font-size:12px}
+#modeBar{left:50%;bottom:16px;transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(8,14,26,.85);border:1px solid #4fd1ff55;border-radius:12px;padding:7px 12px;font-size:13px}
+#info{left:10px;bottom:10px;width:250px;display:none;background:rgba(8,14,26,.82);border:1px solid rgba(120,200,255,.25);border-radius:12px;padding:10px;font-size:12px;line-height:1.5}
+#info .bar{height:7px;border-radius:4px;background:#1a2438;overflow:hidden;margin:2px 0 5px}
+#info .bar i{display:block;height:100%}
+#toasts{left:50%;top:92px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
+.toast{background:rgba(8,14,26,.88);border:1px solid #4fd1ff66;border-radius:10px;padding:6px 14px;font-size:13px;animation:tin .3s ease-out;transition:opacity .5s}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+#joy{left:22px;bottom:22px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);display:none}
+#joyK{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.35);box-shadow:0 0 16px #fff8}
+#mbtns{right:14px;bottom:18px;display:none;flex-direction:column;gap:10px}
+#mbtns button{width:58px;height:58px;border-radius:50%;background:rgba(20,40,60,.7);border:2px solid #4fd1ff77;color:#fff;font-size:13px;font-family:inherit}
+#panelToggle{display:none;right:10px;top:10px;z-index:7}
+.ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,30,50,.82),rgba(0,0,0,.94))}
+.ovBox{text-align:center;max-width:560px;padding:24px;background:rgba(8,14,26,.7);border:1px solid rgba(120,200,255,.25);border-radius:20px}
+.ovBox h1{font-size:40px;margin:6px 0;letter-spacing:6px;background:linear-gradient(90deg,#9ff,#fff,#c9f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ovBox p{font-size:13px;opacity:.85;line-height:1.7}
+.big{font-size:20px;padding:12px 38px;border-radius:14px;margin:6px}
+#prog{height:8px;background:#1a2438;border-radius:4px;overflow:hidden;margin:12px 0}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4fd1ff,#c46bff)}
+.kv{display:flex;justify-content:space-between}
+.lg{font-size:11px;opacity:.8;border-left:2px solid #4fd1ff55;padding-left:6px;margin:3px 0}
+@media (max-width:760px){
+ #panel{top:auto;left:6px;right:6px;bottom:6px;width:auto;height:44%;display:none}
+ #panel.open{display:flex}
+ #panelToggle{display:block}
+ #topL{font-size:10px;min-width:0;padding:5px 7px;max-width:44vw}
+ #tide{top:auto;bottom:auto;top:6px;min-width:150px;padding:4px 10px 6px;left:auto;right:64px;transform:none}
+ #tideLv{font-size:16px}
+ #info{left:6px;right:6px;width:auto;bottom:160px}
+ #modeBar{bottom:165px;font-size:12px}
+ #toasts{top:auto;bottom:230px}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="topL" class="hud">
+  <div>⚡ 地图能量 <b id="eMap">0</b></div>
+  <div>🫧 生物能量 <b id="eBio">0</b></div>
+  <div>⬛ 墙体封存 <b id="eWall">0</b></div>
+  <div>Σ 总能量 <b id="eTot">0</b> <span id="eChk" class="ok">✓守恒</span></div>
+  <div>🐾 生物 <b id="pop">0</b> · 物种 <b id="spc">0</b></div>
+  <div>🛰 带宽 <b id="bw">0/0</b></div>
+  <div id="hpbar"><i></i></div>
+</div>
+
+<div id="tide" class="hud">
+  <div id="tideLv">潮汐 Lv.0</div>
+  <div id="tideSub">上次结算 0 · 下一级 1</div>
+  <div id="tideBar"><i></i></div>
+  <div id="winBar"><i></i></div>
+</div>
+
+<button id="panelToggle" class="hud pe btn sm">☰ 菜单</button>
+<div id="panel" class="hud pe">
+  <div id="tabs">
+    <button data-t="bio" class="on">🧬生物</button>
+    <button data-t="dev">🛰装置</button>
+    <button data-t="book">📖图鉴</button>
+    <button data-t="data">📊数据</button>
+    <button data-t="set">⚙</button>
+  </div>
+  <div id="tabBody"></div>
+</div>
+
+<div id="modeBar" class="hud pe"><span id="modeTxt"></span><button id="modeRot" class="btn sm">⟳ 旋转</button><button id="modeX" class="btn sm warn">✕ 取消</button></div>
+<div id="info" class="hud pe"></div>
+<div id="toasts" class="hud"></div>
+<div id="joy" class="hud pe"><div id="joyK"></div></div>
+<div id="mbtns" class="hud pe"><button id="bPull">吸引<br>能量</button><button id="bZin">＋</button><button id="bZout">－</button></div>
+
+<div id="start" class="ov">
+  <div class="ovBox">
+    <div style="font-size:12px;letter-spacing:4px;opacity:.7">TIDE · ECOSYSTEM</div>
+    <h1>潮汐生态圈</h1>
+    <p>你是一颗白色的观测光球。<br>在黑墙包围的小小圆域里，播下软萌的生命，铺设异星观测装置，<br>让生态圈稳定运转，把【观测潮汐】推向最高等级。<br><span style="opacity:.7">能量永远守恒 · 每 10 秒结算一次潮汐 · 关闭游戏也会继续推演</span></p>
+    <div id="startBtns"></div>
+    <p style="font-size:11px;opacity:.6">电脑：WASD移动 · 点击地面瞬移 · 滚轮缩放 · 按住空格吸引能量 · 撞黑墙可消融<br>手机：左下摇杆移动 · 点地面瞬移 · 双指缩放</p>
+  </div>
+</div>
+<div id="offline" class="ov" style="display:none">
+  <div class="ovBox" style="min-width:300px">
+    <h2 id="offT">离线推演中…</h2>
+    <div id="prog"><i></i></div>
+    <div id="offR" style="text-align:left;font-size:13px;line-height:1.7"></div>
+    <button id="offOk" class="btn big" style="display:none">继续观测</button>
+  </div>
+</div>
+<div id="adOv" class="ov" style="display:none"><div class="ovBox"><h2>📺 广告播放中</h2><p id="adTxt">3</p><p style="font-size:11px;opacity:.6">（本地模拟广告：未检测到平台 SDK）</p></div></div>
+<div id="winOv" class="ov" style="display:none"><div class="ovBox"><h1>潮汐满溢</h1><p>观测潮汐达到了最高等级 Lv.10！<br>你的生态圈正在和谐地呼吸。<br>可以继续沙盒观测，挑战更大更稳定的生态圈。</p><button class="btn big" onclick="document.getElementById('winOv').style.display='none'">继续观测</button></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   潮汐生态圈 Chaoxi — 单文件、无依赖、可离线运行
+   结构：常量 → 物种/装置定义 → 世界(墙/网格) → 能量粒子 → 生物 → 装置/供能
+        → 潮汐结算 → 玩家 → 渲染(预渲染精灵) → UI → 存档/离线推演 → 广告适配 → 主循环
+   能量守恒：能量只存在于 粒子(地图) / 生物 / 墙体封存(地图) 三处，所有转移都是整数搬运。
+   ===================================================================== */
+const TAU=Math.PI*2, R=Math.random;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const DT=0.05;                       // 固定模拟步长
+const HALF=4096, WSIZE=8192;         // 世界 [-4096,4096]
+const WCS=32, WN=256;                // 墙体网格
+const R0=430;                        // 初始开放半径
+const GCS=40, GN=Math.ceil(WSIZE/GCS), NC=GN*GN; // 模拟空间网格
+const CCAP=40000, MCAP=160000;
+const TIDE_T=10;                     // 潮汐结算周期(秒)
+const THRESH=[0,1,10,25,50,90,150,240,360,520,750];
+const LVCOL=['#5a6275','#4fd1ff','#4fffc3','#7dff6a','#d7ff4f','#ffd04f','#ff9a4f','#ff5fa8','#c46bff','#8d8dff','#ffffff'];
+const SAVE_KEY='chaoxi_save_v1', META_KEY='chaoxi_meta_v1';
+
+/* ------------------------- 物种定义 ------------------------- */
+// move: hop 跳跳 / float 漂浮 / swim 游动 / walk 走路 / still 固着 / fly 飞行
+// diet: mote=吃能量粒子；prey=可捕食物种id列表
+const SPECIES=[
+ {id:'slime',name:'果冻史莱姆',unlock:0,r:9,col:'#7ee0a1',col2:'#c8ffd9',shape:'slime',move:'hop',speed:50,maxE:14,birthE:5,reproE:12,cool:8,mat:10,metab:0.10,life:90,sense:120,mote:1,prey:[],desc:'Q弹的基础食能者，跳跳地吃掉散落的能量。'},
+ {id:'fluff',name:'绒绒球',unlock:0,r:8,col:'#ffd1ec',col2:'#fff3fa',shape:'fluff',move:'float',speed:26,maxE:10,birthE:4,reproE:9,cool:10,mat:12,metab:0.06,life:150,sense:90,mote:1,prey:[],desc:'慢悠悠飘着的毛球，省能长寿。'},
+ {id:'fish',name:'泡泡鱼',unlock:1,r:7,col:'#7cc8ff',col2:'#d6f0ff',shape:'fish',move:'swim',speed:72,maxE:9,birthE:3,reproE:8,cool:6,mat:6,metab:0.12,life:60,sense:130,mote:1,prey:[],desc:'游得飞快的小鱼，繁殖迅速，是很多掠食者的点心。'},
+ {id:'mush',name:'蘑菇仔',unlock:1,r:8,col:'#ff7a8a',col2:'#fff1dd',shape:'mush',move:'still',speed:0,maxE:16,birthE:5,reproE:13,cool:12,mat:15,metab:0.04,life:220,sense:34,mote:1,prey:[],desc:'扎根不动，吸收飘过身边的能量，用孢子繁衍。'},
+ {id:'bunny',name:'麻薯兔',unlock:2,r:10,col:'#fff6e8',col2:'#ffc6d6',shape:'bunny',move:'hop',speed:64,maxE:24,birthE:9,reproE:20,cool:12,mat:15,metab:0.12,life:110,sense:150,mote:0,prey:['mush','fluff'],desc:'软糯的麻薯兔，最爱啃蘑菇仔和绒绒球。'},
+ {id:'fly',name:'萤火团',unlock:2,r:5,col:'#fff27a',col2:'#fffbd1',shape:'firefly',move:'fly',speed:82,maxE:5,birthE:2,reproE:5,cool:4,mat:4,metab:0.10,life:35,sense:100,mote:1,prey:[],desc:'一闪一闪的小光团，寿命短暂但生生不息。'},
+ {id:'fox',name:'小狐团',unlock:3,r:12,col:'#ffa55c',col2:'#fff4e6',shape:'fox',move:'walk',speed:74,maxE:40,birthE:14,reproE:34,cool:18,mat:20,metab:0.18,life:150,sense:190,mote:0,prey:['slime','bunny','fish','fly'],desc:'圆滚滚的小狐狸，生态圈的中层掠食者。'},
+ {id:'jelly',name:'星星水母',unlock:3,r:13,col:'#b9a6ff',col2:'#efe9ff',shape:'jelly',move:'float',speed:22,maxE:30,birthE:10,reproE:26,cool:20,mat:20,metab:0.08,life:260,sense:140,mote:1,prey:[],desc:'在空中漂流的星光水母，温柔地过滤能量。'},
+ {id:'turtle',name:'布丁龟',unlock:4,r:16,col:'#e0a458',col2:'#fff0b8',shape:'turtle',move:'walk',speed:16,maxE:60,birthE:18,reproE:50,cool:30,mat:30,metab:0.10,life:420,sense:120,mote:1,prey:['mush'],desc:'背着焦糖布丁壳的慢吞吞乌龟，非常长寿。'},
+ {id:'owl',name:'咕咕枭',unlock:5,r:14,col:'#a48cff',col2:'#f1ebff',shape:'owl',move:'fly',speed:88,maxE:70,birthE:24,reproE:60,cool:30,mat:30,metab:0.25,life:260,sense:240,mote:0,prey:['fox','bunny','fly','fish'],desc:'夜空中的猎手，大眼睛什么都看得见。'},
+ {id:'bear',name:'蜜糖熊',unlock:6,r:18,col:'#c98a54',col2:'#ffe2b8',shape:'bear',move:'walk',speed:40,maxE:90,birthE:30,reproE:80,cool:40,mat:40,metab:0.25,life:360,sense:160,mote:1,prey:['slime','mush','fluff'],desc:'杂食的蜜糖熊，能量和小生物都吃。'},
+ {id:'whale',name:'云朵鲸',unlock:7,r:30,col:'#dff3ff',col2:'#9fd3ff',shape:'whale',move:'float',speed:28,maxE:220,birthE:70,reproE:190,cool:80,mat:60,metab:0.40,life:700,sense:260,mote:0,prey:['fly','fish','fluff','jelly'],desc:'巨大的云朵鲸，张嘴就吞下一群小家伙。'},
+ {id:'dragon',name:'彩虹龙宝',unlock:8,r:22,col:'#8fe3c6',col2:'#fff',shape:'dragon',move:'fly',speed:82,maxE:200,birthE:60,reproE:170,cool:70,mat:60,metab:0.50,life:600,sense:280,mote:0,prey:['owl','fox','bear','bunny'],desc:'顶级掠食者，但也是生态失衡的放大器。'},
+ {id:'uni',name:'月光独角兽',unlock:9,r:24,col:'#f6f4ff',col2:'#ffd7f5',shape:'unicorn',move:'walk',speed:50,maxE:260,birthE:80,reproE:220,cool:90,mat:70,metab:0.35,life:900,sense:220,mote:1,prey:['mush'],desc:'传说中的月光独角兽，是稳定生态的象征。'},
+];
+const NS=SPECIES.length;
+SPECIES.forEach((s,i)=>{s.idx=i;});
+SPECIES.forEach(s=>{s.preyMask=0;s.prey.forEach(id=>{const t=SPECIES.find(q=>q.id===id);s.preyMask|=1<<t.idx;});s.predMask=0;});
+SPECIES.forEach(s=>{SPECIES.forEach(p=>{if(p.preyMask&(1<<s.idx))s.predMask|=1<<p.idx;});});
+
+/* ------------------------- 观测者装置定义 ------------------------- */
+const DEVICES=[
+ {id:'pylon',name:'谐振电塔',unlock:0,bw:1,time:8,radius:190,col:'#7df9ff',desc:'提供供能范围。装置必须建在供能范围内，电塔可连续铺设。'},
+ {id:'census',name:'普查环',unlock:0,bw:3,time:15,radius:130,col:'#4fd1ff',desc:'范围内每个生物每秒 +0.02 潮汐。'},
+ {id:'wire',name:'量子绊线',unlock:0,bw:2,time:12,len:220,col:'#7dff9a',desc:'每有生物穿过光线 +1 潮汐。放置时可旋转。'},
+ {id:'bell',name:'诞生之钟',unlock:1,bw:3,time:18,radius:150,col:'#ffd04f',desc:'范围内每次繁衍 +1.5 潮汐。'},
+ {id:'pump',name:'引能漩涡',unlock:1,bw:2,time:14,radius:220,col:'#c46bff',desc:'缓缓把能量粒子吸向自身（装置不储存能量）。'},
+ {id:'incub',name:'孵化舱',unlock:2,bw:4,time:24,radius:120,col:'#ff9ad5',desc:'每 20 秒吸取周围能量孵化指定物种，帮助生态恢复。'},
+ {id:'prism',name:'多样性棱镜',unlock:2,bw:4,time:22,radius:220,col:'#ffffff',desc:'每次结算：范围内物种数² × 1.5 潮汐。'},
+ {id:'eye',name:'捕食观测眼',unlock:3,bw:3,time:18,radius:180,col:'#ff5f6d',desc:'范围内每次捕食 +3 潮汐。'},
+ {id:'diff',name:'星流扩散器',unlock:3,bw:2,time:14,radius:220,col:'#5fffe0',desc:'把能量粒子推开，防止局部枯竭或堆积。'},
+ {id:'repel',name:'驱猎柱',unlock:4,bw:3,time:20,radius:160,col:'#ff9a4f',desc:'驱赶掠食者，建立小生物的避难所。'},
+ {id:'chrono',name:'时间晶格',unlock:5,bw:5,time:30,radius:150,col:'#ffe08a',desc:'范围内生物衰老速度减半。'},
+ {id:'harm',name:'共鸣尖塔',unlock:6,bw:6,time:36,radius:0,col:'#ffb3f0',desc:'若最近 3 次结算波动 <15%，总潮汐 +15%（可叠加）。'},
+ {id:'amp',name:'潮汐放大器',unlock:7,bw:8,time:45,radius:0,col:'#8d8dff',desc:'所有绊线与普查环收益 +25%（可叠加）。'},
+];
+const DEVMAP={};DEVICES.forEach(d=>DEVMAP[d.id]=d);
+const TOWER_R=240;
+
+/* ------------------------- 世界：墙 ------------------------- */
+const wallHP=new Float32Array(WN*WN), wallMax=new Float32Array(WN*WN), wallE=new Uint8Array(WN*WN);
+let wallLatent=0, wallDirty=true;
+const wallCv=document.createElement('canvas');wallCv.width=wallCv.height=WN;
+const wallCtx=wallCv.getContext('2d');const wallImg=wallCtx.createImageData(WN,WN);
+function wIdx(x,y){const gx=((x+HALF)/WCS)|0,gy=((y+HALF)/WCS)|0;if(x<-HALF||y<-HALF||gx>=WN||gy>=WN)return -1;return gy*WN+gx;}
+function isWall(x,y){const i=wIdx(x,y);return i<0||wallHP[i]>0;}
+function wallBaseHP(d){return 20*Math.pow(d/R0,2.2);}
+function initWalls(){
+  wallLatent=0;
+  for(let gy=0;gy<WN;gy++)for(let gx=0;gx<WN;gx++){
+    const i=gy*WN+gx,x=gx*WCS-HALF+WCS/2,y=gy*WCS-HALF+WCS/2,d=Math.hypot(x,y);
+    const edge=gx<2||gy<2||gx>=WN-2||gy>=WN-2;
+    wallE[i]=1+Math.floor(d/600);
+    if(d<R0){wallHP[i]=0;wallMax[i]=0;}
+    else{wallMax[i]=edge?1e9:wallBaseHP(d);wallHP[i]=wallMax[i];}
+  }
+  recomputeWallLatent();wallDirty=true;
+}
+function recomputeWallLatent(){wallLatent=0;for(let i=0;i<WN*WN;i++)if(wallHP[i]>0)wallLatent+=wallE[i];}
+function refreshWallImg(){
+  const d=wallImg.data;
+  for(let i=0;i<WN*WN;i++){d[i*4]=0;d[i*4+1]=0;d[i*4+2]=0;d[i*4+3]=wallHP[i]>0?255:0;}
+  wallCtx.putImageData(wallImg,0,0);wallDirty=false;
+}
+function breakWall(i){
+  if(wallHP[i]<=0&&wallMax[i]===0)return;
+  wallHP[i]=0;const e=wallE[i];wallLatent-=e;
+  const gx=i%WN,gy=(i/WN)|0,x=gx*WCS-HALF+WCS/2,y=gy*WCS-HALF+WCS/2;
+  for(let k=0;k<e;k++)spawnMote(x+(R()-.5)*20,y+(R()-.5)*20,1,40,1.0);
+  wallDirty=true;stats.cells++;
+  fx.push({t:'ring',x,y,life:0.6,max:0.6,r:30,col:'#fff'});
+}
+
+/* ------------------------- 能量粒子（地图能量） ------------------------- */
+const mx=new Float32Array(MCAP),my=new Float32Array(MCAP),mvx=new Float32Array(MCAP),mvy=new Float32Array(MCAP),mlock=new Float32Array(MCAP);
+const mval=new Uint16Array(MCAP),malive=new Uint8Array(MCAP),mFree=new Int32Array(MCAP);
+let mFreeN=0,mHigh=0,mCount=0,mEnergy=0;
+function resetMotes(){malive.fill(0);mFreeN=0;mHigh=0;mCount=0;mEnergy=0;}
+function spawnMote(x,y,val,spd,lock){
+  if(val<=0)return;
+  if(isWall(x,y)){x*=0.98;y*=0.98;}
+  while(val>0){
+    let i;
+    if(mFreeN>0)i=mFree[--mFreeN];else if(mHigh<MCAP)i=mHigh++;
+    else{ // 池满：并入随机粒子（能量不丢）
+      for(let t=0;t<30;t++){const j=(R()*mHigh)|0;if(malive[j]&&mval[j]<60000){mval[j]+=val;mEnergy+=val;return;}}
+      for(let j=0;j<mHigh;j++)if(malive[j]&&mval[j]<60000){mval[j]+=val;mEnergy+=val;return;}
+      return;
+    }
+    const a=R()*TAU,s=(spd||0)*(0.4+R()*0.6);
+    mx[i]=x;my[i]=y;mvx[i]=Math.cos(a)*s;mvy[i]=Math.sin(a)*s;mlock[i]=lock||0;
+    const v=mCount>MCAP*0.9?val:1; // 池接近满时整块放
+    mval[i]=v;malive[i]=1;mCount++;mEnergy+=v;val-=v;
+  }
+}
+function eatMote(i){const v=mval[i];malive[i]=0;mFree[mFreeN++]=i;mCount--;mEnergy-=v;return v;}
+
+/* ------------------------- 空间网格（计数排序，每帧重建） ------------------------- */
+function makeGrid(cap){return{start:new Int32Array(NC+1),cur:new Int32Array(NC),items:new Int32Array(cap)};}
+const MG=makeGrid(MCAP), CG=makeGrid(CCAP);
+const cCell=new Int32Array(CCAP);
+function cellOf(x,y){let gx=((x+HALF)/GCS)|0,gy=((y+HALF)/GCS)|0;gx=gx<0?0:gx>=GN?GN-1:gx;gy=gy<0?0:gy>=GN?GN-1:gy;return gy*GN+gx;}
+const mCellTmp=new Int32Array(MCAP);
+function buildMoteGrid(){
+  const st=MG.start;st.fill(0);
+  for(let i=0;i<mHigh;i++){if(!malive[i]){mCellTmp[i]=-1;continue;}const c=cellOf(mx[i],my[i]);mCellTmp[i]=c;st[c+1]++;}
+  for(let c=0;c<NC;c++)st[c+1]+=st[c];
+  MG.cur.set(st.subarray(0,NC));
+  for(let i=0;i<mHigh;i++){const c=mCellTmp[i];if(c>=0)MG.items[MG.cur[c]++]=i;}
+}
+function buildCreatureGrid(){
+  const st=CG.start;st.fill(0);
+  for(let i=0;i<cHigh;i++){if(!calive[i]){cCell[i]=-1;continue;}const c=cellOf(cx[i],cy[i]);cCell[i]=c;st[c+1]++;}
+  for(let c=0;c<NC;c++)st[c+1]+=st[c];
+  CG.cur.set(st.subarray(0,NC));
+  for(let i=0;i<cHigh;i++){const c=cCell[i];if(c>=0)CG.items[CG.cur[c]++]=i;}
+}
+// 回调遍历矩形区域内的格子
+function forCellsIn(x0,y0,x1,y1,fn){
+  let gx0=((x0+HALF)/GCS)|0,gy0=((y0+HALF)/GCS)|0,gx1=((x1+HALF)/GCS)|0,gy1=((y1+HALF)/GCS)|0;
+  gx0=clamp(gx0,0,GN-1);gy0=clamp(gy0,0,GN-1);gx1=clamp(gx1,0,GN-1);gy1=clamp(gy1,0,GN-1);
+  for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++)fn(gy*GN+gx);
+}
+
+/* ------------------------- 生物（SoA TypedArray） ------------------------- */
+const cx=new Float32Array(CCAP),cy=new Float32Array(CCAP),cvx=new Float32Array(CCAP),cvy=new Float32Array(CCAP);
+const cdx=new Float32Array(CCAP),cdy=new Float32Array(CCAP),cpx=new Float32Array(CCAP),cpy=new Float32Array(CCAP);
+const cage=new Float32Array(CCAP),cmeta=new Float32Array(CCAP),cthink=new Float32Array(CCAP),ccool=new Float32Array(CCAP),cphase=new Float32Array(CCAP),cslow=new Float32Array(CCAP);
+const cen=new Int32Array(CCAP),ctgt=new Int32Array(CCAP),ctgtId=new Int32Array(CCAP),cid=new Int32Array(CCAP),cgen=new Uint16Array(CCAP);
+const csp=new Uint8Array(CCAP),calive=new Uint8Array(CCAP),cmode=new Uint8Array(CCAP),cFree=new Int32Array(CCAP);
+let cFreeN=0,cHigh=0,cCount=0,cSerial=1;
+const spCount=new Int32Array(NS);let presentMask=0;
+function resetCreatures(){calive.fill(0);cFreeN=0;cHigh=0;cCount=0;spCount.fill(0);}
+function spawnCreature(sp,x,y,en,gen){
+  let i;if(cFreeN>0)i=cFree[--cFreeN];else if(cHigh<CCAP)i=cHigh++;else return -1;
+  cx[i]=x;cy[i]=y;cpx[i]=x;cpy[i]=y;cvx[i]=0;cvy[i]=0;cdx[i]=0;cdy[i]=0;
+  cage[i]=0;cmeta[i]=R();cthink[i]=R()*0.3;ccool[i]=SPECIES[sp].cool*0.5;cphase[i]=R()*100;cslow[i]=0;
+  cen[i]=en;ctgt[i]=-1;ctgtId[i]=0;cid[i]=cSerial++;cgen[i]=gen||0;csp[i]=sp;calive[i]=1;cmode[i]=0;
+  cCount++;spCount[sp]++;return i;
+}
+function killCreature(i,burst){
+  if(!calive[i])return;
+  if(burst&&cen[i]>0)spawnMote(cx[i],cy[i],cen[i],45,1.2);
+  cen[i]=0;calive[i]=0;cFree[cFreeN++]=i;cCount--;
+  const sp=csp[i];spCount[sp]--;
+  if(spCount[sp]===0&&everSeen[sp]){logEvent('💀 '+SPECIES[sp].name+' 在生态圈中灭绝了');}
+  stats.deaths++;
+}
+const everSeen=new Uint8Array(NS);
+
+// 最近的可食粒子
+function nearestMote(x,y,range){
+  const g0x=clamp(((x+HALF)/GCS)|0,0,GN-1),g0y=clamp(((y+HALF)/GCS)|0,0,GN-1);
+  const RR=Math.ceil(range/GCS);let best=-1,bd=range*range;
+  const st=MG.start,it=MG.items;
+  for(let r=0;r<=RR;r++){
+    for(let dy=-r;dy<=r;dy++){const gy=g0y+dy;if(gy<0||gy>=GN)continue;
+      const step=(dy===-r||dy===r)?1:2*r||1;
+      for(let dx=-r;dx<=r;dx+=step){const gx=g0x+dx;if(gx<0||gx>=GN)continue;
+        const c=gy*GN+gx;let e=st[c+1];const s0=st[c];if(e-s0>14)e=s0+14;
+        for(let k=s0;k<e;k++){const j=it[k];if(!malive[j]||mlock[j]>0)continue;const ddx=mx[j]-x,ddy=my[j]-y,d2=ddx*ddx+ddy*ddy;if(d2<bd){bd=d2;best=j;}}
+      }}
+    if(best>=0&&(r*GCS)*(r*GCS)>bd)break;
+  }
+  return best;
+}
+// 最近的指定物种掩码生物
+function nearestCreature(x,y,range,mask,self){
+  const g0x=clamp(((x+HALF)/GCS)|0,0,GN-1),g0y=clamp(((y+HALF)/GCS)|0,0,GN-1);
+  const RR=Math.ceil(range/GCS);let best=-1,bd=range*range;const st=CG.start,it=CG.items;
+  for(let r=0;r<=RR;r++){
+    for(let dy=-r;dy<=r;dy++){const gy=g0y+dy;if(gy<0||gy>=GN)continue;
+      const step=(dy===-r||dy===r)?1:2*r||1;
+      for(let dx=-r;dx<=r;dx+=step){const gx=g0x+dx;if(gx<0||gx>=GN)continue;
+        const c=gy*GN+gx;let e=st[c+1];const s0=st[c];if(e-s0>20)e=s0+20;
+        for(let k=s0;k<e;k++){const j=it[k];if(j===self||!calive[j]||!(mask&(1<<csp[j])))continue;const ddx=cx[j]-x,ddy=cy[j]-y,d2=ddx*ddx+ddy*ddy;if(d2<bd){bd=d2;best=j;}}
+      }}
+    if(best>=0&&(r*GCS)*(r*GCS)>bd)break;
+  }
+  return best;
+}
+
+function think(i){
+  const s=SPECIES[csp[i]];const x=cx[i],y=cy[i];
+  const old=cage[i]>s.life*0.8;const spd=s.speed*(old?0.7:1);
+  cthink[i]=0.35+R()*0.3;
+  if(s.move==='still'){cmode[i]=0;cdx[i]=0;cdy[i]=0;cthink[i]=0.5;return;}
+  // 逃跑
+  if(s.predMask&presentMask){
+    const p=nearestCreature(x,y,s.sense*0.75,s.predMask,i);
+    if(p>=0){let ax=x-cx[p],ay=y-cy[p];const d=Math.hypot(ax,ay)||1;cdx[i]=ax/d*spd*1.25;cdy[i]=ay/d*spd*1.25;cmode[i]=3;cthink[i]=0.25;return;}
+  }
+  // 觅食
+  if(cen[i]<s.maxE*0.92){
+    if(s.preyMask&presentMask){
+      const p=nearestCreature(x,y,s.sense,s.preyMask,i);
+      if(p>=0&&SPECIES[csp[p]].r<=s.r*1.1){ctgt[i]=p;ctgtId[i]=cid[p];cmode[i]=2;return;}
+    }
+    if(s.mote){const m=nearestMote(x,y,s.sense);if(m>=0){ctgt[i]=m;cmode[i]=1;return;}}
+  }
+  // 闲逛
+  cmode[i]=0;
+  if(R()<0.35||(cdx[i]===0&&cdy[i]===0)){
+    let a=R()*TAU;
+    // 远离塔太远时略微回归，避免全部贴墙
+    const d=Math.hypot(x,y);if(d>200&&R()<0.25)a=Math.atan2(-y,-x)+(R()-.5);
+    const w=spd*(0.3+R()*0.4);cdx[i]=Math.cos(a)*w;cdy[i]=Math.sin(a)*w;
+  }
+  cthink[i]=0.6+R()*0.8;
+}
+
+function hopLift(i,t){const s=SPECIES[csp[i]];const h=((t*s.speed/40+cphase[i])%1);return Math.sin(h*Math.PI);}
+
+function updateCreatures(dt){
+  const st=CG.start,it=CG.items,mst=MG.start,mit=MG.items;
+  for(let i=0;i<cHigh;i++){
+    if(!calive[i])continue;
+    const sp=csp[i],s=SPECIES[sp];
+    // 衰老
+    cage[i]+=dt*(cslow[i]>0?0.5:1);if(cslow[i]>0)cslow[i]-=dt;
+    if(cage[i]>=s.life){killCreature(i,true);continue;}
+    // 代谢：能量以粒子形式散逸回地图（守恒）
+    cmeta[i]+=s.metab*dt;
+    while(cmeta[i]>=1&&cen[i]>0){cmeta[i]-=1;cen[i]--;spawnMote(cx[i],cy[i],1,32,3.0);}
+    if(cen[i]<=0){killCreature(i,false);continue;}
+    // 思考（分帧）
+    cthink[i]-=dt;if(cthink[i]<=0)think(i);
+    const old=cage[i]>s.life*0.8;const spd=s.speed*(old?0.7:1);
+    let tx=cdx[i],ty=cdy[i];
+    const m=cmode[i];
+    if(m===1){const j=ctgt[i];
+      if(!malive[j]){cthink[i]=Math.min(cthink[i],0.05);}
+      else{const ddx=mx[j]-cx[i],ddy=my[j]-cy[i],d=Math.hypot(ddx,ddy);
+        if(d<s.r+4){if(cen[i]+mval[j]<=s.maxE){cen[i]+=eatMote(j);}cthink[i]=0;}
+        else{tx=ddx/d*spd;ty=ddy/d*spd;}}
+    }else if(m===2){const j=ctgt[i];
+      if(!calive[j]||cid[j]!==ctgtId[i]){cthink[i]=Math.min(cthink[i],0.05);}
+      else{const ddx=cx[j]-cx[i],ddy=cy[j]-cy[i],d=Math.hypot(ddx,ddy);const rr=s.r+SPECIES[csp[j]].r;
+        if(d<rr+2){ // 捕食：能量转移，溢出爆回地图
+          const gain=Math.min(cen[j],s.maxE-cen[i]);cen[i]+=gain;const rest=cen[j]-gain;
+          if(rest>0)spawnMote(cx[j],cy[j],rest,40,1.0);
+          cen[j]=0;killCreature(j,false);stats.preds++;onPredation(cx[i],cy[i]);cthink[i]=0.2;
+          fx.push({t:'pop',x:cx[j],y:cy[j],life:0.35,max:0.35,r:SPECIES[csp[j]].r*2,col:SPECIES[csp[j]].col});
+        }else{tx=ddx/d*spd*1.15;ty=ddy/d*spd*1.15;}}
+    }
+    // 固着生物：吸收附近粒子
+    if(s.move==='still'){
+      if(cthink[i]>0.45&&cen[i]<s.maxE){
+        const r2=s.sense*s.sense;
+        forCellsIn(cx[i]-s.sense,cy[i]-s.sense,cx[i]+s.sense,cy[i]+s.sense,c=>{
+          for(let k=mst[c];k<mst[c+1];k++){const j=mit[k];if(!malive[j]||mlock[j]>0)continue;const ddx=mx[j]-cx[i],ddy=my[j]-cy[i];if(ddx*ddx+ddy*ddy<r2&&cen[i]+mval[j]<=s.maxE)cen[i]+=eatMote(j);}
+        });
+      }
+      tx=0;ty=0;
+    }else if(s.mote&&cen[i]<s.maxE&&((i+tick)&1)){
+      // 顺路吃掉同格子里碰到的粒子
+      const c=cCell[i];if(c>=0){let e=mst[c+1];if(e-mst[c]>10)e=mst[c]+10;const rr=(s.r+3)*(s.r+3);
+        for(let k=mst[c];k<e;k++){const j=mit[k];if(!malive[j]||mlock[j]>0)continue;const ddx=mx[j]-cx[i],ddy=my[j]-cy[i];if(ddx*ddx+ddy*ddy<rr&&cen[i]+mval[j]<=s.maxE)cen[i]+=eatMote(j);}}
+    }
+    // 运动风格
+    let k=1;
+    if(s.move==='hop'){const l=hopLift(i,simTime);k=l>0.15?1.7:0.08;}
+    // 物理：惯性 + 转向
+    const acc=Math.min(1,dt*(s.move==='float'?1.5:5));
+    cvx[i]+=(tx*k-cvx[i])*acc;cvy[i]+=(ty*k-cvy[i])*acc;
+    cpx[i]=cx[i];cpy[i]=cy[i];
+    let nx=cx[i]+cvx[i]*dt,ny=cy[i]+cvy[i]*dt;
+    if(isWall(nx,ny)){
+      if(!isWall(nx,cy[i])){ny=cy[i];cvy[i]*=-0.6;}
+      else if(!isWall(cx[i],ny)){nx=cx[i];cvx[i]*=-0.6;}
+      else{nx=cx[i];ny=cy[i];cvx[i]*=-0.6;cvy[i]*=-0.6;cdx[i]=-cdx[i];cdy[i]=-cdy[i];}
+    }
+    cx[i]=nx;cy[i]=ny;
+    // 软碰撞（同格+邻格，限次数）
+    const c=cCell[i];
+    if(c>=0){let checks=0;const gx=c%GN,gy=(c/GN)|0;const mi=s.r*s.r*(s.move==='still'?6:1);
+      for(let oy=-1;oy<=1&&checks<14;oy++){const yy=gy+oy;if(yy<0||yy>=GN)continue;
+        for(let ox=-1;ox<=1&&checks<14;ox++){const xx=gx+ox;if(xx<0||xx>=GN)continue;const cc=yy*GN+xx;
+          for(let q=st[cc];q<st[cc+1]&&checks<14;q++){const j=it[q];if(j<=i||!calive[j])continue;checks++;
+            const sj=SPECIES[csp[j]];const ddx=cx[j]-cx[i],ddy=cy[j]-cy[i];const rr=(s.r+sj.r)*0.85;const d2=ddx*ddx+ddy*ddy;
+            if(d2<rr*rr&&d2>0.0001){const d=Math.sqrt(d2),ov=(rr-d)/d*0.5;const mj=sj.r*sj.r*(sj.move==='still'?6:1);const wi=mj/(mi+mj),wj=1-wi;
+              const px=ddx*ov,py=ddy*ov;
+              const ax=cx[i]-px*wi,ay=cy[i]-py*wi;if(!isWall(ax,ay)){cx[i]=ax;cy[i]=ay;}
+              const bx=cx[j]+px*wj,by=cy[j]+py*wj;if(!isWall(bx,by)){cx[j]=bx;cy[j]=by;}}
+          }}}
+    }
+    // 繁衍：能量从亲代转移到子代
+    ccool[i]-=dt;
+    if(ccool[i]<=0&&cage[i]>s.mat&&cen[i]>=s.reproE){
+      const cc=cCell[i];const crowd=cc>=0?st[cc+1]-st[cc]:0;
+      if(crowd<(s.r>14?4:10)){
+        const a=R()*TAU,dd=s.move==='still'?60+R()*90:s.r*1.6;
+        let bx=cx[i]+Math.cos(a)*dd,by=cy[i]+Math.sin(a)*dd;if(isWall(bx,by)){bx=cx[i];by=cy[i];}
+        const ch=spawnCreature(sp,bx,by,s.birthE,cgen[i]+1);
+        if(ch>=0){cen[i]-=s.birthE;stats.births++;onBirth(bx,by);if(s.move!=='still'){cvx[ch]=Math.cos(a)*40;cvy[ch]=Math.sin(a)*40;}}
+        ccool[i]=s.cool*(0.8+R()*0.4);
+      }else ccool[i]=2;
+    }
+  }
+}
+
+function updateMotes(dt){
+  const st=MG.start;const damp=Math.exp(-1.6*dt);
+  const ppx=player.x,ppy=player.y,pull=player.pulling;
+  for(let i=0;i<mHigh;i++){
+    if(!malive[i])continue;
+    let vx=mvx[i],vy=mvy[i];const x=mx[i],y=my[i];
+    if(mlock[i]>0)mlock[i]-=dt;
+    // 密度扩散：能量只能“聚集”不能“聚团”
+    const c=mCellTmp[i];
+    if(c>=0){const gx=c%GN,gy=(c/GN)|0;
+      const l=gx>0?st[c]-st[c-1]:0, r=gx<GN-1?st[c+2]-st[c+1]:0, u=gy>0?st[c-GN+1]-st[c-GN]:0, d=gy<GN-1?st[c+GN+1]-st[c+GN]:0;
+      vx+=(l-r)*0.9*dt;vy+=(u-d)*0.9*dt;}
+    // 方塔微弱聚能
+    const d2=x*x+y*y;if(d2<90000&&d2>900){const d=Math.sqrt(d2),f=7*(1-d/300)/d*dt;vx-=x*f;vy-=y*f;}
+    // 布朗运动
+    vx+=(R()-.5)*24*dt;vy+=(R()-.5)*24*dt;
+    // 玩家
+    const px=x-ppx,py=y-ppy,pd2=px*px+py*py;
+    if(pull&&pd2<32400&&pd2>100){const pd=Math.sqrt(pd2),f=90/pd*dt;vx-=px*f;vy-=py*f;}
+    else if(pd2<400&&pd2>0.01){const pd=Math.sqrt(pd2),f=120/pd*dt;vx+=px*f;vy+=py*f;}
+    vx*=damp;vy*=damp;
+    const sp2=vx*vx+vy*vy;if(sp2>6400){const k=80/Math.sqrt(sp2);vx*=k;vy*=k;}
+    let nx=x+vx*dt,ny=y+vy*dt;
+    if(isWall(nx,ny)){nx=x;ny=y;vx=-vx*0.5+(-x)*0.002;vy=-vy*0.5+(-y)*0.002;}
+    mx[i]=nx;my[i]=ny;mvx[i]=vx;mvy[i]=vy;
+  }
+}
+
+/* ------------------------- 观测者装置 & 供能网络 ------------------------- */
+let devices=[],devSerial=1,devByType={};
+function rebuildDevIndex(){devByType={};for(const d of devices){(devByType[d.type]||(devByType[d.type]=[])).push(d);}recomputePower();}
+function powerSources(){const src=[{x:0,y:0,r:TOWER_R}];for(const d of devices)if(d.type==='pylon'&&d.built&&d.powered)src.push({x:d.x,y:d.y,r:DEVMAP.pylon.radius});return src;}
+function recomputePower(){
+  for(const d of devices)d.powered=false;
+  // 从方塔开始 BFS 连锁供能
+  const pyl=devices.filter(d=>d.type==='pylon');const q=[{x:0,y:0,r:TOWER_R}];
+  while(q.length){const s=q.shift();for(const p of pyl){if(p.powered)continue;if(Math.hypot(p.x-s.x,p.y-s.y)<=s.r){p.powered=true;if(p.built)q.push({x:p.x,y:p.y,r:DEVMAP.pylon.radius});}}}
+  const src=powerSources();
+  for(const d of devices){if(d.type==='pylon')continue;d.powered=src.some(s=>Math.hypot(d.x-s.x,d.y-s.y)<=s.r);}
+}
+function inPower(x,y){return powerSources().some(s=>Math.hypot(x-s.x,y-s.y)<=s.r);}
+function bwCap(){return 10+6*tide.level;}
+function bwUsed(){let u=0;for(const d of devices)u+=DEVMAP[d.type].bw;return u;}
+function devActive(d){return d.built&&d.powered&&tide.level>0;}
+function efficiency(){const u=bwUsed(),c=bwCap();return u<=c?1:c/u;}
+function addTide(d,v){const e=efficiency()*v;tide.acc+=e;d.acc+=e;}
+function onBirth(x,y){const L=devByType.bell;if(!L)return;for(const d of L){if(!devActive(d))continue;const r=DEVMAP.bell.radius;if((x-d.x)**2+(y-d.y)**2<r*r)addTide(d,1.5);}}
+function onPredation(x,y){const L=devByType.eye;if(!L)return;for(const d of L){if(!devActive(d))continue;const r=DEVMAP.eye.radius;if((x-d.x)**2+(y-d.y)**2<r*r)addTide(d,3);}}
+function ampMul(){const L=devByType.amp;let n=0;if(L)for(const d of L)if(devActive(d))n++;return 1+0.25*n;}
+function wireEnds(d){const L=DEVMAP.wire.len/2,c=Math.cos(d.rot),s=Math.sin(d.rot);return[d.x-c*L,d.y-s*L,d.x+c*L,d.y+s*L];}
+
+function updateDevices(dt){
+  const mst=MG.start,mit=MG.items,st=CG.start,it=CG.items;
+  for(const d of devices){
+    if(!d.built){d.buildLeft-=dt;if(d.buildLeft<=0){d.built=true;d.buildLeft=0;recomputePower();toast('🛰 '+DEVMAP[d.type].name+' 建造完成');}continue;}
+    if(!devActive(d))continue;
+    const def=DEVMAP[d.type],r=def.radius,r2=r*r;d.t=(d.t||0)+dt;
+    switch(d.type){
+      case 'census':
+        if(d.t>=1){d.t-=1;let n=0;forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(calive[j]&&(cx[j]-d.x)**2+(cy[j]-d.y)**2<r2)n++;}});addTide(d,n*0.02*ampMul());d.n=n;}
+        break;
+      case 'wire':{
+        const [x0,y0,x1,y1]=wireEnds(d);const ex=x1-x0,ey=y1-y0,len2=ex*ex+ey*ey;
+        forCellsIn(Math.min(x0,x1)-10,Math.min(y0,y1)-10,Math.max(x0,x1)+10,Math.max(y0,y1)+10,c=>{
+          for(let k=st[c];k<st[c+1];k++){const j=it[k];if(!calive[j])continue;
+            const s1=(cpx[j]-x0)*ey-(cpy[j]-y0)*ex,s2=(cx[j]-x0)*ey-(cy[j]-y0)*ex;
+            if((s1<0)!==(s2<0)){const tpar=((cx[j]-x0)*ex+(cy[j]-y0)*ey)/len2;if(tpar>=0&&tpar<=1){addTide(d,1*ampMul());d.flash=0.25;}}}
+        });if(d.flash>0)d.flash-=dt;break;}
+      case 'pump': case 'diff':{
+        const sgn=d.type==='pump'?-1:1,str=d.type==='pump'?30:40;
+        forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=mst[c];k<mst[c+1];k++){const j=mit[k];if(!malive[j])continue;const ddx=mx[j]-d.x,ddy=my[j]-d.y,dd2=ddx*ddx+ddy*ddy;if(dd2<r2&&dd2>64){const dd=Math.sqrt(dd2),f=sgn*str*(1-dd/r)/dd*dt;mvx[j]+=ddx*f;mvy[j]+=ddy*f;}}});
+        break;}
+      case 'repel':
+        forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(!calive[j]||!SPECIES[csp[j]].preyMask)continue;const ddx=cx[j]-d.x,ddy=cy[j]-d.y,dd2=ddx*ddx+ddy*ddy;if(dd2<r2&&dd2>1){const dd=Math.sqrt(dd2);cvx[j]+=ddx/dd*300*dt;cvy[j]+=ddy/dd*300*dt;if(cmode[j]===2&&R()<0.1)cthink[j]=0;}}});
+        break;
+      case 'chrono':
+        if(d.t>=0.5){d.t=0;forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(calive[j]&&(cx[j]-d.x)**2+(cy[j]-d.y)**2<r2)cslow[j]=0.6;}});}
+        break;
+      case 'incub':{
+        if(d.t>=20){d.t=0;const s=SPECIES[d.sp|0];const need=s.birthE;let have=0;const list=[];
+          forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=mst[c];k<mst[c+1];k++){const j=mit[k];if(have>=need)return;if(!malive[j])continue;if((mx[j]-d.x)**2+(my[j]-d.y)**2<r2){list.push(j);have+=mval[j];}}});
+          if(have>=need&&isUnlocked(s)){let got=0;for(const j of list)got+=eatMote(j);const extra=got-need;
+            const ch=spawnCreature(s.idx,d.x+(R()-.5)*20,d.y+18,need,0);
+            if(ch<0)spawnMote(d.x,d.y,need,30,0.5);else{everSeen[s.idx]=1;onBirth(d.x,d.y);}
+            if(extra>0)spawnMote(d.x,d.y,extra,30,0.5);d.flash=0.6;}
+        }if(d.flash>0)d.flash-=dt;break;}
+    }
+  }
+}
+
+/* ------------------------- 潮汐结算 ------------------------- */
+const tide={level:0,maxLevel:0,acc:0,last:0,winT:0,hist:[],popHist:[]};
+let meta={maxLevel:0};
+function isUnlocked(s){return meta.maxLevel>=s.unlock;}
+function levelFor(tp){let l=0;for(let k=1;k<THRESH.length;k++)if(tp>=THRESH[k])l=k;return l;}
+function settleTide(silent){
+  // 方塔基础观测：物种多样性 + 种群规模
+  let sa=0;for(let s=0;s<NS;s++)if(spCount[s]>0)sa++;
+  let tp=sa*1+Math.min(cCount,500)*0.01;
+  // 装置结算型收益
+  for(const d of devices){d.last=d.acc;d.acc=0;}
+  tp+=tide.acc;
+  const L=devByType.prism;if(L)for(const d of L){if(!devActive(d))continue;const r=DEVMAP.prism.radius,r2=r*r;let mask=0;const st=CG.start,it=CG.items;
+    forCellsIn(d.x-r,d.y-r,d.x+r,d.y+r,c=>{for(let k=st[c];k<st[c+1];k++){const j=it[k];if(calive[j]&&(cx[j]-d.x)**2+(cy[j]-d.y)**2<r2)mask|=1<<csp[j];}});
+    let n=0;for(let s=0;s<NS;s++)if(mask&(1<<s))n++;const v=n*n*1.5*efficiency();tp+=v;d.last+=v;}
+  const H=devByType.harm;if(H&&tide.hist.length>=3){const h=tide.hist.slice(-3);const mn=Math.min(...h),mxv=Math.max(...h),av=(h[0]+h[1]+h[2])/3;
+    if(av>0&&(mxv-mn)/av<0.15){let n=0;for(const d of H)if(devActive(d))n++;const b=tp*0.15*n*efficiency();tp+=b;for(const d of H)if(devActive(d))d.last=b/n;}}
+  if(cCount===0)tp=0;
+  tide.acc=0;tide.last=tp;tide.hist.push(tp);if(tide.hist.length>120)tide.hist.shift();
+  const pop=[];for(let s=0;s<NS;s++)pop.push(spCount[s]);tide.popHist.push(pop);if(tide.popHist.length>120)tide.popHist.shift();
+  const prev=tide.level,target=levelFor(tp);
+  if(target>prev)tide.level=target;else if(target<prev)tide.level=prev-1; // 下降有缓冲：每次最多降 1 级
+  if(tide.level!==prev){
+    if(tide.level>prev)logEvent('🌊 潮汐升至 Lv.'+tide.level,silent);else logEvent('🌫 潮汐降至 Lv.'+tide.level,silent);
+    if(tide.level===0)logEvent('🗿 潮汐归零 —— 观测装置全部停机，化为遗迹…',silent);
+    if(prev===0&&tide.level>0&&devices.length)logEvent('✨ 遗迹重新苏醒',silent);
+  }
+  tide.peak=Math.max(tide.peak||0,tide.level);
+  if(tide.level>meta.maxLevel){
+    const o=meta.maxLevel;meta.maxLevel=tide.level;saveMeta();
+    const ns=SPECIES.filter(s=>s.unlock>o&&s.unlock<=meta.maxLevel).map(s=>s.name),nd=DEVICES.filter(s=>s.unlock>o&&s.unlock<=meta.maxLevel).map(s=>s.name);
+    if(ns.length||nd.length)logEvent('🔓 解锁：'+ns.concat(nd).join('、'),silent);
+    uiDirty=true;
+  }
+  if(tide.level>=10&&!tide.won){tide.won=true;if(!silent)document.getElementById('winOv').style.display='flex';}
+}
+
+/* ------------------------- 玩家白色光球 ------------------------- */
+const player={x:0,y:130,vx:0,vy:0,hp:100,cd:0,pulling:false,dig:null,dead:0,trail:[]};
+function digPower(){return 30*(1+0.3*meta.maxLevel);}
+function updatePlayer(dt){
+  if(player.dead>0){player.dead-=dt;if(player.dead<=0){player.x=0;player.y=90;player.hp=100;toast('光球在方塔旁重组');}return;}
+  let ix=0,iy=0;
+  if(keys.KeyW||keys.ArrowUp)iy-=1;if(keys.KeyS||keys.ArrowDown)iy+=1;if(keys.KeyA||keys.ArrowLeft)ix-=1;if(keys.KeyD||keys.ArrowRight)ix+=1;
+  ix+=joy.x;iy+=joy.y;const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il;}
+  const sp=260;player.vx+=(ix*sp-player.vx)*Math.min(1,dt*8);player.vy+=(iy*sp-player.vy)*Math.min(1,dt*8);
+  player.pulling=!!(keys.Space||pullBtn);
+  let nx=player.x+player.vx*dt,ny=player.y+player.vy*dt;player.dig=null;
+  const pr=10;
+  const probe=(x,y)=>{const a=Math.atan2(player.vy,player.vx);return wIdx(x+Math.cos(a)*pr,y+Math.sin(a)*pr);};
+  const wi=probe(nx,ny);
+  if(il>0.1&&(wi<0||wallHP[wi]>0)){
+    // 撞墙：消融墙体，自己掉血
+    if(wi>=0&&wallMax[wi]<1e8){wallHP[wi]-=digPower()*dt;player.hp-=7*dt;player.dig=wi;
+      if(R()<0.6)fx.push({t:'spark',x:nx+Math.cos(Math.atan2(player.vy,player.vx))*pr,y:ny+Math.sin(Math.atan2(player.vy,player.vx))*pr,vx:(R()-.5)*120,vy:(R()-.5)*120,life:0.4,max:0.4});
+      if(wallHP[wi]<=0)breakWall(wi);}
+    // 尝试沿墙滑动
+    if(!isWall(nx,player.y))ny=player.y;else if(!isWall(player.x,ny))nx=player.x;else{nx=player.x;ny=player.y;}
+    player.vx*=0.5;player.vy*=0.5;
+  }
+  player.x=nx;player.y=ny;
+  if(!player.dig)player.hp=Math.min(100,player.hp+12*dt);
+  if(player.hp<=0){player.dead=2;player.hp=0;toast('光球消散了…2 秒后重组');fx.push({t:'ring',x:player.x,y:player.y,life:1,max:1,r:80,col:'#fff'});}
+  if(player.cd>0)player.cd-=dt;
+  // 推开生物（物理感）
+  forCellsIn(player.x-30,player.y-30,player.x+30,player.y+30,c=>{for(let k=CG.start[c];k<CG.start[c+1];k++){const j=CG.items[k];if(!calive[j])continue;const ddx=cx[j]-player.x,ddy=cy[j]-player.y,d2=ddx*ddx+ddy*ddy,rr=SPECIES[csp[j]].r+pr;if(d2<rr*rr&&d2>0.01){const d=Math.sqrt(d2);cvx[j]+=ddx/d*200*dt*5;cvy[j]+=ddy/d*200*dt*5;}}});
+  player.trail.push(player.x,player.y);if(player.trail.length>24)player.trail.splice(0,2);
+}
+function teleport(x,y){
+  if(player.dead>0)return;
+  if(player.cd>0){toast('瞬移冷却中');return;}
+  if(isWall(x,y)){toast('无法瞬移进黑墙');return;}
+  const d=Math.hypot(x-player.x,y-player.y);if(d>900){toast('太远了');return;}
+  fx.push({t:'ring',x:player.x,y:player.y,life:0.4,max:0.4,r:40,col:'#fff'});
+  player.x=x;player.y=y;player.vx=0;player.vy=0;player.cd=0.8;
+  fx.push({t:'ring',x,y,life:0.5,max:0.5,r:50,col:'#bff'});
+}
+
+/* ------------------------- 统计 & 事件 ------------------------- */
+let stats={births:0,deaths:0,preds:0,cells:0};
+const eventLog=[];
+function logEvent(msg,silent){eventLog.unshift(fmtClock()+' '+msg);if(eventLog.length>60)eventLog.pop();if(!silent)toast(msg);if(offlineReport)offlineReport.events.push(msg);}
+function fmtClock(){const t=simTime|0;return '['+String((t/60)|0).padStart(2,'0')+':'+String(t%60).padStart(2,'0')+']';}
+function toast(msg){if(inOffline)return;const el=document.createElement('div');el.className='toast';el.textContent=msg;const box=document.getElementById('toasts');box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.remove(),500);},2600);}
+
+/* ------------------------- 模拟步进 ------------------------- */
+let simTime=0,tick=0;
+function simStep(dt){
+  tick++;simTime+=dt;
+  presentMask=0;for(let s=0;s<NS;s++)if(spCount[s]>0){presentMask|=1<<s;everSeen[s]=1;}
+  buildMoteGrid();buildCreatureGrid();
+  updateDevices(dt);
+  updateCreatures(dt);
+  updateMotes(dt);
+  tide.winT+=dt;if(tide.winT>=TIDE_T){tide.winT-=TIDE_T;settleTide(inOffline);}
+}
+
+/* ------------------------- 新世界 ------------------------- */
+function newWorld(){
+  initWalls();resetMotes();resetCreatures();devices=[];rebuildDevIndex();everSeen.fill(0);
+  simTime=0;tick=0;stats={births:0,deaths:0,preds:0,cells:0};eventLog.length=0;
+  Object.assign(tide,{level:0,acc:0,last:0,winT:0,hist:[],popHist:[],won:false,peak:0});
+  // 中心一团能量（大量粒子聚集）
+  for(let k=0;k<1800;k++){const a=R()*TAU,r=Math.abs((R()+R()+R()-1.5))*150+20;spawnMote(Math.cos(a)*r,Math.sin(a)*r,1,0,0);}
+  for(let k=0;k<14;k++){const a=R()*TAU,r=80+R()*200;spawnCreature(0,Math.cos(a)*r,Math.sin(a)*r,SPECIES[0].birthE+3,0);}
+  for(let k=0;k<10;k++){const a=R()*TAU,r=80+R()*200;spawnCreature(1,Math.cos(a)*r,Math.sin(a)*r,SPECIES[1].birthE+2,0);}
+  Object.assign(player,{x:0,y:130,vx:0,vy:0,hp:100,dead:0,trail:[]});
+  E0=totalEnergy();zoom=1.1;logEvent('🌱 新的生态圈诞生了',true);
+}
+function totalEnergy(){let b=0;for(let i=0;i<cHigh;i++)if(calive[i])b+=cen[i];return{map:mEnergy,bio:b,wall:wallLatent,sum:mEnergy+b+wallLatent};}
+let E0={sum:0};
+
+/* ------------------------- 精灵预渲染（Q版生物） ------------------------- */
+const SPR=128,SCX=64,SCY=70,SRAD=34;
+function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function rgb(a){return'rgb('+(a[0]|0)+','+(a[1]|0)+','+(a[2]|0)+')';}
+function mix(c,d,t){const a=hex2rgb(c),b=hex2rgb(d);return rgb([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]);}
+function mixHex(c,d,t){const a=hex2rgb(c),b=hex2rgb(d);const r=[0,1,2].map(k=>Math.round(a[k]+(b[k]-a[k])*t));return'#'+r.map(v=>v.toString(16).padStart(2,'0')).join('');}
+function desat(c,t){const a=hex2rgb(c);const g=(a[0]+a[1]+a[2])/3;return'#'+a.map(v=>Math.round(v+(g-v)*t).toString(16).padStart(2,'0')).join('');}
+const lighten=(c,t)=>mix(c,'#ffffff',t),darken=(c,t)=>mix(c,'#1a1030',t);
+function grad(g,col,x,y,r){const gr=g.createRadialGradient(x-r*.35,y-r*.45,r*.1,x,y,r*1.15);gr.addColorStop(0,lighten(col,.55));gr.addColorStop(.55,col);gr.addColorStop(1,darken(col,.18));return gr;}
+function fillStroke(g,col){g.fillStyle=grad(g,col,0,0,SRAD);g.fill();g.lineWidth=2.6;g.strokeStyle=darken(col,.42);g.stroke();}
+function ell(g,x,y,rx,ry,rot){g.beginPath();g.ellipse(x,y,rx,ry,rot||0,0,TAU);}
+function shine(g,x,y,rx,ry){g.save();g.globalAlpha=.55;g.fillStyle='#fff';ell(g,x,y,rx,ry,-.5);g.fill();g.restore();}
+const Rr=SRAD;
+const SHAPES={
+ slime(g,c){g.beginPath();g.moveTo(-Rr*1.05,Rr*.8);g.bezierCurveTo(-Rr*1.2,-Rr*.2,-Rr*.62,-Rr*1.02,0,-Rr*1.02);g.bezierCurveTo(Rr*.62,-Rr*1.02,Rr*1.2,-Rr*.2,Rr*1.05,Rr*.8);g.quadraticCurveTo(0,Rr*1.02,-Rr*1.05,Rr*.8);g.closePath();fillStroke(g,c);shine(g,-Rr*.45,-Rr*.55,Rr*.24,Rr*.12);},
+ fluff(g,c){g.beginPath();const N=20;for(let k=0;k<=N;k++){const a=k/N*TAU,a2=(k+.5)/N*TAU;const r1=Rr*.95,r2=Rr*1.1;if(k===0)g.moveTo(Math.cos(a)*r1,Math.sin(a)*r1);else g.quadraticCurveTo(Math.cos(a-.5/N*TAU)*r2,Math.sin(a-.5/N*TAU)*r2,Math.cos(a)*r1,Math.sin(a)*r1);}g.closePath();fillStroke(g,c);shine(g,-Rr*.4,-Rr*.5,Rr*.2,Rr*.1);},
+ fish(g,c,c2){g.beginPath();g.moveTo(-Rr*.8,0);g.lineTo(-Rr*1.4,-Rr*.55);g.quadraticCurveTo(-Rr*1.2,0,-Rr*1.4,Rr*.55);g.closePath();g.fillStyle=darken(c,.1);g.fill();g.strokeStyle=darken(c,.42);g.lineWidth=2.4;g.stroke();
+   g.beginPath();g.moveTo(-Rr*.2,-Rr*.7);g.quadraticCurveTo(Rr*.1,-Rr*1.15,Rr*.4,-Rr*.68);g.fillStyle=c2;g.fill();g.stroke();
+   ell(g,0,0,Rr*1.02,Rr*.8);fillStroke(g,c);ell(g,Rr*.05,Rr*.35,Rr*.6,Rr*.3);g.fillStyle=c2;g.globalAlpha=.6;g.fill();g.globalAlpha=1;shine(g,-Rr*.2,-Rr*.45,Rr*.22,Rr*.1);},
+ mush(g,c,c2){g.beginPath();g.roundRect(-Rr*.55,-Rr*.15,Rr*1.1,Rr*1.05,Rr*.38);g.fillStyle=grad(g,c2,0,Rr*.3,Rr*.7);g.fill();g.lineWidth=2.4;g.strokeStyle=darken(c2,.45);g.stroke();
+   g.beginPath();g.moveTo(-Rr*1.2,Rr*.02);g.bezierCurveTo(-Rr*1.2,-Rr*1.15,Rr*1.2,-Rr*1.15,Rr*1.2,Rr*.02);g.quadraticCurveTo(0,-Rr*.22,-Rr*1.2,Rr*.02);g.closePath();g.fillStyle=grad(g,c,0,-Rr*.5,Rr);g.fill();g.strokeStyle=darken(c,.42);g.stroke();
+   g.fillStyle='#fff';[[-.55,-.45,.17],[.1,-.72,.13],[.62,-.38,.15],[-.1,-.3,.1]].forEach(p=>{ell(g,Rr*p[0],Rr*p[1],Rr*p[2],Rr*p[2]*.85);g.fill();});},
+ bunny(g,c,c2){[-1,1].forEach(s=>{ell(g,s*Rr*.38,-Rr*1.02,Rr*.22,Rr*.62,s*.18);g.fillStyle=grad(g,c,s*Rr*.38,-Rr*1.02,Rr*.6);g.fill();g.lineWidth=2.4;g.strokeStyle=darken(c,.42);g.stroke();ell(g,s*Rr*.38,-Rr*.98,Rr*.1,Rr*.42,s*.18);g.fillStyle=c2;g.fill();});
+   ell(g,0,Rr*.05,Rr*1.05,Rr*.95);fillStroke(g,c);shine(g,-Rr*.45,-Rr*.4,Rr*.2,Rr*.1);},
+ firefly(g,c){const gr=g.createRadialGradient(0,0,0,0,0,Rr*1.7);gr.addColorStop(0,'rgba(255,245,150,.55)');gr.addColorStop(1,'rgba(255,245,150,0)');g.fillStyle=gr;g.fillRect(-64,-70,128,128);
+   g.globalAlpha=.7;g.fillStyle='#fff';[-1,1].forEach(s=>{ell(g,s*Rr*.6,-Rr*.75,Rr*.45,Rr*.28,s*.5);g.fill();});g.globalAlpha=1;
+   g.strokeStyle='#5a4a30';g.lineWidth=2;[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*Rr*.2,-Rr*.8);g.quadraticCurveTo(s*Rr*.3,-Rr*1.3,s*Rr*.55,-Rr*1.35);g.stroke();ell(g,s*Rr*.55,-Rr*1.35,Rr*.1,Rr*.1);g.fillStyle='#fff27a';g.fill();});
+   ell(g,0,0,Rr*.9,Rr*.9);fillStroke(g,c);},
+ fox(g,c,c2){g.save();g.rotate(.4);ell(g,Rr*.95,Rr*.35,Rr*.42,Rr*.75);g.fillStyle=grad(g,c,Rr*.95,Rr*.35,Rr*.7);g.fill();g.lineWidth=2.4;g.strokeStyle=darken(c,.42);g.stroke();ell(g,Rr*.95,Rr*.95,Rr*.26,Rr*.22);g.fillStyle=c2;g.fill();g.restore();
+   [-1,1].forEach(s=>{g.beginPath();g.moveTo(s*Rr*.25,-Rr*.8);g.lineTo(s*Rr*.72,-Rr*1.25);g.lineTo(s*Rr*.85,-Rr*.45);g.closePath();g.fillStyle=c;g.fill();g.strokeStyle=darken(c,.42);g.stroke();g.beginPath();g.moveTo(s*Rr*.4,-Rr*.78);g.lineTo(s*Rr*.68,-Rr*1.05);g.lineTo(s*Rr*.74,-Rr*.6);g.closePath();g.fillStyle='#ffd9e0';g.fill();});
+   ell(g,0,0,Rr,Rr*.95);fillStroke(g,c);ell(g,0,Rr*.42,Rr*.62,Rr*.42);g.fillStyle=c2;g.fill();},
+ jelly(g,c,c2){const gr=g.createRadialGradient(0,0,0,0,0,Rr*1.6);gr.addColorStop(0,'rgba(200,180,255,.35)');gr.addColorStop(1,'rgba(200,180,255,0)');g.fillStyle=gr;g.fillRect(-64,-70,128,128);
+   g.strokeStyle=c;g.lineWidth=4;g.lineCap='round';[-.6,-.2,.2,.6].forEach(p=>{g.beginPath();g.moveTo(Rr*p,Rr*.2);g.bezierCurveTo(Rr*(p+.18),Rr*.55,Rr*(p-.18),Rr*.75,Rr*p,Rr*1.05);g.stroke();});
+   g.beginPath();g.moveTo(-Rr*1.05,Rr*.25);g.bezierCurveTo(-Rr*1.1,-Rr*1.1,Rr*1.1,-Rr*1.1,Rr*1.05,Rr*.25);for(let k=0;k<5;k++){const x0=Rr*1.05-k*Rr*.42;g.quadraticCurveTo(x0-Rr*.21,Rr*.48,x0-Rr*.42,Rr*.25);}g.closePath();g.globalAlpha=.92;fillStroke(g,c);g.globalAlpha=1;
+   g.fillStyle='#fff';g.save();g.translate(Rr*.5,-Rr*.55);g.beginPath();for(let k=0;k<10;k++){const a=k/10*TAU-Math.PI/2,r=k%2?Rr*.07:Rr*.17;g.lineTo(Math.cos(a)*r,Math.sin(a)*r);}g.fill();g.restore();},
+ turtle(g,c,c2){g.fillStyle=mix('#9adf8a','#fff',.1);g.strokeStyle='#3c6a3a';g.lineWidth=2.4;[[-.7,.75],[.7,.75]].forEach(p=>{ell(g,Rr*p[0],Rr*p[1],Rr*.25,Rr*.18);g.fill();g.stroke();});
+   ell(g,0,Rr*.25,Rr*.85,Rr*.7);g.fillStyle=grad(g,c2,0,Rr*.3,Rr*.8);g.fill();g.strokeStyle=darken(c2,.45);g.stroke();
+   g.beginPath();g.moveTo(-Rr*1.1,-Rr*.05);g.bezierCurveTo(-Rr*1.05,-Rr*1.15,Rr*1.05,-Rr*1.15,Rr*1.1,-Rr*.05);
+   for(let k=0;k<6;k++){const x0=Rr*1.1-k*Rr*.366;g.quadraticCurveTo(x0-Rr*.18,Rr*(k%2?.12:.3),x0-Rr*.366,-Rr*.05);}g.closePath();fillStroke(g,c);
+   g.strokeStyle=lighten(c,.35);g.lineWidth=2;g.beginPath();g.moveTo(-Rr*.5,-Rr*.3);g.lineTo(-Rr*.2,-Rr*.7);g.lineTo(Rr*.2,-Rr*.7);g.lineTo(Rr*.5,-Rr*.3);g.stroke();shine(g,-Rr*.45,-Rr*.6,Rr*.18,Rr*.08);},
+ owl(g,c,c2){[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*Rr*.3,-Rr*.85);g.lineTo(s*Rr*.75,-Rr*1.25);g.lineTo(s*Rr*.85,-Rr*.55);g.closePath();g.fillStyle=c;g.fill();g.lineWidth=2.4;g.strokeStyle=darken(c,.42);g.stroke();});
+   ell(g,0,0,Rr,Rr*1.02);fillStroke(g,c);ell(g,0,Rr*.45,Rr*.55,Rr*.45);g.fillStyle=c2;g.fill();
+   g.fillStyle='#fff';[-1,1].forEach(s=>{ell(g,s*Rr*.36,-Rr*.08,Rr*.3,Rr*.3);g.fill();});
+   g.beginPath();g.moveTo(-Rr*.09,Rr*.12);g.lineTo(Rr*.09,Rr*.12);g.lineTo(0,Rr*.3);g.closePath();g.fillStyle='#ffb347';g.fill();},
+ bear(g,c,c2){[-1,1].forEach(s=>{ell(g,s*Rr*.68,-Rr*.72,Rr*.3,Rr*.3);g.fillStyle=c;g.fill();g.lineWidth=2.4;g.strokeStyle=darken(c,.42);g.stroke();ell(g,s*Rr*.68,-Rr*.72,Rr*.15,Rr*.15);g.fillStyle=c2;g.fill();});
+   ell(g,0,0,Rr*1.05,Rr);fillStroke(g,c);ell(g,0,Rr*.35,Rr*.45,Rr*.33);g.fillStyle=c2;g.fill();ell(g,0,Rr*.22,Rr*.12,Rr*.08);g.fillStyle='#3a2418';g.fill();
+   g.beginPath();g.moveTo(-Rr*.35,-Rr*.9);g.quadraticCurveTo(0,-Rr*1.12,Rr*.35,-Rr*.9);g.lineTo(Rr*.2,-Rr*.72);g.quadraticCurveTo(Rr*.12,-Rr*.55,Rr*.05,-Rr*.72);g.lineTo(-Rr*.35,-Rr*.85);g.closePath();g.fillStyle='#ffc93c';g.fill();},
+ whale(g,c,c2){g.fillStyle=c;g.strokeStyle=darken(c2,.5);g.lineWidth=2.4;g.beginPath();g.moveTo(-Rr*.9,0);g.quadraticCurveTo(-Rr*1.2,-Rr*.1,-Rr*1.45,-Rr*.5);g.quadraticCurveTo(-Rr*1.3,0,-Rr*1.45,Rr*.35);g.quadraticCurveTo(-Rr*1.15,Rr*.15,-Rr*.9,Rr*.1);g.fill();g.stroke();
+   ell(g,0,0,Rr*1.12,Rr*.82);g.fillStyle=grad(g,c,0,0,Rr);g.fill();g.strokeStyle=darken(c2,.5);g.stroke();ell(g,Rr*.1,Rr*.42,Rr*.8,Rr*.33);g.fillStyle=c2;g.globalAlpha=.55;g.fill();g.globalAlpha=1;
+   g.fillStyle='#9fd3ff';[[0,-1.1,.1],[-.2,-1.25,.08],[.2,-1.25,.08],[0,-1.4,.07]].forEach(p=>{ell(g,Rr*(p[0]+.25),Rr*p[1],Rr*p[2],Rr*p[2]);g.fill();});shine(g,-Rr*.3,-Rr*.45,Rr*.28,Rr*.1);},
+ dragon(g,c,c2){[-1,1].forEach(s=>{g.beginPath();g.moveTo(s*Rr*.6,-Rr*.3);g.quadraticCurveTo(s*Rr*1.5,-Rr*1.1,s*Rr*1.35,-Rr*.1);g.quadraticCurveTo(s*Rr*1.2,-Rr*.3,s*Rr*1.1,Rr*.05);g.closePath();g.fillStyle='#c6a4ff';g.fill();g.lineWidth=2.4;g.strokeStyle='#6a4a9a';g.stroke();});
+   [-1,1].forEach(s=>{g.beginPath();g.moveTo(s*Rr*.28,-Rr*.85);g.lineTo(s*Rr*.45,-Rr*1.3);g.lineTo(s*Rr*.58,-Rr*.78);g.closePath();g.fillStyle='#fff3b0';g.fill();g.strokeStyle='#8a7a40';g.stroke();});
+   ell(g,0,0,Rr,Rr*.97);fillStroke(g,c);['#ff9aa2','#ffdac1','#e2f0cb','#b5ead7','#c7ceea'].forEach((cc,k)=>{g.beginPath();g.arc(0,Rr*.35,Rr*(.62-k*.1),0,Math.PI);g.strokeStyle=cc;g.lineWidth=Rr*.08;g.stroke();});},
+ unicorn(g,c,c2){['#ffc6e6','#c6e0ff','#e6c6ff','#fff0b3'].forEach((cc,k)=>{ell(g,-Rr*(.55-k*.12),-Rr*(.82-k*.05)+k*2,Rr*.3,Rr*.26);g.fillStyle=cc;g.fill();});
+   ell(g,0,0,Rr,Rr*.97);fillStroke(g,c);
+   g.beginPath();g.moveTo(-Rr*.12,-Rr*.85);g.lineTo(Rr*.12,-Rr*.85);g.lineTo(Rr*.02,-Rr*1.55);g.closePath();g.fillStyle='#ffd86b';g.fill();g.strokeStyle='#a0782a';g.lineWidth=2;g.stroke();
+   ['#ffc6e6','#c6e0ff'].forEach((cc,k)=>{ell(g,Rr*(.72-k*.1),-Rr*(.45+k*.2),Rr*.2,Rr*.18);g.fillStyle=cc;g.fill();});},
+};
+const FACE={fish:{x:.28,y:-.05,s:.85},mush:{x:0,y:.38,s:.8},whale:{x:.4,y:-.05,s:.8},turtle:{x:0,y:.35,s:.85},owl:{x:0,y:-.08,s:1.1},firefly:{x:0,y:.05,s:1}};
+function drawFace(g,s,variant){
+  const f=FACE[s.shape]||{x:0,y:0,s:1};const fx=Rr*f.x,fy=Rr*f.y,es=f.s;
+  g.fillStyle='rgba(255,120,150,.45)';[-1,1].forEach(k=>{ell(g,fx+k*Rr*.5*es,fy+Rr*.22,Rr*.15*es,Rr*.09*es);g.fill();});
+  const ex=Rr*.3*es,er=Rr*.12*es;
+  if(variant===1){g.strokeStyle='#2a2238';g.lineWidth=2.6;g.lineCap='round';[-1,1].forEach(k=>{g.beginPath();g.arc(fx+k*ex,fy,er*.9,Math.PI*1.1,Math.PI*1.9);g.stroke();});}
+  else{[-1,1].forEach(k=>{ell(g,fx+k*ex,fy,er,er*1.15);g.fillStyle='#2a2238';g.fill();ell(g,fx+k*ex-er*.3,fy-er*.4,er*.38,er*.38);g.fillStyle='#fff';g.fill();});}
+  g.strokeStyle='#2a2238';g.lineWidth=2;g.lineCap='round';g.beginPath();g.arc(fx-Rr*.06*es,fy+Rr*.16,Rr*.06*es,0.1,Math.PI-.1);g.arc(fx+Rr*.06*es,fy+Rr*.16,Rr*.06*es,0.1,Math.PI-.1);g.stroke();
+  if(variant===2){g.strokeStyle='#eee';g.lineWidth=3;[-1,1].forEach(k=>{g.beginPath();g.moveTo(fx+k*ex-er,fy-er*2.2+(k>0?-2:2)*0);g.lineTo(fx+k*ex+er,fy-er*2.0);g.stroke();});}
+}
+function makeSprite(s,variant){const c=document.createElement('canvas');c.width=c.height=SPR;const g=c.getContext('2d');g.translate(SCX,SCY);
+  let col=s.col,col2=s.col2;if(variant===2){col=desat(col,.55);col2=desat(col2,.55);}
+  SHAPES[s.shape](g,col,col2,s);drawFace(g,s,variant);return c;}
+let SPRITES=[];
+function buildSprites(){SPRITES=SPECIES.map(s=>[makeSprite(s,0),makeSprite(s,1),makeSprite(s,2)]);}
+const glowSpr=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');const gr=g.createRadialGradient(16,16,0,16,16,16);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(170,255,255,.8)');gr.addColorStop(.6,'rgba(90,200,255,.2)');gr.addColorStop(1,'rgba(60,150,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);return c;})();
+const shadowSpr=(()=>{const c=document.createElement('canvas');c.width=64;c.height=32;const g=c.getContext('2d');const gr=g.createRadialGradient(32,16,0,32,16,30);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.save();g.scale(1,.5);g.beginPath();g.arc(32,32,30,0,TAU);g.restore();g.fill();return c;})();
+
+/* ------------------------- 渲染 ------------------------- */
+const cv=document.getElementById('c');let ctx=cv.getContext('2d');
+if(!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();};
+let W=0,H=0,DPR=1,zoom=1.1,camX=0,camY=0;
+function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;}
+addEventListener('resize',resize);resize();
+const sx=x=>(x-camX)*zoom+W/2, sy=y=>(y-camY)*zoom+H/2;
+const wx=x=>(x-W/2)/zoom+camX, wy=y=>(y-H/2)/zoom+camY;
+let fx=[];
+const hexPat=(()=>{const c=document.createElement('canvas');c.width=60;c.height=52;const g=c.getContext('2d');g.strokeStyle='rgba(120,200,255,.07)';g.lineWidth=1;g.beginPath();for(let k=0;k<6;k++){const a=k/6*TAU;g.lineTo(30+Math.cos(a)*17,26+Math.sin(a)*17);}g.closePath();g.stroke();return c;})();
+
+function render(t){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  // 开放区域底色
+  const g0=ctx.createRadialGradient(sx(0),sy(0),0,sx(0),sy(0),1600*zoom);
+  const lc=LVCOL[tide.level];
+  g0.addColorStop(0,mixHex('#15304a',lc,.12));g0.addColorStop(.4,'#0c1b2e');g0.addColorStop(1,'#081322');
+  ctx.fillStyle=g0;ctx.fillRect(Math.max(0,sx(-HALF)),Math.max(0,sy(-HALF)),Math.min(W,sx(HALF))-Math.max(0,sx(-HALF)),Math.min(H,sy(HALF))-Math.max(0,sy(-HALF)));
+  if(zoom>0.35){ctx.save();ctx.globalAlpha=Math.min(1,(zoom-.35)*2);const p=ctx.createPattern(hexPat,'repeat');ctx.translate(sx(0),sy(0));ctx.scale(zoom,zoom);ctx.fillStyle=p;ctx.fillRect(wx(0)-0,wy(0)-0,W/zoom,H/zoom);ctx.restore();}
+  const vx0=wx(-40),vy0=wy(-40),vx1=wx(W+40),vy1=wy(H+40);
+  // 供能范围
+  const showPow=mode.kind==='build'||selDev;
+  if(showPow){ctx.save();ctx.fillStyle='rgba(79,209,255,.06)';ctx.strokeStyle='rgba(79,209,255,.35)';ctx.setLineDash([6,6]);ctx.lineWidth=1;for(const s of powerSources()){ctx.beginPath();ctx.arc(sx(s.x),sy(s.y),s.r*zoom,0,TAU);ctx.fill();ctx.stroke();}ctx.restore();}
+  // 电塔连线
+  ctx.save();ctx.lineWidth=Math.max(1,1.5*zoom);const ruin=tide.level===0;
+  for(const d of devices){if(d.type!=='pylon'||!d.built)continue;const src=[{x:0,y:0,r:TOWER_R}].concat(devices.filter(p=>p!==d&&p.type==='pylon'&&p.built));
+    for(const s of src){const dd=Math.hypot(s.x-d.x,s.y-d.y);if(dd<=(s.r||DEVMAP.pylon.radius)&&(s.r||d.id>s.id)){ctx.strokeStyle=ruin?'rgba(120,120,120,.25)':'rgba(125,249,255,'+(0.25+0.15*Math.sin(t*3+d.id))+')';ctx.beginPath();ctx.moveTo(sx(d.x),sy(d.y));ctx.lineTo(sx(s.x),sy(s.y));ctx.stroke();}}}
+  ctx.restore();
+  // 能量粒子
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  if(zoom>0.45){const s=Math.max(3,9*zoom);
+    for(let i=0;i<mHigh;i++){if(!malive[i])continue;const x=mx[i],y=my[i];if(x<vx0||x>vx1||y<vy0||y>vy1)continue;const k=mval[i]>1?s*Math.min(3,1+Math.log2(mval[i])*.4):s;ctx.drawImage(glowSpr,sx(x)-k/2,sy(y)-k/2,k,k);}}
+  else{ctx.fillStyle='rgba(150,240,255,.75)';const s=Math.max(1.2,3*zoom);for(let i=0;i<mHigh;i++){if(!malive[i])continue;const x=mx[i],y=my[i];if(x<vx0||x>vx1||y<vy0||y>vy1)continue;ctx.fillRect(sx(x)-s/2,sy(y)-s/2,s,s);}}
+  ctx.restore();
+  // 装置
+  for(const d of devices){if(d.x<vx0-250||d.x>vx1+250||d.y<vy0-250||d.y>vy1+250)continue;drawDevice(d,t);}
+  // 方塔
+  drawTower(t);
+  // 生物
+  drawCreatures(t,vx0,vy0,vx1,vy1);
+  // 玩家
+  drawPlayer(t);
+  // 黑墙
+  if(wallDirty)refreshWallImg();
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(wallCv,sx(-HALF),sy(-HALF),WSIZE*zoom,WSIZE*zoom);
+  // 挖掘中的墙体提示
+  if(player.dig!=null&&player.dig>=0){const i=player.dig,gx=i%WN,gy=(i/WN)|0,x=gx*WCS-HALF,y=gy*WCS-HALF;const f=wallHP[i]/wallMax[i];
+    ctx.strokeStyle='rgba(255,255,255,'+(0.4+0.4*Math.sin(t*20))+')';ctx.lineWidth=2;ctx.strokeRect(sx(x),sy(y),WCS*zoom,WCS*zoom);
+    ctx.fillStyle='#fff';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText('黑墙 '+Math.ceil(wallHP[i])+' / '+Math.ceil(wallMax[i]),sx(x+WCS/2),sy(y)-8);
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(sx(x),sy(y),WCS*zoom*(1-f),3);}
+  // 特效
+  drawFx(t);
+  // 建造预览
+  if(mode.kind==='build'&&hoverW){const def=DEVMAP[mode.id];const ok=canPlace(mode.id,hoverW.x,hoverW.y).ok;ctx.save();ctx.globalAlpha=.6;drawDevice({type:mode.id,x:hoverW.x,y:hoverW.y,rot:mode.rot,built:true,powered:ok,ghost:true,id:0,sp:selSpecies},t);
+    if(def.radius){ctx.strokeStyle=ok?'#4fd1ff':'#ff5f6d';ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(sx(hoverW.x),sy(hoverW.y),def.radius*zoom,0,TAU);ctx.stroke();}ctx.restore();}
+  if(mode.kind==='seed'&&hoverW){ctx.save();ctx.strokeStyle='rgba(255,220,255,.6)';ctx.setLineDash([4,6]);ctx.beginPath();ctx.arc(sx(hoverW.x),sy(hoverW.y),SEED_R*zoom,0,TAU);ctx.stroke();ctx.restore();}
+  // 选中高亮
+  if(selC>=0&&calive[selC]&&cid[selC]===selCid){const s=SPECIES[csp[selC]];const r=(s.r+6)*zoom;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(cx[selC]),sy(cy[selC]),r,0,TAU);ctx.stroke();
+    ctx.strokeStyle='#ffb86b';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sx(cx[selC]),sy(cy[selC]),r+4,-Math.PI/2,-Math.PI/2+TAU*(cage[selC]/s.life));ctx.stroke();ctx.restore();}
+  if(selDev){ctx.save();ctx.strokeStyle='#fff';ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(sx(selDev.x),sy(selDev.y),(DEVMAP[selDev.type].radius||30)*zoom,0,TAU);ctx.stroke();ctx.restore();}
+}
+
+function drawCreatures(t,vx0,vy0,vx1,vy1){
+  const small=[];
+  ctx.save();
+  for(let i=0;i<cHigh;i++){
+    if(!calive[i])continue;const x=cx[i],y=cy[i];if(x<vx0||x>vx1||y<vy0||y>vy1)continue;
+    const sp=csp[i],s=SPECIES[sp];const pr=s.r*zoom;
+    if(pr<3.2){small.push(i);continue;}
+    const ph=t*1+cphase[i];let ox=0,oy=0,scx=1,scy=1,rot=0;
+    switch(s.move){
+      case 'hop':{const l=hopLift(i,simTime);oy=-l*s.r*.9;const land=1-l;scy=1+(l>0.15?.12*l:-.18*land);scx=1/(scy);break;}
+      case 'float':oy=Math.sin(ph*1.6)*s.r*.25;scx=1+Math.sin(ph*3)*.05;scy=1-Math.sin(ph*3)*.05;break;
+      case 'swim':rot=Math.sin(ph*7)*.14;scx=1+Math.sin(ph*7)*.04;break;
+      case 'walk':oy=-Math.abs(Math.sin(ph*6))*s.r*.18;rot=Math.sin(ph*6)*.08;break;
+      case 'still':scx=1+Math.sin(ph*1.3)*.06;scy=1-Math.sin(ph*1.3)*.06;break;
+      case 'fly':oy=Math.sin(ph*4)*s.r*.3-s.r*.3;scy=1+Math.sin(ph*8)*.06;scx=1-Math.sin(ph*8)*.04;break;
+    }
+    const X=sx(x),Y=sy(y);
+    if(pr>5){const sw=pr*2.2*(1+oy/(s.r*4));ctx.setTransform(DPR,0,0,DPR,0,0);ctx.drawImage(shadowSpr,X-sw/2,Y+pr*.7-sw*.18,sw,sw*.36);}
+    const flip=cvx[i]<-2?-1:1;const blink=((ph*0.6)%4)<0.12;const old=cage[i]>s.life*0.8;
+    const spr=SPRITES[sp][old?2:blink?1:0];
+    const k=pr/SRAD;const c=Math.cos(rot),sn=Math.sin(rot);
+    const a=c*k*scx*flip,b=sn*k*scx*flip,cc=-sn*k*scy,d=c*k*scy;
+    ctx.setTransform(a*DPR,b*DPR,cc*DPR,d*DPR,X*DPR,(Y+oy*zoom+(1-scy)*pr*.8)*DPR);
+    ctx.drawImage(spr,-SCX,-SCY);
+  }
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  // LOD：远景用色块
+  if(small.length){for(const i of small){const s=SPECIES[csp[i]];const pr=Math.max(1.3,s.r*zoom);ctx.fillStyle=s.col;ctx.fillRect(sx(cx[i])-pr,sy(cy[i])-pr,pr*2,pr*2);}}
+  ctx.restore();
+}
+
+function drawPlayer(t){
+  if(player.dead>0)return;const X=sx(player.x),Y=sy(player.y),z=zoom;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let k=0;k<player.trail.length;k+=2){const a=k/player.trail.length;ctx.globalAlpha=a*.35;const s=(10+a*14)*z;ctx.drawImage(glowSpr,sx(player.trail[k])-s,sy(player.trail[k+1])-s,s*2,s*2);}
+  ctx.globalAlpha=1;const s=(46+Math.sin(t*4)*4)*z;ctx.drawImage(glowSpr,X-s,Y-s,s*2,s*2);
+  if(player.pulling){ctx.strokeStyle='rgba(200,255,255,.35)';ctx.lineWidth=1.5;for(let k=0;k<3;k++){const r=(180-((t*120+k*60)%180))*z;ctx.beginPath();ctx.arc(X,Y,r,0,TAU);ctx.stroke();}}
+  ctx.restore();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(X,Y,9*z,0,TAU);ctx.fill();
+}
+
+function drawTower(t){
+  const X=sx(0),Y=sy(0),z=zoom,L=tide.level,col=LVCOL[L],ruin=L===0;
+  ctx.save();ctx.translate(X,Y);ctx.scale(z,z);
+  if(!ruin){ctx.globalCompositeOperation='lighter';const gr=ctx.createRadialGradient(0,0,0,0,0,90+L*18);gr.addColorStop(0,col+'aa');gr.addColorStop(1,col+'00');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,90+L*18,0,TAU);ctx.fill();
+    // 光柱射线
+    for(let k=0;k<L;k++){const a=k/L*TAU+t*.3;ctx.strokeStyle=col+'55';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(Math.cos(a)*40,Math.sin(a)*40);ctx.lineTo(Math.cos(a)*(120+L*12),Math.sin(a)*(120+L*12));ctx.stroke();}
+    ctx.globalCompositeOperation='source-over';}
+  // 底座
+  ctx.fillStyle='#141b28';ctx.strokeStyle=ruin?'#444':'#3d5a7a';ctx.lineWidth=3;ctx.beginPath();ctx.rect(-44,-44,88,88);ctx.fill();ctx.stroke();
+  for(let k=0;k<3;k++){ctx.save();ctx.rotate((ruin?0.05*k:t*(k%2?-.4:.5)*(1+L*.1))+k*.3);const s=34-k*9;ctx.strokeStyle=ruin?'#555':col;ctx.globalAlpha=ruin?.6:.9;ctx.lineWidth=2.5;ctx.strokeRect(-s,-s,s*2,s*2);ctx.restore();}
+  ctx.globalAlpha=1;
+  // 核心
+  const pulse=ruin?0:Math.sin(t*3)*3;ctx.fillStyle=ruin?'#3a3f4a':'#fff';ctx.shadowColor=col;ctx.shadowBlur=ruin?0:20+L*3;ctx.beginPath();ctx.rect(-8-pulse/2,-8-pulse/2,16+pulse,16+pulse);ctx.fill();ctx.shadowBlur=0;
+  // 环绕立方体（数量 = 潮汐等级）
+  for(let k=0;k<L;k++){const a=k/L*TAU+t*.8,r=58+Math.sin(t*2+k)*4;ctx.save();ctx.translate(Math.cos(a)*r,Math.sin(a)*r);ctx.rotate(t*2+k);ctx.fillStyle=col;ctx.fillRect(-4,-4,8,8);ctx.restore();}
+  if(ruin){ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-30,-44);ctx.lineTo(-10,-10);ctx.lineTo(-24,20);ctx.moveTo(20,44);ctx.lineTo(8,12);ctx.stroke();}
+  ctx.restore();
+  if(zoom>0.3){ctx.fillStyle=ruin?'#888':col;ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillText('观测方塔 · Lv.'+L,X,Y+58*z+14);}
+}
+
+function drawDevice(d,t){
+  const def=DEVMAP[d.type],X=sx(d.x),Y=sy(d.y),z=zoom;const ruin=!d.ghost&&tide.level===0&&d.built;const act=d.ghost||(d.built&&d.powered&&!ruin);
+  const col=ruin?'#6b6f78':def.col;const tt=act?t:0;
+  ctx.save();ctx.translate(X,Y);ctx.scale(z,z);
+  if(ruin)ctx.rotate(0.12*Math.sin(d.id*9));
+  if(!d.built){ctx.globalAlpha=.55;ctx.setLineDash([3,3]);}
+  if(d.type==='wire'){const L=def.len/2;ctx.save();ctx.rotate(d.rot||0);
+    if(act){ctx.strokeStyle=col;ctx.globalAlpha=(d.flash>0?1:.55)*(d.built?1:.4);ctx.lineWidth=d.flash>0?4:2;ctx.setLineDash([10,6]);ctx.lineDashOffset=-t*40;ctx.beginPath();ctx.moveTo(-L,0);ctx.lineTo(L,0);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;}
+    [-L,L].forEach(px=>{ctx.fillStyle='#1a2130';ctx.strokeStyle=ruin?'#555':'#3b4a63';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px-9,6);ctx.lineTo(px,-10);ctx.lineTo(px+9,6);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=act?col:'#555';ctx.beginPath();ctx.arc(px,0,3.5,0,TAU);ctx.fill();});
+    ctx.restore();}
+  else{
+    // 六边形底座
+    ctx.fillStyle='#161d2b';ctx.strokeStyle=ruin?'#4a4a4a':'#3b4a63';ctx.lineWidth=2;ctx.beginPath();for(let k=0;k<6;k++){const a=k/6*TAU+Math.PI/6;ctx.lineTo(Math.cos(a)*17,Math.sin(a)*17);}ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=2;
+    if(act){ctx.shadowColor=col;ctx.shadowBlur=10;}
+    switch(d.type){
+      case 'pylon':{ctx.save();ctx.translate(0,-6+Math.sin(tt*2)*2);ctx.rotate(tt*.8);ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(7,0);ctx.lineTo(0,13);ctx.lineTo(-7,0);ctx.closePath();ctx.globalAlpha=.85;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.stroke();ctx.restore();
+        ctx.beginPath();ctx.arc(0,0,12,tt*2,tt*2+Math.PI*1.2);ctx.stroke();break;}
+      case 'census':{ctx.setLineDash([4,4]);ctx.lineDashOffset=-tt*20;ctx.beginPath();ctx.arc(0,0,12,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.fill();
+        if(act&&!d.ghost){ctx.shadowBlur=0;ctx.globalAlpha=.15;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,def.radius,tt*1.5,tt*1.5+.5);ctx.closePath();ctx.fill();ctx.globalAlpha=1;}break;}
+      case 'bell':{ctx.beginPath();ctx.moveTo(-9,6);ctx.quadraticCurveTo(-9,-12,0,-12);ctx.quadraticCurveTo(9,-12,9,6);ctx.closePath();ctx.globalAlpha=.8;ctx.fill();ctx.globalAlpha=1;
+        if(act){const r=(tt*25)%30;ctx.globalAlpha=1-r/30;ctx.beginPath();ctx.arc(0,0,10+r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}break;}
+      case 'pump': case 'diff':{const sg=d.type==='pump'?-1:1;for(let k=0;k<3;k++){ctx.beginPath();for(let a=0;a<4;a+=.2){const r=2+a*3.2;const aa=a*sg+k*TAU/3+tt*2*-sg;ctx.lineTo(Math.cos(aa)*r,Math.sin(aa)*r);}ctx.stroke();}break;}
+      case 'incub':{ctx.fillStyle='rgba(255,200,240,.25)';ctx.beginPath();ctx.ellipse(0,-4,9,13,0,0,TAU);ctx.fill();ctx.stroke();
+        const s=SPECIES[d.sp|0];if(SPRITES[s.idx]){ctx.shadowBlur=0;ctx.drawImage(SPRITES[s.idx][0],-8,-12,16,16);}
+        if(d.flash>0){ctx.globalAlpha=d.flash;ctx.beginPath();ctx.arc(0,0,22,0,TAU);ctx.stroke();ctx.globalAlpha=1;}break;}
+      case 'prism':{ctx.save();ctx.rotate(tt*.5);ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(10,7);ctx.lineTo(-10,7);ctx.closePath();ctx.globalAlpha=.3;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.restore();
+        if(act)['#ff6b6b','#ffd04f','#7dff6a','#4fd1ff','#c46bff'].forEach((c,k)=>{ctx.strokeStyle=c;ctx.globalAlpha=.6;ctx.beginPath();const a=k*.35-0.7+tt*.5;ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*24,Math.sin(a)*24);ctx.stroke();});ctx.globalAlpha=1;break;}
+      case 'eye':{ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(0,0,12,7,0,0,TAU);ctx.fill();ctx.fillStyle=col;const lx=Math.cos(tt*.7)*4;ctx.beginPath();ctx.arc(lx,0,4.5,0,TAU);ctx.fill();ctx.fillStyle='#200';ctx.beginPath();ctx.arc(lx,0,2,0,TAU);ctx.fill();break;}
+      case 'repel':{ctx.beginPath();for(let k=0;k<8;k++){const a=k/8*TAU+tt,r=k%2?6:13;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.globalAlpha=.8;ctx.fill();ctx.globalAlpha=1;
+        if(act){ctx.globalAlpha=.25+.1*Math.sin(tt*4);ctx.beginPath();for(let k=0;k<6;k++){const a=k/6*TAU;ctx.lineTo(Math.cos(a)*26,Math.sin(a)*26);}ctx.closePath();ctx.stroke();ctx.globalAlpha=1;}break;}
+      case 'chrono':{ctx.save();ctx.rotate(tt*.4);ctx.beginPath();ctx.moveTo(-8,-11);ctx.lineTo(8,-11);ctx.lineTo(-8,11);ctx.lineTo(8,11);ctx.closePath();ctx.stroke();ctx.restore();for(let k=0;k<4;k++){const a=k/4*TAU-tt;ctx.fillRect(Math.cos(a)*14-2,Math.sin(a)*14-2,4,4);}break;}
+      case 'harm':{for(let k=0;k<4;k++){ctx.globalAlpha=.9-k*.18;ctx.beginPath();ctx.ellipse(0,-k*5,12-k*2.5,4-k*.6,0,0,TAU);ctx.stroke();}ctx.globalAlpha=1;ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(3,-12);ctx.lineTo(-3,-12);ctx.closePath();ctx.fill();break;}
+      case 'amp':{ctx.save();ctx.rotate(-tt*.6);for(let k=0;k<3;k++){ctx.rotate(TAU/3);ctx.beginPath();ctx.arc(0,-8,5,0,TAU);ctx.stroke();}ctx.restore();ctx.beginPath();ctx.arc(0,0,3,0,TAU);ctx.fill();break;}
+    }
+    ctx.shadowBlur=0;
+  }
+  ctx.setLineDash([]);ctx.globalAlpha=1;
+  if(!d.built&&!d.ghost){const f=1-d.buildLeft/d.buildTotal;ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,22,-Math.PI/2,-Math.PI/2+TAU*f);ctx.stroke();ctx.fillStyle='#fff';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText(Math.ceil(d.buildLeft)+'s',0,34);}
+  else if(!d.ghost&&d.built&&!d.powered&&!ruin&&((t*2|0)%2)){ctx.fillStyle='#ff5f6d';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('⚡✕',0,-22);}
+  if(ruin){ctx.strokeStyle='#2a2a2a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-10,-8);ctx.lineTo(0,2);ctx.lineTo(-4,12);ctx.stroke();}
+  ctx.restore();
+}
+function drawFx(t){
+  for(let k=fx.length-1;k>=0;k--){const e=fx[k];e.life-=frameDt;if(e.life<=0){fx.splice(k,1);continue;}const a=e.life/e.max;
+    if(e.t==='ring'){ctx.strokeStyle=e.col;ctx.globalAlpha=a;ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(e.x),sy(e.y),e.r*(1-a)*zoom+2,0,TAU);ctx.stroke();}
+    else if(e.t==='pop'){ctx.fillStyle=e.col;ctx.globalAlpha=a*.6;ctx.beginPath();ctx.arc(sx(e.x),sy(e.y),e.r*(1.3-a)*zoom,0,TAU);ctx.fill();}
+    else if(e.t==='spark'){e.x+=e.vx*frameDt;e.y+=e.vy*frameDt;ctx.fillStyle='#fff';ctx.globalAlpha=a;ctx.fillRect(sx(e.x)-1.5,sy(e.y)-1.5,3,3);}
+  }ctx.globalAlpha=1;if(fx.length>300)fx.splice(0,fx.length-300);
+}
+
+/* ------------------------- 放置/播种/选择 ------------------------- */
+const SEED_R=110;
+let mode={kind:'none',id:null,rot:0},selSpecies=0,selC=-1,selCid=0,selDev=null,hoverW=null,uiDirty=true;
+function canPlace(id,x,y){
+  const def=DEVMAP[id];
+  if(!def||meta.maxLevel<def.unlock)return{ok:false,why:'未解锁'};
+  if(isWall(x,y))return{ok:false,why:'不能建在黑墙里'};
+  if(Math.hypot(x,y)<70)return{ok:false,why:'离方塔太近'};
+  for(const d of devices)if(Math.hypot(d.x-x,d.y-y)<36)return{ok:false,why:'与其他装置重叠'};
+  if(!inPower(x,y)){
+    if(id==='pylon'){ // 电塔需在已供能（含建造中但已连通）的电塔/方塔范围内
+      const ok=devices.some(d=>d.type==='pylon'&&d.powered&&Math.hypot(d.x-x,d.y-y)<=DEVMAP.pylon.radius);if(!ok)return{ok:false,why:'需要在方塔或已供能电塔的范围内'};}
+    else return{ok:false,why:'需要在供能范围内（先铺电塔）'};}
+  if(bwUsed()+def.bw>bwCap())return{ok:false,why:'观测带宽不足（提升潮汐等级）'};
+  return{ok:true};
+}
+function placeDevice(id,x,y){
+  const c=canPlace(id,x,y);if(!c.ok){toast('✕ '+c.why);return;}
+  const def=DEVMAP[id];devices.push({id:devSerial++,type:id,x,y,rot:mode.rot,built:false,buildLeft:def.time,buildTotal:def.time,powered:false,acc:0,last:0,sp:selSpecies,t:0});
+  rebuildDevIndex();fx.push({t:'ring',x,y,life:.5,max:.5,r:40,col:def.col});uiDirty=true;
+}
+function trySeed(x,y){
+  const s=SPECIES[selSpecies];if(!isUnlocked(s)){toast('尚未解锁');return;}
+  if(isWall(x,y)){toast('不能在黑墙里播种');return;}
+  buildMoteGrid();
+  const need=s.birthE;const list=[];let have=0;const r2=SEED_R*SEED_R;
+  forCellsIn(x-SEED_R,y-SEED_R,x+SEED_R,y+SEED_R,c=>{for(let k=MG.start[c];k<MG.start[c+1];k++){if(have>=need)return;const j=MG.items[k];if(!malive[j])continue;if((mx[j]-x)**2+(my[j]-y)**2<r2){list.push(j);have+=mval[j];}}});
+  if(have<need){toast('这里的能量不足（需要 '+need+'，范围内只有 '+have+'）');return;}
+  let got=0;for(const j of list)got+=eatMote(j);
+  const ch=spawnCreature(s.idx,x,y,need,0);if(ch<0){spawnMote(x,y,got,20,0);toast('生物数量已达上限');return;}
+  if(got>need)spawnMote(x,y,got-need,20,0.5);
+  everSeen[s.idx]=1;fx.push({t:'ring',x,y,life:.6,max:.6,r:SEED_R,col:'#ffd7f5'});
+}
+function pickCreature(x,y){let best=-1,bd=1e9;const rr=24/zoom+10;forCellsIn(x-rr-40,y-rr-40,x+rr+40,y+rr+40,c=>{for(let k=CG.start[c];k<CG.start[c+1];k++){const j=CG.items[k];if(!calive[j])continue;const d=Math.hypot(cx[j]-x,cy[j]-y)-SPECIES[csp[j]].r;if(d<bd&&d<rr*.5+4){bd=d;best=j;}}});return best;}
+function pickDevice(x,y){let best=null,bd=26;for(const d of devices){const dd=Math.hypot(d.x-x,d.y-y);if(dd<bd){bd=dd;best=d;}}return best;}
+function worldClick(x,y){
+  if(!started)return;
+  if(mode.kind==='build'){placeDevice(mode.id,x,y);return;}
+  if(mode.kind==='seed'){trySeed(x,y);return;}
+  buildCreatureGrid();
+  const c=pickCreature(x,y);if(c>=0){selC=c;selCid=cid[c];selDev=null;return;}
+  const d=pickDevice(x,y);if(d){selDev=d;selC=-1;return;}
+  if(Math.hypot(x,y)<50){setTab('dev');if(isMobile())panel.classList.add('open');return;}
+  selC=-1;selDev=null;teleport(x,y);
+}
+function setMode(kind,id){mode.kind=kind;mode.id=id;const mb=document.getElementById('modeBar');
+  if(kind==='none'){mb.style.display='none';}else{mb.style.display='flex';
+    document.getElementById('modeTxt').textContent=kind==='build'?'🛰 放置：'+DEVMAP[id].name+'（点击地图）':'🧬 播种：'+SPECIES[selSpecies].name+'（点击地图，吸收附近 '+SPECIES[selSpecies].birthE+' 能量）';
+    document.getElementById('modeRot').style.display=(kind==='build'&&id==='wire')?'':'none';}
+  uiDirty=true;}
+
+/* ------------------------- 输入 ------------------------- */
+const keys={};let pullBtn=false;const joy={x:0,y:0};
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault();if(e.code==='Escape'){setMode('none');selC=-1;selDev=null;}if(e.code==='KeyR'&&mode.kind==='build')mode.rot+=Math.PI/4;});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+let mDown=null;
+cv.addEventListener('mousedown',e=>{mDown={x:e.clientX,y:e.clientY};});
+cv.addEventListener('mousemove',e=>{hoverW={x:wx(e.clientX),y:wy(e.clientY)};});
+cv.addEventListener('mouseup',e=>{if(mDown&&Math.hypot(e.clientX-mDown.x,e.clientY-mDown.y)<8){if(e.button===2){setMode('none');}else worldClick(wx(e.clientX),wy(e.clientY));}mDown=null;});
+cv.addEventListener('contextmenu',e=>{e.preventDefault();setMode('none');});
+cv.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom*Math.exp(-e.deltaY*0.0012),0.12,3.2);},{passive:false});
+let tStart=null,pinch=null;
+cv.addEventListener('touchstart',e=>{e.preventDefault();if(e.touches.length===1){const t=e.touches[0];tStart={x:t.clientX,y:t.clientY,time:performance.now()};hoverW={x:wx(t.clientX),y:wy(t.clientY)};}else if(e.touches.length===2){tStart=null;const a=e.touches[0],b=e.touches[1];pinch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),z:zoom};}},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();if(pinch&&e.touches.length===2){const a=e.touches[0],b=e.touches[1];const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);zoom=clamp(pinch.z*d/pinch.d,0.12,3.2);}else if(e.touches.length===1){const t=e.touches[0];hoverW={x:wx(t.clientX),y:wy(t.clientY)};}},{passive:false});
+cv.addEventListener('touchend',e=>{e.preventDefault();if(tStart&&e.changedTouches.length){const t=e.changedTouches[0];if(Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)<14)worldClick(wx(t.clientX),wy(t.clientY));}tStart=null;if(e.touches.length<2)pinch=null;},{passive:false});
+// 虚拟摇杆
+const joyEl=document.getElementById('joy'),joyK=document.getElementById('joyK');let joyId=null;
+function joyUpd(t){const r=joyEl.getBoundingClientRect();let dx=t.clientX-(r.left+r.width/2),dy=t.clientY-(r.top+r.height/2);const d=Math.hypot(dx,dy),m=r.width/2-10;if(d>m){dx*=m/d;dy*=m/d;}joyK.style.transform='translate('+dx+'px,'+dy+'px)';joy.x=dx/m;joy.y=dy/m;}
+joyEl.addEventListener('touchstart',e=>{e.preventDefault();const t=e.changedTouches[0];joyId=t.identifier;joyUpd(t);},{passive:false});
+joyEl.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===joyId)joyUpd(t);},{passive:false});
+const joyEnd=e=>{e.preventDefault();joyId=null;joy.x=0;joy.y=0;joyK.style.transform='';};
+joyEl.addEventListener('touchend',joyEnd,{passive:false});joyEl.addEventListener('touchcancel',joyEnd,{passive:false});
+const bPull=document.getElementById('bPull');
+bPull.addEventListener('touchstart',e=>{e.preventDefault();pullBtn=true;},{passive:false});bPull.addEventListener('touchend',e=>{e.preventDefault();pullBtn=false;},{passive:false});
+bPull.addEventListener('mousedown',()=>pullBtn=true);addEventListener('mouseup',()=>pullBtn=false);
+document.getElementById('bZin').onclick=()=>zoom=clamp(zoom*1.25,0.12,3.2);
+document.getElementById('bZout').onclick=()=>zoom=clamp(zoom/1.25,0.12,3.2);
+document.getElementById('modeX').onclick=()=>setMode('none');
+document.getElementById('modeRot').onclick=()=>{mode.rot+=Math.PI/4;};
+function isMobile(){return matchMedia('(pointer:coarse)').matches||innerWidth<760;}
+if(matchMedia('(pointer:coarse)').matches){joyEl.style.display='block';document.getElementById('mbtns').style.display='flex';}
+
+/* ------------------------- UI 面板 ------------------------- */
+const panel=document.getElementById('panel');
+document.getElementById('panelToggle').onclick=()=>panel.classList.toggle('open');
+let curTab='bio';
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+function setTab(t){curTab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));uiDirty=true;renderTab();}
+let sprURL=[];
+function renderTab(){
+  const body=document.getElementById('tabBody');let h='';
+  if(curTab==='bio'){
+    h+='<div style="opacity:.8;margin-bottom:6px">选择物种后点击地图播种：会吸收附近的能量粒子孵化（能量守恒）。已解锁物种永久保留。</div>';
+    SPECIES.forEach((s,i)=>{const lock=!isUnlocked(s);h+=`<div class="card ${lock?'lock':''} ${mode.kind==='seed'&&selSpecies===i?'sel':''}" data-sp="${i}"><img src="${lock?'':sprURL[i]}" style="${lock?'filter:brightness(0);opacity:.5':''}"><div><div class="t">${lock?'？？？':s.name}</div><div class="d">${lock?'潮汐 Lv.'+s.unlock+' 解锁':'需要 '+s.birthE+' 能量 · 寿命 '+s.life+'s'}</div></div><div class="n" id="spn${i}">${spCount[i]}</div></div>`;});
+  }else if(curTab==='dev'){
+    h+=`<div style="opacity:.8;margin-bottom:6px">装置必须建在方塔/电塔的供能范围内。观测带宽 = 10 + 6×潮汐等级。超出带宽时所有装置效率下降。建造需要时间，选中建造中的装置可看广告加速。</div>`;
+    DEVICES.forEach(d=>{const lock=meta.maxLevel<d.unlock;h+=`<div class="card ${lock?'lock':''} ${mode.kind==='build'&&mode.id===d.id?'sel':''}" data-dev="${d.id}"><canvas width="84" height="84" data-icon="${d.id}"></canvas><div><div class="t">${lock?'？？？':d.name}</div><div class="d">${lock?'潮汐 Lv.'+d.unlock+' 解锁':d.desc}</div></div><div class="n">带宽 ${d.bw}<br>${d.time}s</div></div>`;});
+  }else if(curTab==='book'){
+    SPECIES.forEach((s,i)=>{const lock=!isUnlocked(s);if(lock){h+=`<div class="card lock"><img style="filter:brightness(0);opacity:.5" src="${sprURL[i]}"><div><div class="t">？？？</div><div class="d">潮汐 Lv.${s.unlock} 解锁</div></div></div>`;return;}
+      const food=[s.mote?'能量粒子':null].concat(s.prey.map(id=>SPECIES.find(q=>q.id===id).name)).filter(Boolean).join('、');
+      const pred=SPECIES.filter(p=>p.preyMask&(1<<i)).map(p=>p.name).join('、')||'无';
+      h+=`<div class="card" style="cursor:default;align-items:flex-start"><img src="${sprURL[i]}"><div><div class="t">${s.name} <span style="opacity:.6;font-weight:400">×${spCount[i]}</span></div><div class="d">${s.desc}<br>🍽 食物：${food}<br>⚠ 天敌：${pred}<br>⏳ 寿命 ${s.life}s · 成熟 ${s.mat}s · 代谢 ${s.metab}/s<br>💗 繁衍：能量≥${s.reproE} 时分出 ${s.birthE} 给后代 · 上限 ${s.maxE}</div></div></div>`;});
+  }else if(curTab==='data'){
+    h+='<canvas id="graph" width="560" height="300" style="width:100%;background:#0a1220;border-radius:8px"></canvas><div style="font-size:11px;opacity:.7;margin:2px 0 8px">白线：每次潮汐结算值；彩线：各物种数量（最近 120 次结算）</div>';
+    h+=`<div class="kv"><span>累计出生</span><b>${stats.births}</b></div><div class="kv"><span>累计死亡</span><b>${stats.deaths}</b></div><div class="kv"><span>捕食次数</span><b>${stats.preds}</b></div><div class="kv"><span>消融黑墙</span><b>${stats.cells} 格</b></div><div class="kv"><span>历史最高潮汐</span><b>Lv.${meta.maxLevel}</b></div><hr style="border-color:#234">`;
+    h+=eventLog.slice(0,30).map(e=>'<div class="lg">'+e+'</div>').join('');
+  }else if(curTab==='set'){
+    h+=`<div style="display:flex;flex-direction:column;gap:8px">
+    <div>模拟速度：<button class="btn sm" data-spd="0">⏸</button> <button class="btn sm" data-spd="1">1×</button> <button class="btn sm" data-spd="2">2×</button> <button class="btn sm" data-spd="4">4×</button> <span id="spdNow"></span></div>
+    <button class="btn" id="bSave">💾 立即存档</button>
+    <button class="btn warn" id="bReset">🔄 重开生态圈（保留已解锁物种）</button>
+    <div style="font-size:11px;opacity:.75;line-height:1.6">广告平台：<b>${Ads.platform}</b><br>
+    操作：WASD/方向键移动 · 点击地面瞬移 · 滚轮缩放 · 按住空格吸引能量 · 撞向黑墙消融（会掉血，离中心越远越硬）· R 旋转绊线 · Esc 取消 · 右键取消<br>
+    潮汐每 10 秒结算一次，上升立即生效，下降每次最多 1 级。潮汐归零时所有装置停机成为遗迹，直到生态恢复。<br>
+    关闭页面后再次打开会自动进行离线推演（最多 12 小时）。</div></div>`;
+  }
+  body.innerHTML=h;
+  body.querySelectorAll('[data-sp]').forEach(el=>el.onclick=()=>{const i=+el.dataset.sp;if(!isUnlocked(SPECIES[i]))return;selSpecies=i;setMode('seed');renderTab();if(isMobile())panel.classList.remove('open');});
+  body.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{const id=el.dataset.dev;if(meta.maxLevel<DEVMAP[id].unlock)return;setMode('build',id);renderTab();if(isMobile())panel.classList.remove('open');});
+  body.querySelectorAll('[data-icon]').forEach(c=>drawDevIcon(c,c.dataset.icon));
+  body.querySelectorAll('[data-spd]').forEach(b=>b.onclick=()=>{simSpeed=+b.dataset.spd;});
+  const bs=document.getElementById('bSave');if(bs)bs.onclick=()=>{saveGame();toast('已存档');};
+  const br=document.getElementById('bReset');if(br)br.onclick=()=>{if(confirm('确定重开生态圈？（已解锁物种与装置会保留）')){newWorld();saveGame();renderTab();}};
+  if(curTab==='data')drawGraph();
+  uiDirty=false;
+}
+function drawDevIcon(c,id){const g=c.getContext('2d');const sv={ctx,zoom,camX,camY,W,H};
+  // 复用 drawDevice：临时切换绘制上下文
+  ctx_swap(g,()=>{zoom=2.2;camX=0;camY=0;W=84;H=84;drawDevice({type:id,x:0,y:0,rot:0,built:true,powered:true,ghost:true,id:0,sp:0},performance.now()/1000);});
+  zoom=sv.zoom;camX=sv.camX;camY=sv.camY;W=sv.W;H=sv.H;}
+function ctx_swap(g,fn){const o=ctx;ctx=g;try{fn();}finally{ctx=o;}}
+function drawGraph(){const c=document.getElementById('graph');if(!c)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);
+  const h=tide.hist,ph=tide.popHist;if(h.length<2)return;const n=h.length;const mxT=Math.max(10,...h);let mxP=10;ph.forEach(p=>p.forEach(v=>mxP=Math.max(mxP,v)));
+  SPECIES.forEach((s,k)=>{g.strokeStyle=s.col;g.lineWidth=1.5;g.beginPath();ph.forEach((p,i)=>{const x=i/(n-1)*c.width,y=c.height-p[k]/mxP*(c.height-20)-5;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();});
+  g.strokeStyle='#fff';g.lineWidth=2.5;g.beginPath();h.forEach((v,i)=>{const x=i/(n-1)*c.width,y=c.height-v/mxT*(c.height-20)-5;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
+  g.fillStyle='#fff';g.font='14px sans-serif';g.fillText('潮汐峰值 '+mxT.toFixed(1)+' · 种群峰值 '+mxP,8,16);}
+
+function updateHUD(){
+  const e=totalEnergy();
+  $('eMap').textContent=e.map;$('eBio').textContent=e.bio;$('eWall').textContent=e.wall;$('eTot').textContent=e.sum;
+  const chk=$('eChk');if(e.sum===E0.sum){chk.textContent='✓守恒';chk.className='ok';}else{chk.textContent='⚠ 偏差 '+(e.sum-E0.sum);chk.className='bad';}
+  let sa=0;for(let s=0;s<NS;s++)if(spCount[s]>0)sa++;
+  $('pop').textContent=cCount;$('spc').textContent=sa;$('bw').textContent=bwUsed()+'/'+bwCap()+(efficiency()<1?' ⚠效率'+Math.round(efficiency()*100)+'%':'');
+  const L=tide.level;const lv=$('tideLv');lv.textContent='观测潮汐 Lv.'+L+(L===0?' · 遗迹':'');lv.style.color=LVCOL[L];
+  const nxt=L<10?THRESH[L+1]:THRESH[10];$('tideSub').textContent='上次结算 '+tide.last.toFixed(1)+(L<10?' · 下一级需 '+nxt:' · 已满溢')+' · 本轮累计 '+tide.acc.toFixed(1);
+  const lo=THRESH[L],f=L>=10?1:clamp((tide.last-lo)/(nxt-lo),0,1);const tb=document.querySelector('#tideBar i');tb.style.width=(f*100)+'%';tb.style.background=LVCOL[Math.min(10,L+1)];
+  document.querySelector('#winBar i').style.width=(tide.winT/TIDE_T*100)+'%';
+  document.querySelector('#hpbar i').style.width=player.hp+'%';
+  if(curTab==='bio')for(let i=0;i<NS;i++){const el=document.getElementById('spn'+i);if(el)el.textContent=spCount[i];}
+  if(curTab==='data'&&(tickHUD%4===0))renderTab();
+  const sp=document.getElementById('spdNow');if(sp)sp.textContent='当前 '+(simSpeed?simSpeed+'×':'暂停');
+  updateInfo();
+}
+const $=id=>document.getElementById(id);
+function updateInfo(){
+  const el=$('info');
+  if(selC>=0&&calive[selC]&&cid[selC]===selCid){const i=selC,s=SPECIES[csp[i]];const ageF=cage[i]/s.life;
+    const st=['闲逛','觅食能量','追捕猎物','逃跑！'][cmode[i]];
+    el.style.display='block';el.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><img src="${sprURL[s.idx]}" width="40"><div><b style="font-size:14px">${s.name}</b><br><span style="opacity:.7">第 ${cgen[i]} 代 · ${st}${ageF>.8?' · 年迈':''}</span></div></div>
+    能量 ${cen[i]} / ${s.maxE}（繁衍阈值 ${s.reproE}）<div class="bar"><i style="width:${cen[i]/s.maxE*100}%;background:#7dffa8"></i></div>
+    衰老 ${cage[i].toFixed(0)}s / ${s.life}s<div class="bar"><i style="width:${ageF*100}%;background:${ageF>.8?'#ff7d7d':'#ffb86b'}"></i></div>
+    <button class="btn sm" onclick="selC=-1">关闭</button>`;return;}
+  if(selDev&&devices.includes(selDev)){const d=selDev,def=DEVMAP[d.type];const ruin=tide.level===0&&d.built;
+    const status=!d.built?'🔧 建造中 '+Math.ceil(d.buildLeft)+'s':ruin?'🗿 遗迹（潮汐归零停机）':!d.powered?'⚡ 未供能':'✅ 运行中';
+    let extra='';if(d.type==='incub')extra=`<div>孵化物种：<b>${SPECIES[d.sp|0].name}</b> <button class="btn sm" id="bCyc">切换</button></div>`;
+    if(d.type==='census'&&d.n!=null)extra+=`<div>范围内生物：${d.n}</div>`;
+    el.style.display='block';el.innerHTML=`<b style="font-size:14px;color:${def.col}">${def.name}</b><br><span style="opacity:.75">${def.desc}</span><div style="margin:4px 0">${status}</div>
+    ${d.built?'<div>上次结算贡献：<b>'+(d.last||0).toFixed(2)+'</b> 潮汐</div>':''}${extra}
+    <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${!d.built?'<button class="btn sm gold" id="bAd">📺 看广告立即完成</button>':''}${d.type==='wire'?'<button class="btn sm" id="bRot">⟳ 旋转</button>':''}<button class="btn sm warn" id="bDel">拆除</button><button class="btn sm" id="bCl">关闭</button></div>`;
+    const bAd=$('bAd');if(bAd)bAd.onclick=()=>{Ads.rewarded().then(ok=>{if(ok&&devices.includes(d)&&!d.built){d.buildLeft=0.01;toast('📺 感谢观看，建造加速完成！');}else if(!ok)toast('广告未完成');});};
+    const bCyc=$('bCyc');if(bCyc)bCyc.onclick=()=>{const un=SPECIES.filter(isUnlocked);const k=un.findIndex(s=>s.idx===(d.sp|0));d.sp=un[(k+1)%un.length].idx;};
+    const bRot=$('bRot');if(bRot)bRot.onclick=()=>{d.rot=(d.rot||0)+Math.PI/4;};
+    $('bDel').onclick=()=>{devices=devices.filter(x=>x!==d);rebuildDevIndex();selDev=null;toast('已拆除，带宽已释放');};
+    $('bCl').onclick=()=>{selDev=null;};return;}
+  el.style.display='none';
+}
+// 在 info 面板里有按钮时不要每帧重建（避免点击丢失）
+let infoKey='';const _updInfo=updateInfo;
+updateInfo=function(){const key=(selC>=0&&calive[selC]?'c'+selCid+'_'+cen[selC]+'_'+(cage[selC]|0)+'_'+cmode[selC]:'')+(selDev?'d'+selDev.id+'_'+selDev.built+'_'+Math.ceil(selDev.buildLeft)+'_'+selDev.powered+'_'+tide.level+'_'+(selDev.last||0).toFixed(2)+'_'+selDev.sp+'_'+selDev.n:'');if(key===infoKey)return;infoKey=key;_updInfo();};
+
+/* ------------------------- 存档 / 读档 / 离线推演 ------------------------- */
+function f32b64(arr){const u=new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);}
+function b64f32(str){const s=atob(str);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Float32Array(u.buffer);}
+function saveMeta(){try{localStorage.setItem(META_KEY,JSON.stringify(meta));}catch(e){}}
+function loadMeta(){try{const m=JSON.parse(localStorage.getItem(META_KEY)||'null');if(m)meta=Object.assign(meta,m);}catch(e){}}
+function saveGame(){
+  try{
+    const CF=10;const ca=new Float32Array(cCount*CF);let k=0;
+    for(let i=0;i<cHigh;i++){if(!calive[i])continue;ca.set([cx[i],cy[i],cvx[i],cvy[i],cage[i],cen[i],csp[i],ccool[i],cmeta[i],cgen[i]],k);k+=CF;}
+    const ma=new Float32Array(mCount*3);k=0;for(let i=0;i<mHigh;i++){if(!malive[i])continue;ma[k++]=mx[i];ma[k++]=my[i];ma[k++]=mval[i];}
+    const data={v:1,t:Date.now(),simTime,tide:{level:tide.level,last:tide.last,winT:tide.winT,acc:tide.acc,hist:tide.hist,popHist:tide.popHist,won:tide.won,peak:tide.peak},
+      player:{x:player.x,y:player.y,hp:player.hp},zoom,stats,eventLog:eventLog.slice(0,40),everSeen:Array.from(everSeen),
+      devices:devices.map(d=>({id:d.id,type:d.type,x:d.x,y:d.y,rot:d.rot,built:d.built,buildLeft:d.buildLeft,buildTotal:d.buildTotal,sp:d.sp})),devSerial,
+      c:f32b64(ca),m:f32b64(ma),w:f32b64(wallHP),E0:E0.sum};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));saveMeta();return true;
+  }catch(e){console.warn('save failed',e);toast('⚠ 存档失败（存储空间不足？）');return false;}
+}
+function loadGame(){
+  let data;try{data=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){return null;}
+  if(!data||data.v!==1)return null;
+  try{
+    initWalls();wallHP.set(b64f32(data.w));for(let i=0;i<WN*WN;i++)if(wallHP[i]<=0)wallHP[i]=0;recomputeWallLatent();wallDirty=true;
+    resetCreatures();resetMotes();
+    const ca=b64f32(data.c);for(let k=0;k<ca.length;k+=10){const i=spawnCreature(ca[k+6]|0,ca[k],ca[k+1],ca[k+5]|0,ca[k+9]|0);if(i<0)continue;cvx[i]=ca[k+2];cvy[i]=ca[k+3];cage[i]=ca[k+4];ccool[i]=ca[k+7];cmeta[i]=ca[k+8];}
+    const ma=b64f32(data.m);for(let k=0;k<ma.length;k+=3){let i;if(mHigh<MCAP)i=mHigh++;else break;mx[i]=ma[k];my[i]=ma[k+1];mval[i]=ma[k+2];mvx[i]=0;mvy[i]=0;mlock[i]=0;malive[i]=1;mCount++;mEnergy+=mval[i];}
+    simTime=data.simTime||0;Object.assign(tide,{acc:0,hist:[],popHist:[]},data.tide);
+    Object.assign(player,data.player,{vx:0,vy:0,dead:0,trail:[]});zoom=data.zoom||1;stats=Object.assign({births:0,deaths:0,preds:0,cells:0},data.stats);
+    eventLog.length=0;(data.eventLog||[]).forEach(e=>eventLog.push(e));(data.everSeen||[]).forEach((v,i)=>everSeen[i]=v);
+    devices=(data.devices||[]).map(d=>Object.assign({powered:false,acc:0,last:0,t:0},d));devSerial=data.devSerial||devices.length+1;rebuildDevIndex();
+    E0=totalEnergy();
+    return data;
+  }catch(e){console.warn('load failed',e);return null;}
+}
+let inOffline=false,offlineReport=null;
+function runOffline(seconds,onDone){
+  // 离线推演：分块执行、带进度条；时间预算内用更大的步长
+  const ov=$('offline');ov.style.display='flex';$('offT').textContent='离线推演中…';$('offR').innerHTML='';$('offOk').style.display='none';
+  inOffline=true;const before=Array.from(spCount),lvBefore=tide.level,popBefore=cCount;
+  offlineReport={events:[],births:stats.births,deaths:stats.deaths};
+  const t0=performance.now();for(let k=0;k<10;k++)simStep(0.2);const per=(performance.now()-t0)/10+0.01;
+  const budgetMs=12000;const maxSteps=Math.max(50,budgetMs/per);
+  let dt=clamp(seconds/maxSteps,0.2,1.0);let total=Math.min(seconds,maxSteps*dt);let done=2;
+  function chunk(){const ts=performance.now();while(done<total&&performance.now()-ts<40){simStep(dt);done+=dt;}
+    document.querySelector('#prog i').style.width=(done/total*100)+'%';
+    if(done<total){setTimeout(chunk,0);return;}
+    inOffline=false;
+    const hrs=seconds/3600;let h=`<div>你离开了 <b>${hrs>=1?hrs.toFixed(1)+' 小时':Math.round(seconds/60)+' 分钟'}</b>${total<seconds-1?'（已加速推演 '+Math.round(total/60)+' 分钟模拟时间）':''}</div>`;
+    h+=`<div>潮汐：Lv.${lvBefore} → <b style="color:${LVCOL[tide.level]}">Lv.${tide.level}</b></div><div>生物：${popBefore} → <b>${cCount}</b>（出生 ${stats.births-offlineReport.births}，死亡 ${stats.deaths-offlineReport.deaths}）</div>`;
+    const lines=SPECIES.map((s,i)=>before[i]||spCount[i]?`<span style="color:${s.col}">${s.name} ${before[i]}→${spCount[i]}</span>`:'').filter(Boolean);
+    if(lines.length)h+='<div style="font-size:12px">'+lines.join(' · ')+'</div>';
+    if(cCount===0)h+='<div style="color:#ff9a9a">💀 生态圈全灭了……所有能量都回到了地图上。重新播种吧！</div>';
+    else if(tide.level===0)h+='<div style="color:#ffcf9a">🗿 潮汐归零，装置化为遗迹。</div>';
+    if(offlineReport.events.length)h+='<div style="font-size:11px;opacity:.75;max-height:120px;overflow:auto">'+offlineReport.events.slice(-12).map(e=>'· '+e).join('<br>')+'</div>';
+    offlineReport=null;
+    $('offT').textContent='🌙 离线观测报告';$('offR').innerHTML=h;$('offOk').style.display='inline-block';
+    $('offOk').onclick=()=>{ov.style.display='none';if(onDone)onDone();};
+    saveGame();uiDirty=true;
+  }
+  chunk();
+}
+
+/* ------------------------- 通用广告适配层 ------------------------- */
+const Ads={platform:'本地模拟',sdk:null,
+  async init(){
+    try{
+      if(window.CrazyGames&&window.CrazyGames.SDK){this.sdk=window.CrazyGames.SDK;await this.sdk.init();this.platform='CrazyGames';}
+      else if(window.bridge&&window.bridge.initialize){await window.bridge.initialize();this.sdk=window.bridge;this.platform='Playgama';}
+      else if(window.PokiSDK){await window.PokiSDK.init();this.sdk=window.PokiSDK;this.platform='Poki';}
+      else if(window.gdsdk){this.sdk=window.gdsdk;this.platform='GameDistribution';}
+    }catch(e){console.warn('Ad SDK init failed',e);this.platform='本地模拟';this.sdk=null;}
+  },
+  gameplayStart(){try{if(this.platform==='CrazyGames')this.sdk.game.gameplayStart();if(this.platform==='Poki')this.sdk.gameplayStart();}catch(e){}},
+  gameplayStop(){try{if(this.platform==='CrazyGames')this.sdk.game.gameplayStop();if(this.platform==='Poki')this.sdk.gameplayStop();}catch(e){}},
+  rewarded(){
+    const prev=simSpeed;const resume=()=>{simSpeed=prev||1;};simSpeed=0;
+    return new Promise(res=>{
+      const done=ok=>{resume();res(ok);};
+      try{
+        if(this.platform==='CrazyGames'){this.sdk.ad.requestAd('rewarded',{adFinished:()=>done(true),adError:()=>done(false)});return;}
+        if(this.platform==='Playgama'){const b=this.sdk;let got=false;const h=st=>{if(st==='rewarded')got=true;if(st==='closed'||st==='failed'){b.advertisement.off&&b.advertisement.off(b.EVENT_NAME.REWARDED_STATE_CHANGED,h);done(got);}};b.advertisement.on(b.EVENT_NAME.REWARDED_STATE_CHANGED,h);b.advertisement.showRewarded();return;}
+        if(this.platform==='Poki'){this.sdk.rewardedBreak().then(ok=>done(!!ok)).catch(()=>done(false));return;}
+        if(this.platform==='GameDistribution'){this.sdk.showAd('rewarded').then(()=>done(true)).catch(()=>done(false));return;}
+      }catch(e){console.warn(e);}
+      // 本地模拟广告
+      const ov=$('adOv');ov.style.display='flex';let n=3;$('adTxt').textContent=n;
+      const iv=setInterval(()=>{n--;$('adTxt').textContent=n;if(n<=0){clearInterval(iv);ov.style.display='none';done(true);}},1000);
+    });
+  }
+};
+
+/* ------------------------- 主循环 ------------------------- */
+let started=false,simSpeed=1,last=performance.now(),acc=0,frameDt=0.016,tickHUD=0,hudT=0,saveT=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  let rdt=(now-last)/1000;last=now;
+  if(started&&!inOffline&&rdt>30){runOffline(rdt,null);rdt=0;} // 标签页被挂起很久：离线推演补回
+  rdt=Math.min(rdt,0.1);frameDt=rdt;
+  if(started&&!inOffline){
+    acc+=rdt*simSpeed;let n=0;
+    while(acc>=DT&&n<8){simStep(DT);acc-=DT;n++;}
+    if(n>=8)acc=0;
+    updatePlayer(rdt);
+    hudT+=rdt;if(hudT>0.25){hudT=0;tickHUD++;updateHUD();if(uiDirty)renderTab();}
+    saveT+=rdt;if(saveT>15){saveT=0;saveGame();}
+  }
+  camX+=(player.x-camX)*Math.min(1,rdt*10);camY+=(player.y-camY)*Math.min(1,rdt*10);
+  render(now/1000);
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&started)saveGame();});
+addEventListener('beforeunload',()=>{if(started)saveGame();});
+addEventListener('pagehide',()=>{if(started)saveGame();});
+
+function boot(){
+  buildSprites();sprURL=SPRITES.map(s=>s[0].toDataURL());loadMeta();
+  const has=!!localStorage.getItem(SAVE_KEY);
+  const sb=$('startBtns');
+  sb.innerHTML=(has?'<button class="btn big gold" id="bCont">▶ 继续游戏</button><br>':'')+'<button class="btn big" id="bNew">'+(has?'✦ 新的生态圈':'▶ 开始游戏')+'</button>';
+  const go=()=>{$('start').style.display='none';started=true;last=performance.now();renderTab();Ads.gameplayStart();};
+  $('bNew').onclick=()=>{if(has&&!confirm('开始新的生态圈会覆盖当前存档（已解锁物种保留），确定吗？'))return;newWorld();saveGame();go();};
+  if(has)$('bCont').onclick=()=>{const d=loadGame();if(!d){toast('存档损坏，已新建');newWorld();go();return;}
+    const el=(Date.now()-d.t)/1000;go();if(el>30)runOffline(Math.min(el,12*3600),null);};
+  // 背景预览：未开始时先生成一个世界用于展示
+  newWorld();
+  Ads.init().then(()=>uiDirty=true);
+  requestAnimationFrame(frame);
+}
+boot();
+</script>
+</body>
+</html>
