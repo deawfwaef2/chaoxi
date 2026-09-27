@@ -145,7 +145,9 @@ function buildSprites() {
       drawSpecies(g, s, S, v);
       const mips = [c]; let prev = c;
       for (let m = 1; m < 4; m++) { const n = S >> m, cc = document.createElement('canvas'); cc.width = cc.height = n; const gg = cc.getContext('2d'); gg.imageSmoothingQuality = 'high'; gg.drawImage(prev, 0, 0, n, n); mips.push(cc); prev = cc; }
-      SPRITES[s][v] = mips;
+      // 预先水平翻转的副本（朝左），渲染时不用 setTransform
+      const flips = mips.map(m => { const f = document.createElement('canvas'); f.width = f.height = m.width; const fg = f.getContext('2d'); fg.translate(m.width, 0); fg.scale(-1, 1); fg.drawImage(m, 0, 0); return f; });
+      SPRITES[s][v] = mips; SPRITES[s][v + 5] = flips;
     }
   }
 }

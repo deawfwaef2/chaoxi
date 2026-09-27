@@ -349,9 +349,9 @@ function stepC(dt) {
     if (od2 < orr * orr && od2 > 0.01 && !orb.dead) { const od = Math.sqrt(od2); cvx[i] += ox / od * 140; cvy[i] += oy / od * 140; }
     // 碰撞（软体推挤）
     cpx[i] = cx[i]; cpy[i] = cy[i];
-    if (!big) {
+    if (!big && ((G.frame + i) & 1) === 0) { // 碰撞隔帧计算（推力加倍）
       const c = sCell(cx[i], cy[i]); const gx0 = c % SN, gy0 = (c / SN) | 0; let checks = 0; const mi = S_mass[s];
-      for (let yy = gy0 - 1; yy <= gy0 + 1 && checks < 10; yy++) { if (yy < 0 || yy >= SN) continue; for (let xx = gx0 - 1; xx <= gx0 + 1 && checks < 10; xx++) { if (xx < 0 || xx >= SN) continue; const cc = yy * SN + xx; for (let q = cStart[cc]; q < cStart[cc + 1] && checks < 10; q++) { const j = cItems[q]; if (j === i || cdead[j]) continue; checks++; const rj = S_r[csp[j]], ddx = cx[i] - cx[j], ddy = cy[i] - cy[j], dd2 = ddx * ddx + ddy * ddy, rs = (r + rj) * 0.85; if (dd2 < rs * rs && dd2 > 1e-4) { const dd = Math.sqrt(dd2), push = (rs - dd) * 0.5 * (S_mass[csp[j]] / (mi + S_mass[csp[j]])); cx[i] += ddx / dd * push; cy[i] += ddy / dd * push; } } } }
+      for (let yy = gy0 - 1; yy <= gy0 + 1 && checks < 10; yy++) { if (yy < 0 || yy >= SN) continue; for (let xx = gx0 - 1; xx <= gx0 + 1 && checks < 10; xx++) { if (xx < 0 || xx >= SN) continue; const cc = yy * SN + xx; for (let q = cStart[cc]; q < cStart[cc + 1] && checks < 10; q++) { const j = cItems[q]; if (j === i || cdead[j]) continue; checks++; const rj = S_r[csp[j]], ddx = cx[i] - cx[j], ddy = cy[i] - cy[j], dd2 = ddx * ddx + ddy * ddy, rs = (r + rj) * 0.85; if (dd2 < rs * rs && dd2 > 1e-4) { const dd = Math.sqrt(dd2), push = (rs - dd) * 0.9 * (S_mass[csp[j]] / (mi + S_mass[csp[j]])); cx[i] += ddx / dd * push; cy[i] += ddy / dd * push; } } } }
     }
     // 位移（限制最大位移，离线大步长也稳定）
     let mx = cvx[i] * dt, my = cvy[i] * dt; const md = Math.hypot(mx, my), maxd = (big ? Math.max(sp * dt, 40) : sp * 3 * dt + 4);

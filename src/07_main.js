@@ -394,7 +394,7 @@ function frame(now) {
   const il = Math.hypot(ix, iy); if (il > 1) { ix /= il; iy /= il; }
   o.ix = ix; o.iy = iy; o.attract = !!(k[' '] || UI.attTouch);
   const spd = UI.boostT > 0 ? 4 : 1; if (UI.boostT > 0) UI.boostT -= dt;
-  const simDt = dt * spd, n = Math.ceil(simDt / 0.05);
+  const simDt = dt * spd, n = Math.ceil(simDt / 0.075);
   for (let s = 0; s < n; s++) simStep(simDt / n);
   processEvents();
   if (G._pulse > 0) G._pulse -= dt * 0.6;

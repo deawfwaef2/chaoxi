@@ -3,7 +3,7 @@ const CAM = { x: 0, y: 0, z: 1, tz: 1, W: 800, H: 600, dpr: 1 };
 let cvs, ctx, floorC, floorG, floorImg, floor32, rimC, rimG, pbC, pbG, pbImg, pb32, pbW = 0, pbH = 0, accL, accE;
 let floorDirty = true, rimDirty = true, rimT = 0;
 const FX = [];
-const LOD = { lodPx: 2.6, avg: 8 };
+const LOD = { lodPx: 2.6, avg: 8, maxSpr: 4000, nSpr: 0, fAvg: 16 };
 const DEV_COL = ['#7fe8ff', '#8fffd0', '#9fd0ff', '#ffb070', '#b890ff', '#ff9ff0', '#ffe08a', '#ff8fa8', '#ffd0a0', '#a0c8ff', '#ff7a7a', '#d0ffa0', '#ffffff', '#ffc8ff', '#fff2b0'];
 
 function initRender(canvas) {
@@ -37,8 +37,8 @@ function flushFloor() {
   if (floorDirty) { floorG.putImageData(floorImg, 0, 0); floorDirty = false; }
   if (rimDirty && performance.now() - rimT > 300) {
     rimT = performance.now(); rimDirty = false;
-    rimG.globalCompositeOperation = 'source-over'; rimG.clearRect(0, 0, GN, GN); rimG.globalAlpha = 0.22;
-    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1], [0, 0], [-2, 0], [2, 0], [0, 2], [0, -2]]) rimG.drawImage(floorC, ox, oy);
+    rimG.globalCompositeOperation = 'source-over'; rimG.clearRect(0, 0, GN, GN); rimG.globalAlpha = 0.3;
+    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]]) rimG.drawImage(floorC, ox, oy);
     rimG.globalAlpha = 1; rimG.globalCompositeOperation = 'source-in'; rimG.fillStyle = '#4fd8ff'; rimG.fillRect(0, 0, GN, GN); rimG.globalCompositeOperation = 'source-over';
   }
 }
@@ -87,7 +87,11 @@ function render(realDt, ui) {
   if (ui.build >= 0 && ui.ghost) drawGhost(ui);
   drawFX(realDt);
   const dtR = performance.now() - t0; LOD.avg = LOD.avg * 0.95 + dtR * 0.05;
-  if (LOD.avg > 16 && LOD.lodPx < 7) LOD.lodPx += 0.05; else if (LOD.avg < 9 && LOD.lodPx > 2.6) LOD.lodPx -= 0.02;
+  // 自适应画质：同时参考 JS 渲染耗时 和 实际帧间隔（包含 GPU/光栅化耗时）
+  if (realDt > 0 && realDt < 0.5) LOD.fAvg = LOD.fAvg * 0.95 + realDt * 1000 * 0.05;
+  const slow = LOD.avg > 14 || LOD.fAvg > 26, fast = LOD.avg < 8 && LOD.fAvg < 19;
+  if (slow) { if (LOD.maxSpr > 250) LOD.maxSpr *= (LOD.avg > 30 || LOD.fAvg > 45) ? 0.9 : 0.97; if (LOD.lodPx < 8) LOD.lodPx += 0.05; }
+  else if (fast) { if (LOD.maxSpr < 12000 && LOD.nSpr >= LOD.maxSpr * 0.9) LOD.maxSpr += 30; if (LOD.lodPx > 2.6) LOD.lodPx -= 0.03; }
 }
 
 function drawParticles(x0, y0, x1, y1) {
@@ -100,7 +104,7 @@ function drawParticles(x0, y0, x1, y1) {
     const bx = (px[i] * k + ox) | 0, by = (py[i] * k + oy) | 0;
     if (bx < 1 || by < 1 || bx >= bw - 1 || by >= bh - 1) continue;
     const a = pt[i] === 0 ? accL : accE, idx = by * bw + bx, w = v > 6 ? 6 : v;
-    a[idx] += 3 * w;
+    a[idx] += 4 * w + 2;
     if (big) { a[idx - 1] += w; a[idx + 1] += w; a[idx - bw] += w; a[idx + bw] += w; if (huge) { a[idx - bw - 1] += w; a[idx - bw + 1] += w; a[idx + bw - 1] += w; a[idx + bw + 1] += w; } }
   }
   const dim = G.lv > 0 ? 1 : 0.75;
@@ -118,15 +122,36 @@ function drawParticles(x0, y0, x1, y1) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+let dbC = null, dbG = null, dbImg = null, db32 = null, dbDirty = false;
+const SP_PACK = [], SP_PACK_HI = [];
+function packCol(h) { const [r, g, b] = hex2rgb(h); return 0xff000000 | (b << 16) | (g << 8) | r; }
+const _sprList = new Int32Array(MAXC);
 function drawCreatures(x0, y0, x1, y1, ui) {
   const z = CAM.z, k = z * CAM.dpr, t = G.t, offx = (CAM.W / 2 - CAM.x * z) * CAM.dpr, offy = (CAM.H / 2 - CAM.y * z) * CAM.dpr;
-  const lod = LOD.lodPx; let dots = null;
+  const lod = LOD.lodPx; let nSpr = 0, nDot = 0; const maxSpr = LOD.maxSpr, ox0 = G.orb.x, oy0 = G.orb.y;
+  // 精灵预算：超出预算时，离白球远的生物用 JS 光栅化成小圆点（一次 putImageData，数量再多也不卡）
+  const farR2 = cN > maxSpr ? (x1 - x0) * (y1 - y0) * maxSpr / Math.max(1, cN) / 3.2 : 1e12;
+  if (!dbC || dbC.width !== pbW || dbC.height !== pbH) { dbC = document.createElement('canvas'); dbC.width = pbW; dbC.height = pbH; dbG = dbC.getContext('2d'); dbImg = dbG.createImageData(pbW, pbH); db32 = new Uint32Array(dbImg.data.buffer); dbDirty = true; }
+  if (!SP_PACK.length) for (let s = 0; s < NS; s++) { SP_PACK[s] = packCol(SPECIES[s].col); SP_PACK_HI[s] = packCol(mixc(SPECIES[s].col, '#ffffff', 0.55).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, r, g, b) => '#' + [r, g, b].map(v => (+v).toString(16).padStart(2, '0')).join(''))); }
+  if (dbDirty) { db32.fill(0); dbDirty = false; }
+  const hk = z * 0.5, hox = CAM.W / 4 - CAM.x * hk, hoy = CAM.H / 4 - CAM.y * hk, bw = pbW, bh = pbH;
   for (let i = 0; i < cN; i++) {
     if (cdead[i]) continue;
     const s = csp[i], r = S_r[s], x = cx[i], y = cy[i];
     if (x < x0 - r * 3 || x > x1 + r * 3 || y < y0 - r * 3 || y > y1 + r * 3) continue;
-    const pxs = r * z;
-    if (pxs < lod) { (dots || (dots = []))[s] = (dots[s] || []); dots[s].push(i); continue; }
+    if (r * z < lod || nSpr >= maxSpr || dist2(x, y, ox0, oy0) > farR2) {
+      const bx = (x * hk + hox) | 0, by = (y * hk + hoy) | 0; let rr = r * hk; if (rr < 0.8) rr = 0.8; if (rr > 7) rr = 7;
+      const ri = Math.ceil(rr), r2 = rr * rr, col = SP_PACK[s], hi = SP_PACK_HI[s];
+      if (bx < ri || by < ri || bx >= bw - ri || by >= bh - ri) continue;
+      for (let dy = -ri; dy <= ri; dy++) { const row = (by + dy) * bw + bx; for (let dx = -ri; dx <= ri; dx++) { const d2 = dx * dx + dy * dy; if (d2 <= r2) db32[row + dx] = (d2 * 5 < r2 && dx <= 0 && dy <= 0) ? hi : col; } }
+      nDot++; continue;
+    }
+    _sprList[nSpr++] = i;
+  }
+  if (nDot) { dbG.putImageData(dbImg, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.drawImage(dbC, 0, 0, bw, bh, 0, 0, bw * 2 * CAM.dpr, bh * 2 * CAM.dpr); dbDirty = true; }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  for (let q = 0; q < nSpr; q++) {
+    const i = _sprList[q], s = csp[i], r = S_r[s], x = cx[i], y = cy[i];
     const sp = SPECIES[s], mv = sp.mv;
     // Q弹动画：挤压拉伸 + 弹跳
     const vx = cvx[i], vy = cvy[i], spd = Math.hypot(vx, vy), ph = cph[i];
@@ -134,26 +159,24 @@ function drawCreatures(x0, y0, x1, y1, ui) {
     if (mv === MV_HOP) { const hp = Math.max(0, Math.min(1, 1 - chop[i] / 0.55)); const hh = Math.sin(hp * Math.PI); yo = -hh * r * (spd > 15 ? 1.1 : 0.2); const sq = hp > 0.85 || hp < 0.1 ? 0.15 : -0.08 * hh; sx = 1 + sq; sy = 1 - sq; }
     else if (mv === MV_FLY || mv === MV_FLOAT || mv === MV_ORBIT) { yo = Math.sin(t * 3 + ph) * r * 0.25; }
     else { const b = Math.abs(Math.sin(ph * 1.5)); yo = -b * r * 0.18 * Math.min(1, spd / 20); sx += (1 - b) * 0.06 * Math.min(1, spd / 20); sy -= (1 - b) * 0.06 * Math.min(1, spd / 20); }
-    if (cmood[i] > 0) { const q = Math.sin(cmood[i] * 12) * 0.12 * Math.min(1, cmood[i]); sx += q; sy -= q; }
+    if (cmood[i] > 0) { const qq = Math.sin(cmood[i] * 12) * 0.12 * Math.min(1, cmood[i]); sx += qq; sy -= qq; }
     // 表情
     let v = 0; const st = cst[i];
     if (st === ST_FLEE) v = 4; else if (cage[i] > S_life[s] * 0.75) v = 2; else if (cmood[i] > 0 || st === ST_MATE) v = 3;
     if (v !== 4 && ((t * 0.8 + cid[i] * 0.37) % 3.7) < 0.13) v = 1;
-    const face = vx < -2 ? -1 : 1;
     const ds = r / SPR_BODY, dpx = ds * k; const mip = dpx > 90 ? 0 : dpx > 45 ? 1 : dpx > 22 ? 2 : 3;
-    const img = SPRITES[s][v][mip];
-    ctx.setTransform(k * sx * face, 0, 0, k * sy, x * k + offx, (y + yo + r * 0.3 * (1 - sy)) * k + offy);
-    ctx.drawImage(img, -ds / 2, -ds / 2, ds, ds);
+    const img = SPRITES[s][vx < -2 ? v + 5 : v][mip];
+    const w = dpx * sx, h = dpx * sy, scx = x * k + offx, scy = (y + yo + r * 0.3 * (1 - sy)) * k + offy;
+    ctx.drawImage(img, scx - w / 2, scy - h / 2, w, h);
   }
-  if (dots) {
-    worldT();
-    for (let s = 0; s < NS; s++) { const L = dots[s]; if (!L) continue; ctx.fillStyle = SPECIES[s].col; ctx.beginPath(); const r = Math.max(S_r[s], 2.2 / z); for (const i of L) ctx.rect(cx[i] - r, cy[i] - r, r * 2, r * 2); ctx.fill(); }
-  }
+  LOD.nSpr = nSpr;
   worldT();
   // 选中
-  if (ui.sel >= 0) { const i = ui.sel; const r = S_r[csp[i]]; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2 / z; ctx.setLineDash([6 / z, 5 / z]); ctx.lineDashOffset = -t * 20 / z; ctx.beginPath(); ctx.arc(cx[i], cy[i], r * 1.7 + 4, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+  if (ui.sel >= 0 && ui.selId) { const i = ui.sel; if (i < cN) { const r = S_r[csp[i]]; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2 / z; ctx.setLineDash([6 / z, 5 / z]); ctx.lineDashOffset = -t * 20 / z; ctx.beginPath(); ctx.arc(cx[i], cy[i], r * 1.7 + 4, 0, 7); ctx.stroke(); ctx.setLineDash([]); } }
 }
 
+const _dots = [];
+function dotSprite(s) { if (_dots[s]) return _dots[s]; const c = document.createElement('canvas'); c.width = c.height = 16; const g = c.getContext('2d'); const gr = g.createRadialGradient(6, 6, 1, 8, 8, 8); gr.addColorStop(0, shade(SPECIES[s].col, 0.5)); gr.addColorStop(0.7, SPECIES[s].col); gr.addColorStop(1, shade(SPECIES[s].col, -0.3)); g.fillStyle = gr; g.beginPath(); g.arc(8, 8, 7.5, 0, 7); g.fill(); return _dots[s] = c; }
 function drawFields() {
   ctx.fillStyle = 'rgba(80,190,255,0.07)'; ctx.strokeStyle = 'rgba(110,210,255,0.35)'; ctx.lineWidth = 1.5 / CAM.z;
   ctx.beginPath(); ctx.arc(0, 0, TOWER_FIELD, 0, 7); ctx.fill(); ctx.stroke();
