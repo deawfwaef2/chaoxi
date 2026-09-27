@@ -77,7 +77,7 @@ function genWorld(seed) {
   G.wallSealed = sealed;
   pN = 0; cN = 0;
   // 中央能量团（很多粒子聚集）
-  for (let k = 0; k < 800; k++) { const a = R() * 6.2832, r = Math.sqrt(-2 * Math.log(R() + 1e-9)) * 70; addP(Math.cos(a) * r, Math.sin(a) * r, 0, 1, 0, 0); }
+  for (let k = 0; k < 1400; k++) { const a = R() * 6.2832, r = Math.sqrt(-2 * Math.log(R() + 1e-9)) * 85; addP(Math.cos(a) * r, Math.sin(a) * r, 0, 1, 0, 0); }
   // 洞穴里的能量（遗落的光能团）
   for (const c of caves) { const n = Math.floor(20 + Math.hypot(c.x, c.y) / 40); for (let k = 0; k < n; k++) { const a = R() * 6.2832, r = R() * c.r * 0.6; addP(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r, R() < 0.8 ? 0 : 1, 1 + (R() * 3 | 0), 0, 0); } }
   G.caves = caves;
@@ -189,6 +189,8 @@ function compactC() {
 function findById(id, hint) { if (hint >= 0 && hint < cN && cid[hint] === id && !cdead[hint]) return hint; for (let i = 0; i < cN; i++) if (cid[i] === id && !cdead[i]) return i; return -1; }
 
 function readyToBreed(j) { const s = csp[j]; return ce[j] >= SPECIES[s].repE && cage[j] >= SPECIES[s].mature && crep[j] <= 0 && cst[j] !== ST_FLEE; }
+// 伴侣条件更宽松：能量达到繁殖阈值的 70% 即可
+function partnerOK(j) { const s = csp[j], sp = SPECIES[s]; return ce[j] >= sp.repE * 0.7 && ce[j] > Math.ceil(sp.childE / 2) + 2 && cage[j] >= sp.mature && crep[j] <= 0 && cst[j] !== ST_FLEE; }
 let _thinkFor = 0;
 function isHungryPrey(j) { return true; }
 
@@ -220,13 +222,13 @@ function think(i) {
   // 2. 繁殖
   if (readyToBreed(i)) {
     if (!sp.pair) { reproduce(i, -1); return; }
-    const j = findC(x, y, sp.sense, 1 << s, i, readyToBreed);
+    const j = findC(x, y, sp.sense * 1.5, 1 << s, i, partnerOK);
     if (j >= 0) { cst[i] = ST_MATE; ctg[i] = j; ctgId[i] = cid[j]; ctim[i] = 6; return; }
   }
   // 3. 进食
   const e = ce[i], maxE = sp.maxE;
   if (sp.prey) {
-    if (e < maxE * 0.62) {
+    if (e < Math.min(maxE - 2, Math.max(maxE * 0.62, sp.repE + 4))) {
       const j = findC(x, y, sp.sense, S_preyMask[s], i, null);
       if (j >= 0) { cst[i] = ST_HUNT; ctg[i] = j; ctgId[i] = cid[j]; ctim[i] = 5; return; }
     }
@@ -245,8 +247,8 @@ function reproduce(i, j) {
   if (cN >= MAXC) return;
   let e;
   if (j < 0) { e = sp.childE; if (ce[i] - e < 2) return; ce[i] -= e; }
-  else { const a = Math.ceil(sp.childE / 2), b = sp.childE - a; if (ce[i] <= a + 1 || ce[j] <= b + 1) return; ce[i] -= a; ce[j] -= b; e = a + b; crep[j] = sp.mature * 0.6 + rnd() * 10; cmood[j] = 1.5; }
-  crep[i] = sp.mature * 0.6 + rnd() * 10; cmood[i] = 1.5;
+  else { const a = Math.ceil(sp.childE / 2), b = sp.childE - a; if (ce[i] <= a + 1 || ce[j] <= b + 1) return; ce[i] -= a; ce[j] -= b; e = a + b; crep[j] = sp.mature * (sp.prey ? 1.3 : 0.6) + rnd() * 10; cmood[j] = 1.5; }
+  crep[i] = sp.mature * (sp.prey ? 1.3 : 0.6) + rnd() * 10; cmood[i] = 1.5;
   const a = rnd() * 6.2832, bx = j < 0 ? cx[i] : (cx[i] + cx[j]) / 2, by = j < 0 ? cy[i] : (cy[i] + cy[j]) / 2;
   let nx = bx + Math.cos(a) * sp.r, ny = by + Math.sin(a) * sp.r; if (isWall(nx, ny)) { nx = bx; ny = by; }
   const k = newC(s, nx, ny, e, (cgen[i] + 1));
@@ -309,11 +311,11 @@ function stepC(dt) {
             if (rnd() < (SPECIES[s].bite || 0.5)) { // 捕食成功：能量转移，溢出部分爆回地图
               const pe = ce[j], take = Math.min(pe, S_maxE[s] - ce[i]); ce[i] += take; ce[j] = pe - take;
               if (ce[j] > 0) burst(cx[j], cy[j], ce[j], 0, 25); ce[j] = 0; cdead[j] = 1; G.deaths++; G.eaten++; emit('eaten', cx[j], cy[j], csp[j]);
-              cst[i] = ST_REST; ctim[i] = 2.5; cmood[i] = 1.2;
+              cst[i] = ST_REST; ctim[i] = 4 + 6 * ce[i] / S_maxE[s]; cmood[i] = 1.2; // 饱食消化
             } else { const dx = cx[j] - cx[i], dy = cy[j] - cy[i], d = Math.hypot(dx, dy) + 1e-3; cvx[j] += dx / d * 120; cvy[j] += dy / d * 120; cst[i] = ST_REST; ctim[i] = 1.6; cst[j] = ST_FLEE; ctx_[j] = cx[j] + dx / d * 160; cty[j] = cy[j] + dy / d * 160; ctim[j] = 1.6; }
           } else if (ctim[i] <= 0) { cst[i] = ST_REST; ctim[i] = 2.5; }
         } else {
-          if (d2 < (rr + 6) * (rr + 6) || big && d2 < reach * reach) { if (readyToBreed(i) && readyToBreed(j)) reproduce(i, j); cst[i] = ST_WANDER; cthink[i] = 0.3; }
+          if (d2 < (rr + 6) * (rr + 6) || big && d2 < reach * reach) { if (readyToBreed(i) && partnerOK(j)) reproduce(i, j); cst[i] = ST_WANDER; cthink[i] = 0.3; }
           else if (ctim[i] <= 0) { cst[i] = ST_WANDER; }
         }
       }

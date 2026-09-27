@@ -51,6 +51,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#e6f3ff;fon
 .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin:3px 0 5px}.bar i{display:block;height:100%}
 #buildBar{left:50%;bottom:16px;transform:translateX(-50%);display:none;gap:8px;align-items:center;padding:8px 10px;font-size:13px}
 #buildBar.show{display:flex}
+#buildBar .btn,#bbName{white-space:nowrap}#buildBar .btn{padding:7px 11px}
 #joy{left:18px;bottom:18px;width:130px;height:130px;border-radius:50%;background:rgba(120,200,255,.08);border:1px solid rgba(120,200,255,.25);display:none;touch-action:none}
 #joyK{position:absolute;left:40px;top:40px;width:50px;height:50px;border-radius:50%;background:rgba(200,240,255,.35);border:1px solid rgba(255,255,255,.5)}
 #attBtn{right:18px;bottom:24px;width:74px;height:74px;border-radius:50%;display:none;font-size:12px}
@@ -58,7 +59,9 @@ body.touch #joy,body.touch #attBtn{display:block}
 body.touch #hint{bottom:160px}
 body.touch #card{bottom:160px}
 body.touch #buildBar{bottom:160px}
-body.touch #toasts{bottom:170px}
+body.touch #toasts{bottom:auto;top:190px;max-width:60vw}
+body.touch .toast{font-size:12px;padding:5px 9px}
+body.touch #hint{font-size:12px;max-width:74vw;padding:6px 10px}
 body.pOpen #joy,body.pOpen #attBtn,body.pOpen #card{display:none!important}
 #panel{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 #panel.show{display:flex}
