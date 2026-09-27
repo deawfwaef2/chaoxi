@@ -270,8 +270,8 @@ function showWin() {
 }
 
 /* ---------- 建造模式 ---------- */
-function enterBuild(d) { UI.build = d; UI.ghost = UI.touch ? [G.orb.x + 60, G.orb.y] : null; $('buildBar').classList.add('show'); $('bbName').textContent = '建造：' + DEVICES[d].name; $('bbRot').style.display = DEVICES[d].len ? '' : 'none'; $('bbOk').style.display = UI.touch ? '' : 'none'; UI.selId = 0; UI.selDev = null; }
-function exitBuild() { UI.build = -1; UI.ghost = null; $('buildBar').classList.remove('show'); }
+function enterBuild(d) { document.body.classList.add('building'); UI.build = d; UI.ghost = UI.touch ? [G.orb.x + 60, G.orb.y] : null; $('buildBar').classList.add('show'); $('bbName').textContent = '建造：' + DEVICES[d].name; $('bbRot').style.display = DEVICES[d].len ? '' : 'none'; $('bbOk').style.display = UI.touch ? '' : 'none'; UI.selId = 0; UI.selDev = null; }
+function exitBuild() { document.body.classList.remove('building'); UI.build = -1; UI.ghost = null; $('buildBar').classList.remove('show'); }
 function tryPlace() {
   if (UI.build < 0 || !UI.ghost) return; const [x, y] = UI.ghost; const err = canPlace(UI.build, x, y);
   if (err) { toast('⚠ ' + err); AU.play('error'); return; }

@@ -62,6 +62,7 @@ body.touch #buildBar{bottom:160px}
 body.touch #toasts{bottom:auto;top:190px;max-width:60vw}
 body.touch .toast{font-size:12px;padding:5px 9px}
 body.touch #hint{font-size:12px;max-width:74vw;padding:6px 10px}
+body.building #hint{display:none!important}
 body.pOpen #joy,body.pOpen #attBtn,body.pOpen #card{display:none!important}
 #panel{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
 #panel.show{display:flex}
@@ -1789,8 +1790,8 @@ function showWin() {
 }
 
 /* ---------- 建造模式 ---------- */
-function enterBuild(d) { UI.build = d; UI.ghost = UI.touch ? [G.orb.x + 60, G.orb.y] : null; $('buildBar').classList.add('show'); $('bbName').textContent = '建造：' + DEVICES[d].name; $('bbRot').style.display = DEVICES[d].len ? '' : 'none'; $('bbOk').style.display = UI.touch ? '' : 'none'; UI.selId = 0; UI.selDev = null; }
-function exitBuild() { UI.build = -1; UI.ghost = null; $('buildBar').classList.remove('show'); }
+function enterBuild(d) { document.body.classList.add('building'); UI.build = d; UI.ghost = UI.touch ? [G.orb.x + 60, G.orb.y] : null; $('buildBar').classList.add('show'); $('bbName').textContent = '建造：' + DEVICES[d].name; $('bbRot').style.display = DEVICES[d].len ? '' : 'none'; $('bbOk').style.display = UI.touch ? '' : 'none'; UI.selId = 0; UI.selDev = null; }
+function exitBuild() { document.body.classList.remove('building'); UI.build = -1; UI.ghost = null; $('buildBar').classList.remove('show'); }
 function tryPlace() {
   if (UI.build < 0 || !UI.ghost) return; const [x, y] = UI.ghost; const err = canPlace(UI.build, x, y);
   if (err) { toast('⚠ ' + err); AU.play('error'); return; }
