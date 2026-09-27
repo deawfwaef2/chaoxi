@@ -275,7 +275,7 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
 .rc.cur{border-color:#b89cff;box-shadow:0 0 16px rgba(170,140,255,.4)}.rc.done .rs{color:#9fffc0}.rc.lock img{filter:brightness(0) opacity(.5)}.rc.lock{opacity:.6}
 .rc .nw{position:absolute;top:-7px;left:50%;transform:translateX(-50%)}
 /* 面板 */
-#pBox{border-radius:26px}#pTitle{font-size:22px}.tab{font-size:16px;padding:9px 18px}
+#pTabs,#pHead{flex:none}#pBox{border-radius:26px}#pTitle{font-size:22px}.tab{font-size:16px;padding:9px 18px}
 #pBody{font-size:15.5px}
 @media (max-width:760px){
   :root{--dockH:150px}
@@ -289,6 +289,26 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
   #introBox{padding:18px 16px 14px;max-height:92vh}
   #notices{top:200px;width:92vw}.bign .bnm{font-size:21px}.bign img{width:56px;height:56px}
   #cRes .rt{min-width:70px}#cRes .rt b{max-width:80px}
+}
+
+/* 新手引导 */
+#hint{cursor:default;align-items:flex-start;gap:14px;padding:14px 16px 14px 14px;max-width:min(600px,calc(100vw - 260px));width:max-content;border-color:rgba(160,230,255,.4);box-shadow:0 0 30px rgba(110,210,255,.18),0 12px 40px rgba(0,0,0,.5)}
+#hint .hi{font-size:40px;line-height:1;flex:none;width:58px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:radial-gradient(circle,rgba(130,220,255,.28),rgba(130,220,255,.04))}
+#hint .hb{flex:1;min-width:0}#hint .hs{font-size:12.5px;font-weight:800;letter-spacing:2px;color:#8fe0ff;opacity:.85}
+#hint .ht{font-size:19px;font-weight:900;margin:2px 0 4px}#hint .hd{font-size:15.5px;line-height:1.6;opacity:.92}#hint .hd b{color:#bff4ff}
+#hint .hp{position:relative;margin-top:8px;height:18px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}#hint .hp i{display:block;height:100%;background:linear-gradient(90deg,#3ab8ff,#9ff4ff);border-radius:9px;transition:width .3s}#hint .hp span{position:absolute;inset:0;text-align:center;font-size:12.5px;font-weight:800;line-height:18px;text-shadow:0 1px 2px #000}
+#hint .hbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;align-self:center}
+#hint .hk{border:none;background:none;color:#cfe8ff;opacity:.55;font-size:13px;cursor:pointer;font-family:inherit;padding:4px}
+#tutArrow{display:none;position:fixed;z-index:30;width:40px;height:52px;margin:-58px 0 0 -20px;pointer-events:none;filter:drop-shadow(0 0 10px rgba(120,240,255,.9));animation:tarr .9s ease-in-out infinite}
+@keyframes tarr{50%{transform:translateY(-12px)}}
+.tutHi{outline:3px solid rgba(160,240,255,.95)!important;outline-offset:3px;animation:thi 1s ease-in-out infinite!important}
+@keyframes thi{50%{outline-color:rgba(160,240,255,.25)}}
+body.pOpen #tutArrow{display:none!important}
+@media (max-width:760px){
+  #hint,body.touch #hint{left:8px;right:8px;transform:none;width:auto;max-width:none;bottom:calc(var(--dockH) + var(--safeB) + 122px);padding:10px 12px}
+  #hint .hi{width:44px;height:44px;font-size:30px}#hint .ht{font-size:17px}#hint .hd{font-size:14.5px}
+  #cRes{display:none!important}
+  .dc img{width:60px;height:60px}.dc{padding-bottom:6px}.dc .cs{margin-top:2px}
 }
 </style>
 </head>
@@ -312,7 +332,7 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
 <div id="toasts" class="hud"></div>
 <div id="notices" class="hud"></div>
 <div id="intro"><div id="introBox" class="glass"></div></div>
-<div id="hint" class="hud glass"><div class="hi" id="hintI">💡</div><div id="hintT"></div><div class="hx">✕</div></div>
+<div id="hint" class="hud glass"></div><div id="tutArrow" class="hud"><svg viewBox="0 0 40 52"><defs><linearGradient id="tag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#7ff0ff"/></linearGradient></defs><path d="M20 50 L4 30 H13 V4 H27 V30 H36 Z" fill="url(#tag)" stroke="#0a3050" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
 <div id="card" class="hud glass"></div>
 <div id="joy" class="hud"><div id="joyK"></div></div>
 <div id="spray" class="hud"><svg viewBox="0 0 102 102"><circle cx="51" cy="51" r="47" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="5"/><circle id="sprArc" cx="51" cy="51" r="47" fill="none" stroke="#7ff4ff" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 400" transform="rotate(-90 51 51)"/></svg><b>✦</b><span>播撒</span><kbd>空格</kbd></div>

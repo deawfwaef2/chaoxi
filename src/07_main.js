@@ -122,21 +122,44 @@ function bigNotice(ic, title, name, col, sub) {
   setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 600); }, 4200);
 }
 function toast(msg, col) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg; if (col) d.style.borderColor = col; $('toasts').appendChild(d); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 3600); }
+const isTouch = () => UI.touch || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+const hasDev = key => G.devs.some(d => DEVICES[d.type].key === key);
+function nearestWisp() { let bd = 1e18, bx = 0, by = 0; for (let k = 0; k < wN; k++) { if (wval[k] <= 0) continue; const d = dist2(wx[k], wy[k], G.orb.x, G.orb.y); if (d < bd) { bd = d; bx = wx[k]; by = wy[k]; } } return bd < 1e18 ? [bx, by] : null; }
+/* v0.6 新手引导：每步 = 图标/标题/说明/进度/高亮目标 */
 const TUT = [
-  { i: '✦', txt: () => UI.touch ? '按住右下角【播撒】，把白球里的能量喷到地上' : '按住【空格】播撒能量——生物靠地上的能量生存', done: () => G.flow.spray >= 30 },
-  { i: '🐾', txt: () => '点底部的生物卡片，用白球的能量召唤生物', done: () => (G.summons || 0) >= 3 },
-  { i: '◆', txt: () => '生物会掉落金色【物质】结晶，靠近就能收集', done: () => G.flow.mat >= 10 },
-  { i: '🔥', txt: () => '能量会被生物代谢掉、不会再生。食物链越完整，能量用得越久', done: () => G.lv >= 1 || G.t > 150 },
-  { i: '🏗️', txt: () => '潮汐 Lv1 解锁建筑：先建【导能塔】扩大能量场，再建【物质收集器】', done: () => G.devs.length > 0 },
-  { i: '❓', txt: () => '撞开黑墙探索迷雾——闪烁的 ? 信号下藏着远古遗迹和能量洞', done: () => G.pois.some(q => q.found) },
+  { i: '🌊', t: '欢迎来到潮汐生态圈', d: () => '你是一颗漂浮的<b>能量白球</b>。在这片黑暗星海里，孕育一个生生不息的生态圈吧！', btn: '开始引导', done: () => false },
+  { i: '✨', t: '吸收光灵', d: () => `白球<b>不会自己产生能量</b>。${isTouch() ? '用左下摇杆' : '用 WASD / 方向键'}移动白球，靠近飘浮的<b>白色光灵</b>，它们会被自动吸进来。`, prog: () => [G.orb.absorbed, 12], world: nearestWisp, done: () => G.orb.absorbed >= 12 },
+  { i: '💫', t: '播撒能量', d: () => `${isTouch() ? '按住右下角<b>【播撒】</b>' : '按住<b>【空格】</b>或右下角<b>【播撒】</b>'}，把白球储存的能量洒向大地——生物靠吃地上的能量存活。`, prog: () => [G.flow.spray, 30], el: () => $('spray'), done: () => G.flow.spray >= 30 },
+  { i: '🐾', t: '召唤第一批生物', d: () => '点底部的<b>生物卡片</b>召唤生物（第一次点会弹出介绍，按<b>【召唤】</b>即可）。成对的生物才能繁殖哦。', prog: () => [G.summons || 0, 2], el: () => document.querySelector('#dList .dc[data-s="0"]'), dock: 0, done: () => (G.summons || 0) >= 2 },
+  { i: '🐰', t: '丰富种群', d: () => '再召唤两只——试试<b>团子兔</b>。不同物种吃不同的东西，食物链越完整越稳定。', prog: () => [G.summons || 0, 4], el: () => document.querySelector('#dList .dc[data-s="1"]'), dock: 0, done: () => (G.summons || 0) >= 4 },
+  { i: '◆', t: '收集物质', d: () => '生物吃饱会掉落金色<b>◆ 物质结晶</b>，移动白球靠近即可收集。物质用来建造和召唤高级生物。', prog: () => [G.flow.mat, 8], done: () => G.flow.mat >= 8 },
+  { i: '🔬', t: '建造科研站', d: () => '切到底部<b>【建筑】</b>栏，建造<b>科研站</b>。建筑需要 60 秒施工，看广告可以缩短。', el: () => UI.dock === 1 ? document.querySelector('#dList .dc[data-k="lab"]') : document.querySelector('#dTabs .dt[data-t="1"]'), done: () => hasDev('lab') || hasDev('rlab') },
+  { i: '🧪', t: '选择研究项目', d: () => '点右侧<b>【科研】</b>，挑一个新物种或新建筑开始研究。研究很慢，<b>潮汐越高研究越快</b>。', el: () => $('bRes'), done: () => !!G.resT || G.unlocked.some(k => { const it = resItem(k); return it && it.def.tier > 0; }) },
+  { i: '🌊', t: '提升观测潮汐', d: () => '左上角的<b>潮汐</b>衡量生态的丰富度：物种越多、数量越稳，潮汐越高，解锁更多建造额度和研究阶层。', el: () => $('tide'), prog: () => [Math.max(0, G.lastScore || 0), 2], done: () => G.lv >= 1 },
+  { i: '🧱', t: '探索迷雾', d: () => '撞开边缘的<b>黑墙</b>扩大领地——闪烁的 ? 信号下藏着远古遗迹和光灵泉。引导完成，祝你玩得开心！', btn: '完成引导', done: () => G.pois.some(q => q.found) },
 ];
+function tutNext() { META.tut++; saveMeta(); AU.play('gain'); updateHint(); }
 function updateHint() {
-  const h = $('hint');
-  if (META.tut >= TUT.length || UI.state !== 'play') { h.style.display = 'none'; return; }
-  const s = TUT[META.tut]; if (s.done()) { META.tut++; saveMeta(); AU.play('gain'); return updateHint(); }
-  h.style.display = 'flex'; $('hintI').textContent = s.i; $('hintT').textContent = s.txt();
+  const h = $('hint'), ar = $('tutArrow');
+  document.querySelectorAll('.tutHi').forEach(e => e.classList.remove('tutHi'));
+  if (META.tut >= TUT.length || UI.state !== 'play' || UI.panel || $('intro').classList.contains('show') || UI.build >= 0) { h.style.display = 'none'; ar.style.display = 'none'; return; }
+  const s = TUT[META.tut]; if (s.done()) return tutNext();
+  h.style.display = 'flex';
+  const key = META.tut + '|' + s.d();
+  if (h._k !== key) {
+    h._k = key;
+    h.innerHTML = `<div class="hi">${s.i}</div><div class="hb"><div class="hs">新手引导 · ${META.tut + 1} / ${TUT.length}</div><div class="ht">${s.t}</div><div class="hd">${s.d()}</div>${s.prog ? '<div class="hp"><i id="hpI"></i><span id="hpT"></span></div>' : ''}</div><div class="hbtns">${s.btn ? `<button class="btn pri" id="hNext">${s.btn}</button>` : ''}<button class="hk" id="hSkip">跳过引导</button></div>`;
+    const n = $('hNext'); if (n) n.onclick = e => { e.stopPropagation(); tutNext(); };
+    $('hSkip').onclick = e => { e.stopPropagation(); META.tut = TUT.length; saveMeta(); updateHint(); toast('已跳过新手引导，可在【菜单】里重新开始引导'); };
+    if (s.dock !== undefined && UI.dock !== s.dock) setDock(s.dock);
+  }
+  if (s.prog) { const [c, m] = s.prog(); $('hpI').style.width = Math.min(100, c / m * 100) + '%'; $('hpT').textContent = Math.floor(Math.min(c, m)) + ' / ' + m; }
+  let tx = null, ty = null;
+  const el = s.el && s.el();
+  if (el && el.offsetParent !== null) { el.classList.add('tutHi'); const r = el.getBoundingClientRect(); tx = r.left + r.width / 2; ty = r.top; }
+  else if (s.world) { const w = s.world(); if (w) { const [sx, sy] = w2s(w[0], w[1]); if (sx > 20 && sy > 60 && sx < innerWidth - 20 && sy < innerHeight - 180) { tx = sx; ty = sy - 18; } } }
+  if (tx === null) ar.style.display = 'none'; else { ar.style.display = 'block'; ar.style.left = tx + 'px'; ar.style.top = ty + 'px'; }
 }
-
 /* ---------- 装置图标（复用渲染器绘制） ---------- */
 const _devIcon = {};
 function devIcon(t) {
@@ -640,7 +663,6 @@ function setupInput() {
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
   $('bbCancel').onclick = exitBuild; $('bbRot').onclick = () => { UI.ang += Math.PI / 8; }; $('bbOk').onclick = tryPlace;
   $('offSkip').onclick = () => { offCancel = true; };
-  $('hint').onclick = () => { META.tut++; saveMeta(); updateHint(); };
   addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => {
     if (UI.state !== 'play') return;

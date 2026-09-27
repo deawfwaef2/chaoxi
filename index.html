@@ -275,7 +275,7 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
 .rc.cur{border-color:#b89cff;box-shadow:0 0 16px rgba(170,140,255,.4)}.rc.done .rs{color:#9fffc0}.rc.lock img{filter:brightness(0) opacity(.5)}.rc.lock{opacity:.6}
 .rc .nw{position:absolute;top:-7px;left:50%;transform:translateX(-50%)}
 /* 面板 */
-#pBox{border-radius:26px}#pTitle{font-size:22px}.tab{font-size:16px;padding:9px 18px}
+#pTabs,#pHead{flex:none}#pBox{border-radius:26px}#pTitle{font-size:22px}.tab{font-size:16px;padding:9px 18px}
 #pBody{font-size:15.5px}
 @media (max-width:760px){
   :root{--dockH:150px}
@@ -289,6 +289,26 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
   #introBox{padding:18px 16px 14px;max-height:92vh}
   #notices{top:200px;width:92vw}.bign .bnm{font-size:21px}.bign img{width:56px;height:56px}
   #cRes .rt{min-width:70px}#cRes .rt b{max-width:80px}
+}
+
+/* 新手引导 */
+#hint{cursor:default;align-items:flex-start;gap:14px;padding:14px 16px 14px 14px;max-width:min(600px,calc(100vw - 260px));width:max-content;border-color:rgba(160,230,255,.4);box-shadow:0 0 30px rgba(110,210,255,.18),0 12px 40px rgba(0,0,0,.5)}
+#hint .hi{font-size:40px;line-height:1;flex:none;width:58px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:radial-gradient(circle,rgba(130,220,255,.28),rgba(130,220,255,.04))}
+#hint .hb{flex:1;min-width:0}#hint .hs{font-size:12.5px;font-weight:800;letter-spacing:2px;color:#8fe0ff;opacity:.85}
+#hint .ht{font-size:19px;font-weight:900;margin:2px 0 4px}#hint .hd{font-size:15.5px;line-height:1.6;opacity:.92}#hint .hd b{color:#bff4ff}
+#hint .hp{position:relative;margin-top:8px;height:18px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}#hint .hp i{display:block;height:100%;background:linear-gradient(90deg,#3ab8ff,#9ff4ff);border-radius:9px;transition:width .3s}#hint .hp span{position:absolute;inset:0;text-align:center;font-size:12.5px;font-weight:800;line-height:18px;text-shadow:0 1px 2px #000}
+#hint .hbtns{display:flex;flex-direction:column;gap:8px;align-items:stretch;flex:none;align-self:center}
+#hint .hk{border:none;background:none;color:#cfe8ff;opacity:.55;font-size:13px;cursor:pointer;font-family:inherit;padding:4px}
+#tutArrow{display:none;position:fixed;z-index:30;width:40px;height:52px;margin:-58px 0 0 -20px;pointer-events:none;filter:drop-shadow(0 0 10px rgba(120,240,255,.9));animation:tarr .9s ease-in-out infinite}
+@keyframes tarr{50%{transform:translateY(-12px)}}
+.tutHi{outline:3px solid rgba(160,240,255,.95)!important;outline-offset:3px;animation:thi 1s ease-in-out infinite!important}
+@keyframes thi{50%{outline-color:rgba(160,240,255,.25)}}
+body.pOpen #tutArrow{display:none!important}
+@media (max-width:760px){
+  #hint,body.touch #hint{left:8px;right:8px;transform:none;width:auto;max-width:none;bottom:calc(var(--dockH) + var(--safeB) + 122px);padding:10px 12px}
+  #hint .hi{width:44px;height:44px;font-size:30px}#hint .ht{font-size:17px}#hint .hd{font-size:14.5px}
+  #cRes{display:none!important}
+  .dc img{width:60px;height:60px}.dc{padding-bottom:6px}.dc .cs{margin-top:2px}
 }
 </style>
 </head>
@@ -312,7 +332,7 @@ table.tb{border-collapse:collapse;width:100%;font-size:14px}table.tb td{padding:
 <div id="toasts" class="hud"></div>
 <div id="notices" class="hud"></div>
 <div id="intro"><div id="introBox" class="glass"></div></div>
-<div id="hint" class="hud glass"><div class="hi" id="hintI">💡</div><div id="hintT"></div><div class="hx">✕</div></div>
+<div id="hint" class="hud glass"></div><div id="tutArrow" class="hud"><svg viewBox="0 0 40 52"><defs><linearGradient id="tag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#7ff0ff"/></linearGradient></defs><path d="M20 50 L4 30 H13 V4 H27 V30 H36 Z" fill="url(#tag)" stroke="#0a3050" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
 <div id="card" class="hud glass"></div>
 <div id="joy" class="hud"><div id="joyK"></div></div>
 <div id="spray" class="hud"><svg viewBox="0 0 102 102"><circle cx="51" cy="51" r="47" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="5"/><circle id="sprArc" cx="51" cy="51" r="47" fill="none" stroke="#7ff4ff" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 400" transform="rotate(-90 51 51)"/></svg><b>✦</b><span>播撒</span><kbd>空格</kbd></div>
@@ -2835,21 +2855,44 @@ function bigNotice(ic, title, name, col, sub) {
   setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 600); }, 4200);
 }
 function toast(msg, col) { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = msg; if (col) d.style.borderColor = col; $('toasts').appendChild(d); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 700); }, 3600); }
+const isTouch = () => UI.touch || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+const hasDev = key => G.devs.some(d => DEVICES[d.type].key === key);
+function nearestWisp() { let bd = 1e18, bx = 0, by = 0; for (let k = 0; k < wN; k++) { if (wval[k] <= 0) continue; const d = dist2(wx[k], wy[k], G.orb.x, G.orb.y); if (d < bd) { bd = d; bx = wx[k]; by = wy[k]; } } return bd < 1e18 ? [bx, by] : null; }
+/* v0.6 新手引导：每步 = 图标/标题/说明/进度/高亮目标 */
 const TUT = [
-  { i: '✦', txt: () => UI.touch ? '按住右下角【播撒】，把白球里的能量喷到地上' : '按住【空格】播撒能量——生物靠地上的能量生存', done: () => G.flow.spray >= 30 },
-  { i: '🐾', txt: () => '点底部的生物卡片，用白球的能量召唤生物', done: () => (G.summons || 0) >= 3 },
-  { i: '◆', txt: () => '生物会掉落金色【物质】结晶，靠近就能收集', done: () => G.flow.mat >= 10 },
-  { i: '🔥', txt: () => '能量会被生物代谢掉、不会再生。食物链越完整，能量用得越久', done: () => G.lv >= 1 || G.t > 150 },
-  { i: '🏗️', txt: () => '潮汐 Lv1 解锁建筑：先建【导能塔】扩大能量场，再建【物质收集器】', done: () => G.devs.length > 0 },
-  { i: '❓', txt: () => '撞开黑墙探索迷雾——闪烁的 ? 信号下藏着远古遗迹和能量洞', done: () => G.pois.some(q => q.found) },
+  { i: '🌊', t: '欢迎来到潮汐生态圈', d: () => '你是一颗漂浮的<b>能量白球</b>。在这片黑暗星海里，孕育一个生生不息的生态圈吧！', btn: '开始引导', done: () => false },
+  { i: '✨', t: '吸收光灵', d: () => `白球<b>不会自己产生能量</b>。${isTouch() ? '用左下摇杆' : '用 WASD / 方向键'}移动白球，靠近飘浮的<b>白色光灵</b>，它们会被自动吸进来。`, prog: () => [G.orb.absorbed, 12], world: nearestWisp, done: () => G.orb.absorbed >= 12 },
+  { i: '💫', t: '播撒能量', d: () => `${isTouch() ? '按住右下角<b>【播撒】</b>' : '按住<b>【空格】</b>或右下角<b>【播撒】</b>'}，把白球储存的能量洒向大地——生物靠吃地上的能量存活。`, prog: () => [G.flow.spray, 30], el: () => $('spray'), done: () => G.flow.spray >= 30 },
+  { i: '🐾', t: '召唤第一批生物', d: () => '点底部的<b>生物卡片</b>召唤生物（第一次点会弹出介绍，按<b>【召唤】</b>即可）。成对的生物才能繁殖哦。', prog: () => [G.summons || 0, 2], el: () => document.querySelector('#dList .dc[data-s="0"]'), dock: 0, done: () => (G.summons || 0) >= 2 },
+  { i: '🐰', t: '丰富种群', d: () => '再召唤两只——试试<b>团子兔</b>。不同物种吃不同的东西，食物链越完整越稳定。', prog: () => [G.summons || 0, 4], el: () => document.querySelector('#dList .dc[data-s="1"]'), dock: 0, done: () => (G.summons || 0) >= 4 },
+  { i: '◆', t: '收集物质', d: () => '生物吃饱会掉落金色<b>◆ 物质结晶</b>，移动白球靠近即可收集。物质用来建造和召唤高级生物。', prog: () => [G.flow.mat, 8], done: () => G.flow.mat >= 8 },
+  { i: '🔬', t: '建造科研站', d: () => '切到底部<b>【建筑】</b>栏，建造<b>科研站</b>。建筑需要 60 秒施工，看广告可以缩短。', el: () => UI.dock === 1 ? document.querySelector('#dList .dc[data-k="lab"]') : document.querySelector('#dTabs .dt[data-t="1"]'), done: () => hasDev('lab') || hasDev('rlab') },
+  { i: '🧪', t: '选择研究项目', d: () => '点右侧<b>【科研】</b>，挑一个新物种或新建筑开始研究。研究很慢，<b>潮汐越高研究越快</b>。', el: () => $('bRes'), done: () => !!G.resT || G.unlocked.some(k => { const it = resItem(k); return it && it.def.tier > 0; }) },
+  { i: '🌊', t: '提升观测潮汐', d: () => '左上角的<b>潮汐</b>衡量生态的丰富度：物种越多、数量越稳，潮汐越高，解锁更多建造额度和研究阶层。', el: () => $('tide'), prog: () => [Math.max(0, G.lastScore || 0), 2], done: () => G.lv >= 1 },
+  { i: '🧱', t: '探索迷雾', d: () => '撞开边缘的<b>黑墙</b>扩大领地——闪烁的 ? 信号下藏着远古遗迹和光灵泉。引导完成，祝你玩得开心！', btn: '完成引导', done: () => G.pois.some(q => q.found) },
 ];
+function tutNext() { META.tut++; saveMeta(); AU.play('gain'); updateHint(); }
 function updateHint() {
-  const h = $('hint');
-  if (META.tut >= TUT.length || UI.state !== 'play') { h.style.display = 'none'; return; }
-  const s = TUT[META.tut]; if (s.done()) { META.tut++; saveMeta(); AU.play('gain'); return updateHint(); }
-  h.style.display = 'flex'; $('hintI').textContent = s.i; $('hintT').textContent = s.txt();
+  const h = $('hint'), ar = $('tutArrow');
+  document.querySelectorAll('.tutHi').forEach(e => e.classList.remove('tutHi'));
+  if (META.tut >= TUT.length || UI.state !== 'play' || UI.panel || $('intro').classList.contains('show') || UI.build >= 0) { h.style.display = 'none'; ar.style.display = 'none'; return; }
+  const s = TUT[META.tut]; if (s.done()) return tutNext();
+  h.style.display = 'flex';
+  const key = META.tut + '|' + s.d();
+  if (h._k !== key) {
+    h._k = key;
+    h.innerHTML = `<div class="hi">${s.i}</div><div class="hb"><div class="hs">新手引导 · ${META.tut + 1} / ${TUT.length}</div><div class="ht">${s.t}</div><div class="hd">${s.d()}</div>${s.prog ? '<div class="hp"><i id="hpI"></i><span id="hpT"></span></div>' : ''}</div><div class="hbtns">${s.btn ? `<button class="btn pri" id="hNext">${s.btn}</button>` : ''}<button class="hk" id="hSkip">跳过引导</button></div>`;
+    const n = $('hNext'); if (n) n.onclick = e => { e.stopPropagation(); tutNext(); };
+    $('hSkip').onclick = e => { e.stopPropagation(); META.tut = TUT.length; saveMeta(); updateHint(); toast('已跳过新手引导，可在【菜单】里重新开始引导'); };
+    if (s.dock !== undefined && UI.dock !== s.dock) setDock(s.dock);
+  }
+  if (s.prog) { const [c, m] = s.prog(); $('hpI').style.width = Math.min(100, c / m * 100) + '%'; $('hpT').textContent = Math.floor(Math.min(c, m)) + ' / ' + m; }
+  let tx = null, ty = null;
+  const el = s.el && s.el();
+  if (el && el.offsetParent !== null) { el.classList.add('tutHi'); const r = el.getBoundingClientRect(); tx = r.left + r.width / 2; ty = r.top; }
+  else if (s.world) { const w = s.world(); if (w) { const [sx, sy] = w2s(w[0], w[1]); if (sx > 20 && sy > 60 && sx < innerWidth - 20 && sy < innerHeight - 180) { tx = sx; ty = sy - 18; } } }
+  if (tx === null) ar.style.display = 'none'; else { ar.style.display = 'block'; ar.style.left = tx + 'px'; ar.style.top = ty + 'px'; }
 }
-
 /* ---------- 装置图标（复用渲染器绘制） ---------- */
 const _devIcon = {};
 function devIcon(t) {
@@ -3353,7 +3396,6 @@ function setupInput() {
   $('panel').addEventListener('pointerdown', e => { if (e.target === $('panel')) closePanel(); });
   $('bbCancel').onclick = exitBuild; $('bbRot').onclick = () => { UI.ang += Math.PI / 8; }; $('bbOk').onclick = tryPlace;
   $('offSkip').onclick = () => { offCancel = true; };
-  $('hint').onclick = () => { META.tut++; saveMeta(); updateHint(); };
   addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => {
     if (UI.state !== 'play') return;
