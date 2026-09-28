@@ -7,19 +7,33 @@ function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255,
 function mixc(h, h2, t) { const a = hex2rgb(h), b = hex2rgb(h2); return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')'; }
 function shade(h, k) { const a = hex2rgb(h); return 'rgb(' + a.map(v => Math.max(0, Math.min(255, Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k))))).join(',') + ')'; }
 
+let FACE_EYE = '#ffd36b', FACE_KEY = '';
 function drawFace(g, x, y, R, v, dark) {
   const ex = R * 0.36, ey = y, er = R * 0.15;
   g.lineCap = 'round'; g.lineJoin = 'round';
-  // 腮红
-  g.fillStyle = 'rgba(255,120,150,0.45)';
-  g.beginPath(); g.ellipse(x - R * 0.58, y + R * 0.26, R * 0.17, R * 0.1, 0, 0, 7); g.fill();
-  g.beginPath(); g.ellipse(x + R * 0.58, y + R * 0.26, R * 0.17, R * 0.1, 0, 0, 7); g.fill();
+  // 微恐：淡淡的黑眼圈代替腮红
+  if (FACE_KEY === 'bunny') { g.fillStyle = '#e8303a'; for (const s of [-1, 1]) { g.beginPath(); g.arc(x + s * R * 0.6, y + R * 0.26, R * 0.12, 0, 7); g.fill(); } }
+  else if (FACE_KEY !== 'unicorn') {
+    g.fillStyle = FACE_KEY === 'sheep' ? 'rgba(40,10,60,0.55)' : 'rgba(20,0,30,0.28)';
+    g.beginPath(); g.ellipse(x - ex, y + R * 0.2, R * 0.2, R * 0.09, 0, 0, 7); g.fill();
+    g.beginPath(); g.ellipse(x + ex, y + R * 0.2, R * 0.2, R * 0.09, 0, 0, 7); g.fill();
+  }
+  if (FACE_KEY === 'bear') { g.strokeStyle = '#1a0a08'; g.lineWidth = R * 0.05; g.beginPath(); g.moveTo(x + R * 0.1, y - R * 0.95); g.quadraticCurveTo(x + R * 0.2, y - R * 0.5, x + R * 0.05, y - R * 0.2); g.stroke(); for (let k = 0; k < 4; k++) { const yy = y - R * (0.85 - k * 0.18), xx = x + R * (0.14 + 0.03 * Math.sin(k)); g.beginPath(); g.moveTo(xx - R * 0.08, yy); g.lineTo(xx + R * 0.08, yy); g.stroke(); } }
   g.strokeStyle = dark; g.fillStyle = dark; g.lineWidth = R * 0.09;
-  if (v === 0) {
+  if (v === 0 && FACE_KEY === 'unicorn') {
+    // 独眼兽：一只大眼睛
+    g.fillStyle = '#07030a'; g.beginPath(); g.ellipse(x, ey - er * 0.2, er * 2.1, er * 2.2, 0, 0, 7); g.fill();
+    g.fillStyle = '#fff4ff'; g.beginPath(); g.ellipse(x, ey - er * 0.2, er * 1.7, er * 1.8, 0, 0, 7); g.fill();
+    g.fillStyle = FACE_EYE; g.beginPath(); g.arc(x + er * 0.3, ey, er * 1.0, 0, 7); g.fill();
+    g.fillStyle = '#07030a'; g.beginPath(); g.arc(x + er * 0.3, ey, er * 0.5, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(x - er * 0.1, ey - er * 0.45, er * 0.28, 0, 7); g.fill();
+  } else if (v === 0) {
+    // 空洞大眼眶 + 发光小瞳孔（瞳孔略偏向一侧，像在盯着你）
     for (const s of [-1, 1]) {
-      g.fillStyle = dark; g.beginPath(); g.ellipse(x + s * ex, ey, er * 0.85, er * 1.1, 0, 0, 7); g.fill();
-      g.fillStyle = '#fff'; g.beginPath(); g.arc(x + s * ex - er * 0.3, ey - er * 0.4, er * 0.38, 0, 7); g.fill();
-      g.beginPath(); g.arc(x + s * ex + er * 0.3, ey + er * 0.35, er * 0.16, 0, 7); g.fill();
+      g.fillStyle = '#07030a'; g.beginPath(); g.ellipse(x + s * ex, ey, er * 1.25, er * 1.45, 0, 0, 7); g.fill();
+      g.fillStyle = FACE_EYE; g.globalAlpha = 0.35; g.beginPath(); g.arc(x + s * ex + er * 0.25, ey + er * 0.1, er * 0.75, 0, 7); g.fill();
+      g.globalAlpha = 1; g.beginPath(); g.arc(x + s * ex + er * 0.25, ey + er * 0.1, er * 0.42, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x + s * ex + er * 0.1, ey - er * 0.08, er * 0.14, 0, 7); g.fill();
     }
   } else if (v === 1) {
     for (const s of [-1, 1]) { g.beginPath(); g.moveTo(x + s * ex - er, ey); g.quadraticCurveTo(x + s * ex, ey + er * 0.8, x + s * ex + er, ey); g.stroke(); }
@@ -29,9 +43,9 @@ function drawFace(g, x, y, R, v, dark) {
     for (const s of [-1, 1]) { g.beginPath(); g.moveTo(x + s * ex - er, ey + er * 0.3); g.quadraticCurveTo(x + s * ex, ey - er * 1.1, x + s * ex + er, ey + er * 0.3); g.stroke(); }
   } else if (v === 5) {
     for (const s of [-1, 1]) {
-      g.fillStyle = dark; g.beginPath(); g.ellipse(x + s * ex, ey + er * 0.15, er * 0.8, er * 0.85, 0, 0, 7); g.fill();
-      g.fillStyle = '#fff'; g.beginPath(); g.arc(x + s * ex - er * 0.25, ey - er * 0.1, er * 0.3, 0, 7); g.fill();
-      g.lineWidth = R * 0.1; g.beginPath(); g.moveTo(x + s * ex * 1.55, ey - er * 1.5); g.lineTo(x + s * ex * 0.45, ey - er * 0.8); g.stroke();
+      g.fillStyle = '#07030a'; g.beginPath(); g.ellipse(x + s * ex, ey + er * 0.15, er * 1.1, er * 1.1, 0, 0, 7); g.fill();
+      g.fillStyle = '#ff2a3a'; g.beginPath(); g.arc(x + s * ex, ey + er * 0.2, er * 0.45, 0, 7); g.fill();
+      g.strokeStyle = dark; g.lineWidth = R * 0.1; g.beginPath(); g.moveTo(x + s * ex * 1.55, ey - er * 1.5); g.lineTo(x + s * ex * 0.45, ey - er * 0.8); g.stroke();
     }
     // 💢 怒气符号
     g.strokeStyle = '#ff4d6d'; g.lineWidth = R * 0.08; const ax = x + R * 0.78, ay = y - R * 0.78, q = R * 0.13;
@@ -45,8 +59,8 @@ function drawFace(g, x, y, R, v, dark) {
   g.lineWidth = R * 0.07; g.strokeStyle = dark;
   if (v === 4) { g.beginPath(); g.ellipse(x, y + R * 0.3, R * 0.08, R * 0.1, 0, 0, 7); g.stroke(); }
   else if (v === 5) { g.beginPath(); g.moveTo(x - R * 0.14, y + R * 0.34); g.quadraticCurveTo(x, y + R * 0.2, x + R * 0.14, y + R * 0.34); g.stroke(); g.fillStyle = '#fff'; g.fillRect(x - R * 0.05, y + R * 0.26, R * 0.04, R * 0.05); g.fillRect(x + R * 0.02, y + R * 0.26, R * 0.04, R * 0.05); }
-  else if (v === 3) { g.fillStyle = '#ff6b8b'; g.beginPath(); g.moveTo(x - R * 0.14, y + R * 0.22); g.quadraticCurveTo(x, y + R * 0.5, x + R * 0.14, y + R * 0.22); g.closePath(); g.fill(); }
-  else { g.beginPath(); g.moveTo(x - R * 0.13, y + R * 0.24); g.quadraticCurveTo(x - R * 0.065, y + R * 0.34, x, y + R * 0.25); g.quadraticCurveTo(x + R * 0.065, y + R * 0.34, x + R * 0.13, y + R * 0.24); g.stroke(); }
+  else if (v === 3) { g.fillStyle = '#1a0610'; g.beginPath(); g.moveTo(x - R * 0.3, y + R * 0.2); g.quadraticCurveTo(x, y + R * 0.58, x + R * 0.3, y + R * 0.2); g.quadraticCurveTo(x, y + R * 0.34, x - R * 0.3, y + R * 0.2); g.fill(); g.fillStyle = '#fff'; for (let k = -2; k <= 2; k++) { const tx = x + k * R * 0.1; g.beginPath(); g.moveTo(tx - R * 0.045, y + R * 0.27); g.lineTo(tx + R * 0.045, y + R * 0.27); g.lineTo(tx, y + R * 0.36); g.fill(); } }
+  else { g.beginPath(); g.moveTo(x - R * 0.13, y + R * 0.24); g.quadraticCurveTo(x - R * 0.065, y + R * 0.34, x, y + R * 0.25); g.quadraticCurveTo(x + R * 0.065, y + R * 0.34, x + R * 0.13, y + R * 0.24); g.stroke(); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(x + R * 0.03, y + R * 0.255); g.lineTo(x + R * 0.1, y + R * 0.255); g.lineTo(x + R * 0.065, y + R * 0.37); g.fill(); }
 }
 function blob(g, x, y, rx, ry, col, col2) {
   const gr = g.createRadialGradient(x - rx * 0.35, y - ry * 0.45, rx * 0.1, x, y, Math.max(rx, ry) * 1.1);
@@ -60,7 +74,8 @@ function drawSpecies(g, s, S, v, noRim) {
   const sp = SPECIES[s]; const R = S * SPR_BODY, x = S / 2, y = S / 2 + S * 0.05;
   let col = sp.col, col2 = sp.col2;
   if (v === 2) { col = mixc(col, '#d8d0e8', 0.2); col2 = mixc(col2, '#e0dcea', 0.18); }
-  const dark = '#3a2a3a', ol = shade(col, -0.35), lw = S * 0.018;
+  FACE_EYE = sp.eye || '#ffd36b'; FACE_KEY = sp.key;
+  const dark = '#140a16', ol = shade(col, -0.45), lw = S * 0.022;
   g.save();
   const key = sp.key;
   if (key === 'slime') {

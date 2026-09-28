@@ -77,7 +77,7 @@ function buildProps() {
     const gr = g.createLinearGradient(-8, -12, 8, 10); gr.addColorStop(0, '#f6ecff'); gr.addColorStop(0.5, '#b98cff'); gr.addColorStop(1, '#5a2fb4'); g.fillStyle = gr;
     g.beginPath(); g.moveTo(0, -13); g.lineTo(8, -6); g.lineTo(8, 6); g.lineTo(0, 13); g.lineTo(-8, 6); g.lineTo(-8, -6); g.closePath(); g.fill(); g.strokeStyle = '#efe0ff'; g.lineWidth = 1.2; g.stroke();
     g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.moveTo(0, -13); g.lineTo(-8, -6); g.lineTo(-3, -3); g.lineTo(0, -8); g.closePath(); g.fill(); }
-  SIGSPR = mkC(64); { const g = SIGSPR.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.25, 'rgba(160,220,255,0.4)'); gr.addColorStop(1, 'rgba(120,180,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }
+  SIGSPR = mkC(64); { const g = SIGSPR.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.25, 'rgba(255,200,130,0.4)'); gr.addColorStop(1, 'rgba(255,160,80,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }
 }
 
 /* ---------- 植被：按格子哈希确定位置（开阔 + 已探索的格子才画） ---------- */
